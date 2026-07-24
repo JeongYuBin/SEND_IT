@@ -1,6 +1,7 @@
 package com.sendit.common.error;
 
 import com.sendit.auth.AuthException;
+import com.sendit.share.ShareNotFoundException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,6 +30,18 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "요청 값을 확인해 주세요.", fieldErrors);
     }
 
+    @ExceptionHandler(ShareNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    ApiError handleNotFound(ShareNotFoundException exception) {
+        return error(HttpStatus.NOT_FOUND, "SHARE_NOT_FOUND", exception.getMessage(), Map.of());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    ApiError handleBadRequest(IllegalArgumentException exception) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage(), Map.of());
+    }
+
     private ApiError error(
             HttpStatus status,
             String code,
@@ -38,4 +51,3 @@ public class GlobalExceptionHandler {
         return new ApiError(Instant.now(), status.value(), code, message, fieldErrors);
     }
 }
-
