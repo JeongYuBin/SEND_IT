@@ -136,10 +136,41 @@ h1 {
   font-weight: 700;
 }
 
+.share-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .share-form small {
   display: block;
   margin-top: 12px;
   color: #708078;
+}
+
+.share-feedback {
+  display: flex;
+  margin-top: 16px;
+  padding: 12px 14px;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.share-feedback.success {
+  color: #176b52;
+  background: #dceee6;
+}
+
+.share-feedback.error {
+  color: #a93b31;
+  background: #f9e6e3;
+}
+
+.share-feedback span {
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .auth-shell {
