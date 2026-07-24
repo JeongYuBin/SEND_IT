@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -60,6 +61,7 @@ public class JwtTokenProvider {
     ) {
         Instant now = Instant.now();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(email)
                 .claim("uid", userId)
                 .claim("type", type)
@@ -69,4 +71,3 @@ public class JwtTokenProvider {
                 .compact();
     }
 }
-
