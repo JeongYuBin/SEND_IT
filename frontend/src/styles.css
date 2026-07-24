@@ -1,0 +1,110 @@
+:root {
+  font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
+  color: #16352c;
+  background: #f5f3ec;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(circle at 80% 10%, #cbe7d7 0, transparent 28rem),
+    #f5f3ec;
+}
+
+.hero {
+  width: min(100%, 760px);
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: #176b52;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(3rem, 9vw, 6.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.hero > p {
+  max-width: 540px;
+  margin: 32px 0 48px;
+  color: #52675f;
+  font-size: 1.15rem;
+  line-height: 1.7;
+}
+
+.share-form {
+  padding: 24px;
+  border: 1px solid #d7ddd8;
+  border-radius: 20px;
+  background: rgb(255 255 255 / 72%);
+  box-shadow: 0 24px 60px rgb(30 77 60 / 10%);
+}
+
+.share-form label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.share-form div {
+  display: flex;
+  gap: 10px;
+}
+
+.share-form input {
+  min-width: 0;
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid #b8c7c0;
+  border-radius: 12px;
+  background: white;
+}
+
+.share-form button {
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 12px;
+  color: white;
+  background: #176b52;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.share-form small {
+  display: block;
+  margin-top: 12px;
+  color: #708078;
+}
+
+@media (max-width: 560px) {
+  .share-form div {
+    flex-direction: column;
+  }
+}
+

@@ -1,0 +1,23 @@
+# Environment
+.env
+.env.local
+!.env.example
+
+# Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# Backend
+target/
+*.class
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
