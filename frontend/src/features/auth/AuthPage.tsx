@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { login, signUp } from './authApi'
 import type { ApiError, LoginRequest, SignUpRequest } from './types'
 import { useAuthStore } from '../../stores/authStore'
@@ -12,6 +12,7 @@ type AuthPageProps = {
 
 export function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const setSession = useAuthStore((state) => state.setSession)
   const isAuthenticated = useAuthStore((state) => Boolean(state.accessToken))
   const [email, setEmail] = useState('')
@@ -47,6 +48,11 @@ export function AuthPage({ mode }: AuthPageProps) {
     <main className="auth-shell">
       <Link className="brand-link" to="/">SEND IT</Link>
       <section className="auth-card">
+        {location.state?.message && (
+          <div className="form-error session-message" role="alert">
+            {location.state.message}
+          </div>
+        )}
         <span className="eyebrow">{isSignUp ? 'JOIN US' : 'WELCOME BACK'}</span>
         <h1>{isSignUp ? '여행을 모으기 시작해요.' : '다시 여행을 이어가요.'}</h1>
         <p>
@@ -117,4 +123,3 @@ export function AuthPage({ mode }: AuthPageProps) {
     </main>
   )
 }
-

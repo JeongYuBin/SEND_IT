@@ -228,6 +228,10 @@ h1 {
   font-weight: 500;
 }
 
+.session-message {
+  margin-bottom: 24px;
+}
+
 .form-error {
   padding: 12px 14px;
   border-radius: 10px;

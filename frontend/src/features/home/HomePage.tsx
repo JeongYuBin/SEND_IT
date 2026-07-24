@@ -13,6 +13,15 @@ export function HomePage() {
   const [url, setUrl] = useState('')
   const shareMutation = useMutation({
     mutationFn: createShare,
+    onError: (error) => {
+      const status = (error as AxiosError).response?.status
+      if (status === 401 || status === 403) {
+        navigate('/login', {
+          replace: true,
+          state: { message: '로그인이 만료되었습니다. 다시 로그인해 주세요.' },
+        })
+      }
+    },
   })
 
   const handleLogout = async () => {

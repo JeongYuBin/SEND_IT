@@ -26,13 +26,14 @@ http.interceptors.response.use(
   async (error: AxiosError) => {
     const request = error.config as RetryableRequest | undefined
     const auth = useAuthStore.getState()
+    const isAuthRequest = request?.url?.includes('/auth/')
 
     if (
       error.response?.status === 401 &&
       request &&
       !request._retry &&
       auth.refreshToken &&
-      !request.url?.includes('/auth/')
+      !isAuthRequest
     ) {
       request._retry = true
       try {
@@ -47,7 +48,13 @@ http.interceptors.response.use(
       }
     }
 
+    if (
+      !isAuthRequest &&
+      (error.response?.status === 401 || error.response?.status === 403)
+    ) {
+      auth.clearSession()
+    }
+
     return Promise.reject(error)
   },
 )
-
