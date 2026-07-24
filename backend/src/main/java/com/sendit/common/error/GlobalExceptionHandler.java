@@ -2,6 +2,7 @@ package com.sendit.common.error;
 
 import com.sendit.auth.AuthException;
 import com.sendit.share.ShareNotFoundException;
+import com.sendit.collection.ResourceNotFoundException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,6 +35,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     ApiError handleNotFound(ShareNotFoundException exception) {
         return error(HttpStatus.NOT_FOUND, "SHARE_NOT_FOUND", exception.getMessage(), Map.of());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    ApiError handleResourceNotFound(ResourceNotFoundException exception) {
+        return error(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", exception.getMessage(), Map.of());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
