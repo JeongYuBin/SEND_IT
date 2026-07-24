@@ -1,0 +1,58 @@
+package com.sendit.share;
+
+import java.time.Instant;
+import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AnalysisJobService {
+
+    private final AnalysisJobRepository analysisJobRepository;
+
+    public AnalysisJobService(AnalysisJobRepository analysisJobRepository) {
+        this.analysisJobRepository = analysisJobRepository;
+    }
+
+    @Transactional
+    public Optional<ClaimedJob> claimNext() {
+        var jobs = analysisJobRepository.findByStatusOrderByCreatedAtAsc(
+                JobStatus.PENDING,
+                PageRequest.of(0, 1)
+        );
+        if (jobs.isEmpty()) {
+            return Optional.empty();
+        }
+        AnalysisJob job = jobs.getFirst();
+        job.start(Instant.now());
+        return Optional.of(new ClaimedJob(
+                job.getId(),
+                job.getSharedContent().getNormalizedUrl()
+        ));
+    }
+
+    @Transactional
+    public void complete(Long jobId, PageMetadata metadata) {
+        AnalysisJob job = analysisJobRepository.findById(jobId)
+                .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
+        job.complete(Instant.now(), metadata);
+    }
+
+    @Transactional
+    public void fail(Long jobId, String error) {
+        analysisJobRepository.findById(jobId)
+                .ifPresent(job -> job.fail(Instant.now(), truncate(error)));
+    }
+
+    private String truncate(String error) {
+        if (error == null) {
+            return "알 수 없는 분석 오류입니다.";
+        }
+        return error.length() <= 1000 ? error : error.substring(0, 1000);
+    }
+
+    public record ClaimedJob(Long jobId, String url) {
+    }
+}
+

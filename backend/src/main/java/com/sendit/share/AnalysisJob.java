@@ -33,6 +33,15 @@ public class AnalysisJob {
     @Column(name = "retry_count", nullable = false)
     private int retryCount;
 
+    @Column(name = "started_at")
+    private Instant startedAt;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
+    @Column(name = "error_message", columnDefinition = "text")
+    private String errorMessage;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -44,5 +53,32 @@ public class AnalysisJob {
         this.sharedContent = sharedContent;
         this.status = JobStatus.PENDING;
     }
-}
 
+    public Long getId() {
+        return id;
+    }
+
+    public SharedContent getSharedContent() {
+        return sharedContent;
+    }
+
+    public void start(Instant now) {
+        status = JobStatus.PROCESSING;
+        startedAt = now;
+        sharedContent.startAnalysis();
+    }
+
+    public void complete(Instant now, PageMetadata metadata) {
+        status = JobStatus.COMPLETED;
+        completedAt = now;
+        errorMessage = null;
+        sharedContent.completeAnalysis(metadata);
+    }
+
+    public void fail(Instant now, String error) {
+        status = JobStatus.FAILED;
+        completedAt = now;
+        errorMessage = error;
+        sharedContent.failAnalysis(error);
+    }
+}

@@ -95,6 +95,10 @@ public class SharedContent {
         return originalUrl;
     }
 
+    public String getNormalizedUrl() {
+        return normalizedUrl;
+    }
+
     public SourceType getSourceType() {
         return sourceType;
     }
@@ -131,5 +135,29 @@ public class SharedContent {
         analysisStatus = AnalysisStatus.PENDING;
         analysisError = null;
     }
-}
 
+    public void startAnalysis() {
+        analysisStatus = AnalysisStatus.ANALYZING;
+        analysisError = null;
+    }
+
+    public void completeAnalysis(PageMetadata metadata) {
+        title = truncate(metadata.title(), 500);
+        description = metadata.description();
+        thumbnailUrl = truncate(metadata.imageUrl(), 2048);
+        analysisStatus = AnalysisStatus.COMPLETED;
+        analysisError = null;
+    }
+
+    public void failAnalysis(String error) {
+        analysisStatus = AnalysisStatus.FAILED;
+        analysisError = error;
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
+    }
+}
