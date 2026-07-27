@@ -48,8 +48,11 @@ public class SavedPlaceService {
 
     public SavedPlaceDtos.Response update(String email, Long id, SavedPlaceDtos.UpdateRequest request) {
         var saved = owned(email, id);
+        Collection selectedCollection = request.collectionId() == null
+                ? saved.getCollection()
+                : collection(email, request.collectionId());
         saved.update(request.memo(), request.visitStatus(), request.priority(),
-                collection(email, request.collectionId()));
+                selectedCollection);
         return response(saved);
     }
 
@@ -80,4 +83,3 @@ public class SavedPlaceService {
                 saved.getPriority(), saved.getSavedAt());
     }
 }
-
