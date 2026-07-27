@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthPage } from './features/auth/AuthPage'
 import { HomePage } from './features/home/HomePage'
+import { SavedPlacesPage } from './features/saved/SavedPlacesPage'
 import { useAuthStore } from './stores/authStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -18,7 +19,7 @@ export function App() {
         path="/saved"
         element={
           <ProtectedRoute>
-            <div className="placeholder-page">저장한 장소 화면을 준비하고 있습니다.</div>
+            <SavedPlacesPage />
           </ProtectedRoute>
         }
       />
@@ -26,4 +27,3 @@ export function App() {
     </Routes>
   )
 }
-
