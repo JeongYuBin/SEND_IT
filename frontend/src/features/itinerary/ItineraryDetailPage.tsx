@@ -5,10 +5,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   deleteItinerary,
   getItinerary,
+  reorderItineraryItems,
   updateItinerary,
   updateItineraryItemSchedule,
+  updateItineraryItemTransport,
 } from './itineraryApi'
 import { ItineraryEditPanel } from './ItineraryEditPanel'
+import { ItineraryOrderEditor } from './ItineraryOrderEditor'
 import { ItineraryRouteMap } from './ItineraryRouteMap'
 import { PlaceScheduleEditor } from './PlaceScheduleEditor'
 import { TransitRouteGuide } from './TransitRouteGuide'
@@ -41,6 +44,7 @@ export function ItineraryDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [editingPlan, setEditingPlan] = useState(false)
+  const [editingOrder, setEditingOrder] = useState(false)
   const [editingPlaceId, setEditingPlaceId] = useState<number | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const itineraryQuery = useQuery({
@@ -83,6 +87,30 @@ export function ItineraryDetailPage() {
       navigate('/itineraries', { replace: true })
     },
   })
+  const reorderMutation = useMutation({
+    mutationFn: (items: import('./types').ReorderItineraryItem[]) =>
+      reorderItineraryItems(id, items),
+    onSuccess: (data) => {
+      refresh(data)
+      setEditingOrder(false)
+      setSaveMessage('날짜와 방문 순서를 저장했습니다.')
+    },
+    onMutate: () => setSaveMessage(null),
+  })
+  const transportMutation = useMutation({
+    mutationFn: ({
+      savedPlaceId,
+      transportType,
+    }: {
+      savedPlaceId: number
+      transportType: TransportType
+    }) => updateItineraryItemTransport(id, savedPlaceId, transportType),
+    onSuccess: (data) => {
+      refresh(data)
+      setSaveMessage('이동수단을 변경했습니다.')
+    },
+    onMutate: () => setSaveMessage(null),
+  })
 
   const handleDelete = () => {
     if (window.confirm('이 여행 계획을 삭제할까요? 삭제한 계획은 복구할 수 없습니다.')) {
@@ -91,6 +119,7 @@ export function ItineraryDetailPage() {
   }
 
   const mutationError = updateMutation.error ?? scheduleMutation.error
+    ?? reorderMutation.error ?? transportMutation.error
   const mutationErrorMessage = mutationError
     ? axios.isAxiosError<{ message?: string }>(mutationError)
       ? mutationError.response?.data?.message ?? '서버가 변경 요청을 처리하지 못했습니다.'
@@ -126,6 +155,9 @@ export function ItineraryDetailPage() {
               <button type="button" onClick={() => setEditingPlan((value) => !value)}>
                 {editingPlan ? '편집 닫기' : '계획 수정'}
               </button>
+              <button type="button" onClick={() => setEditingOrder((value) => !value)}>
+                {editingOrder ? '순서 편집 닫기' : '날짜·순서 편집'}
+              </button>
               <button className="danger-button" type="button" disabled={deleteMutation.isPending} onClick={handleDelete}>
                 {deleteMutation.isPending ? '삭제 중…' : '계획 삭제'}
               </button>
@@ -138,6 +170,15 @@ export function ItineraryDetailPage() {
               errorMessage={updateMutation.isError ? mutationErrorMessage : null}
               onCancel={() => setEditingPlan(false)}
               onSave={(request) => updateMutation.mutate(request)}
+            />
+          )}
+          {editingOrder && (
+            <ItineraryOrderEditor
+              itinerary={itineraryQuery.data}
+              pending={reorderMutation.isPending}
+              errorMessage={reorderMutation.isError ? mutationErrorMessage : null}
+              onCancel={() => setEditingOrder(false)}
+              onSave={(items) => reorderMutation.mutate(items)}
             />
           )}
           {saveMessage && <div className="form-success">{saveMessage}</div>}
@@ -174,9 +215,31 @@ export function ItineraryDetailPage() {
                       <li key={item.savedPlaceId}>
                         <span className="timeline-number">{item.daySequence}</span>
                         <div className="timeline-stop">
+                          {item.crossDayTransfer && (
+                            <div className="cross-day-transfer-label">
+                              전날 마지막 장소에서 오늘 첫 장소로 이동
+                            </div>
+                          )}
+                          {item.travelMinutesFromPrevious > 0 && (
+                            <label className="segment-transport-select">
+                              이 구간 이동수단
+                              <select
+                                value={item.transportTypeFromPrevious}
+                                disabled={transportMutation.isPending}
+                                onChange={(event) => transportMutation.mutate({
+                                  savedPlaceId: item.savedPlaceId,
+                                  transportType: event.target.value as TransportType,
+                                })}
+                              >
+                                <option value="PUBLIC_TRANSIT">대중교통</option>
+                                <option value="CAR">자동차</option>
+                                <option value="WALKING">도보</option>
+                              </select>
+                            </label>
+                          )}
                           {item.transit ? (
                             <TransitRouteGuide route={item.transit} />
-                          ) : itineraryQuery.data.transportType === 'PUBLIC_TRANSIT'
+                          ) : item.transportTypeFromPrevious === 'PUBLIC_TRANSIT'
                             && item.travelMinutesFromPrevious > 0 ? (
                             <div className="transit-unavailable">
                               <strong>카카오맵 대중교통 경로 없음</strong>

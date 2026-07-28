@@ -1094,6 +1094,102 @@ h1 {
   margin: 0;
 }
 
+.order-editor {
+  margin: 24px 0;
+  padding: 24px;
+  border: 1px solid #cbdcd4;
+  border-radius: 18px;
+  background: #f6faf8;
+}
+
+.order-editor > header {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.order-editor h2,
+.order-editor p {
+  margin: 4px 0;
+}
+
+.order-editor-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.order-editor-day {
+  min-height: 180px;
+  padding: 14px;
+  border: 1px dashed #a9c5b9;
+  border-radius: 14px;
+  background: white;
+}
+
+.order-editor-day > div {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.order-editor-day article {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 11px;
+  border: 1px solid #d7e1dc;
+  border-radius: 10px;
+  background: #fff;
+  cursor: grab;
+}
+
+.order-editor-day article.dragging {
+  opacity: .45;
+}
+
+.order-editor-day article div {
+  display: grid;
+}
+
+.order-editor-day article small {
+  overflow: hidden;
+  color: #64756e;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drag-handle {
+  color: #176b52;
+  font-size: 22px;
+}
+
+.segment-transport-select {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 10px;
+  color: #365449;
+  font-weight: 700;
+}
+
+.segment-transport-select select {
+  padding: 8px 34px 8px 10px;
+  border: 1px solid #b9ccc3;
+  border-radius: 9px;
+  background: white;
+}
+
+.cross-day-transfer-label {
+  margin-bottom: 8px;
+  color: #176b52;
+  font-weight: 800;
+}
+
 .transit-guide summary {
   display: flex;
   flex-wrap: wrap;

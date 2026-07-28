@@ -41,6 +41,8 @@ export type ItineraryItem = {
   imageUrl: string | null
   stayMinutes: number
   transit: TransitRoute | null
+  transportTypeFromPrevious: TransportType
+  crossDayTransfer: boolean
 }
 
 export type ItineraryDay = {
@@ -80,4 +82,10 @@ export type UpdateItineraryItemSchedule = {
   visitDate: string | null
   startTime: string | null
   stayMinutes: number
+}
+
+export type ReorderItineraryItem = {
+  savedPlaceId: number
+  visitDate: string
+  sequence: number
 }

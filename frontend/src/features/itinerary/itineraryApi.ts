@@ -4,6 +4,8 @@ import type {
   Itinerary,
   UpdateItinerary,
   UpdateItineraryItemSchedule,
+  ReorderItineraryItem,
+  TransportType,
 } from './types'
 
 export async function getItineraries() {
@@ -35,4 +37,25 @@ export async function updateItineraryItemSchedule(
 
 export async function deleteItinerary(id: number) {
   await http.delete(`/itineraries/${id}`)
+}
+
+export async function reorderItineraryItems(
+  itineraryId: number,
+  items: ReorderItineraryItem[],
+) {
+  return (await http.put<Itinerary>(
+    `/itineraries/${itineraryId}/items/order`,
+    { items },
+  )).data
+}
+
+export async function updateItineraryItemTransport(
+  itineraryId: number,
+  savedPlaceId: number,
+  transportType: TransportType,
+) {
+  return (await http.put<Itinerary>(
+    `/itineraries/${itineraryId}/items/${savedPlaceId}/transport`,
+    { transportType },
+  )).data
 }
