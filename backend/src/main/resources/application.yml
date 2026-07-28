@@ -33,6 +33,9 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  tour-api:
+    service-key: ${TOUR_API_SERVICE_KEY:}
+    base-url: ${TOUR_API_BASE_URL:https://apis.data.go.kr/B551011/KorService2}
   analysis:
     poll-delay-ms: ${ANALYSIS_POLL_DELAY_MS:2000}
     connect-timeout-seconds: ${ANALYSIS_CONNECT_TIMEOUT_SECONDS:5}

@@ -1,5 +1,6 @@
 package com.sendit.share;
 
+import com.sendit.tourism.TourApiClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -10,17 +11,20 @@ public class ContentAnalysisWorker {
     private final SafePageFetcher safePageFetcher;
     private final PageMetadataParser pageMetadataParser;
     private final VisitKoreaMetadataClient visitKoreaMetadataClient;
+    private final TourApiClient tourApiClient;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
             SafePageFetcher safePageFetcher,
             PageMetadataParser pageMetadataParser,
-            VisitKoreaMetadataClient visitKoreaMetadataClient
+            VisitKoreaMetadataClient visitKoreaMetadataClient,
+            TourApiClient tourApiClient
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
         this.pageMetadataParser = pageMetadataParser;
         this.visitKoreaMetadataClient = visitKoreaMetadataClient;
+        this.tourApiClient = tourApiClient;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -30,6 +34,7 @@ public class ContentAnalysisWorker {
                 var page = safePageFetcher.fetch(job.url());
                 PageMetadata metadata = pageMetadataParser.parse(page.html(), page.finalUrl());
                 metadata = visitKoreaMetadataClient.enrich(page.finalUrl(), metadata);
+                metadata = tourApiClient.enrich(metadata);
                 analysisJobService.complete(job.jobId(), metadata);
             } catch (RuntimeException exception) {
                 analysisJobService.retryOrFail(job.jobId(), exception.getMessage());
