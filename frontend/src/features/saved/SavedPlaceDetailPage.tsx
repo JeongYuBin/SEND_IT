@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { getSavedPlace, updateSavedPlace } from './savedApi'
+import { getCollections, getSavedPlace, updateSavedPlace } from './savedApi'
 import type { VisitStatus } from './types'
 
 const statusLabels: Record<VisitStatus, string> = {
@@ -18,9 +18,13 @@ export function SavedPlaceDetailPage() {
     queryFn: () => getSavedPlace(savedPlaceId),
     enabled: Number.isFinite(savedPlaceId),
   })
-  const statusMutation = useMutation({
-    mutationFn: (visitStatus: VisitStatus) =>
-      updateSavedPlace(savedPlaceId, { visitStatus }),
+  const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
+  const updateMutation = useMutation({
+    mutationFn: (request: {
+      visitStatus?: VisitStatus
+      collectionId?: number
+      clearCollection?: boolean
+    }) => updateSavedPlace(savedPlaceId, request),
     onSuccess: (place) => {
       queryClient.setQueryData(['saved-place', savedPlaceId], place)
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
@@ -71,11 +75,30 @@ export function SavedPlaceDetailPage() {
             <div><dt>방문 상태</dt><dd>
               <select
                 value={place.visitStatus}
-                disabled={statusMutation.isPending}
-                onChange={(event) => statusMutation.mutate(event.target.value as VisitStatus)}
+                disabled={updateMutation.isPending}
+                onChange={(event) => updateMutation.mutate({
+                  visitStatus: event.target.value as VisitStatus,
+                })}
               >
                 {Object.entries(statusLabels).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </dd></div>
+            <div><dt>컬렉션</dt><dd>
+              <select
+                value={place.collectionId ?? 'none'}
+                disabled={updateMutation.isPending}
+                onChange={(event) => {
+                  const value = event.target.value
+                  updateMutation.mutate(value === 'none'
+                    ? { clearCollection: true }
+                    : { collectionId: Number(value) })
+                }}
+              >
+                <option value="none">컬렉션 없음</option>
+                {collectionsQuery.data?.map((item) => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
                 ))}
               </select>
             </dd></div>

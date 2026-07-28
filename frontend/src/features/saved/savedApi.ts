@@ -15,7 +15,13 @@ export async function createSavedPlace(request: CreateSavedPlace) {
 
 export async function updateSavedPlace(
   id: number,
-  request: { memo?: string; visitStatus?: VisitStatus; priority?: number; collectionId?: number | null },
+  request: {
+    memo?: string
+    visitStatus?: VisitStatus
+    priority?: number
+    collectionId?: number
+    clearCollection?: boolean
+  },
 ) {
   return (await http.patch<SavedPlace>(`/saved-places/${id}`, request)).data
 }

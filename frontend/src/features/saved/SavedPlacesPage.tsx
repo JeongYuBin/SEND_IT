@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   createCollection,
   createSavedPlace,
@@ -22,7 +22,12 @@ export function SavedPlacesPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { collectionId: collectionIdParam } = useParams()
+  const [searchParams] = useSearchParams()
   const selectedCollectionId = collectionIdParam ? Number(collectionIdParam) : null
+  const showUncategorized = selectedCollectionId === null && searchParams.get('collection') === 'none'
+  const collectionScope = selectedCollectionId === null
+    ? (showUncategorized ? 'none' : 'all')
+    : String(selectedCollectionId)
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
@@ -39,7 +44,7 @@ export function SavedPlacesPage() {
     setRegionFilter('all')
     setCategoryFilter('all')
     setStatusFilter('all')
-  }, [selectedCollectionId])
+  }, [collectionScope])
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
@@ -54,8 +59,13 @@ export function SavedPlacesPage() {
     },
   })
   const updateMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: VisitStatus }) =>
-      updateSavedPlace(id, { visitStatus: status }),
+    mutationFn: ({
+      id,
+      request,
+    }: {
+      id: number
+      request: { visitStatus?: VisitStatus; collectionId?: number; clearCollection?: boolean }
+    }) => updateSavedPlace(id, request),
     onSuccess: refreshPlaces,
   })
   const deleteMutation = useMutation({
@@ -73,9 +83,13 @@ export function SavedPlacesPage() {
 
   const collectionPlaces = useMemo(
     () => (placesQuery.data ?? []).filter(
-      (place) => selectedCollectionId === null || place.collectionId === selectedCollectionId,
+      (place) => {
+        if (selectedCollectionId !== null) return place.collectionId === selectedCollectionId
+        if (showUncategorized) return place.collectionId === null
+        return true
+      },
     ),
-    [placesQuery.data, selectedCollectionId],
+    [placesQuery.data, selectedCollectionId, showUncategorized],
   )
   const categoryOptions = useMemo(
     () => [...new Set(collectionPlaces.map((place) => place.category).filter(Boolean) as string[])].sort(),
@@ -124,9 +138,11 @@ export function SavedPlacesPage() {
       <header className="saved-header">
         <div>
           <span className="eyebrow">MY PLACES</span>
-          <h1>{selectedCollection?.name ?? '저장한 장소'}</h1>
+          <h1>{showUncategorized ? '컬렉션 없는 장소' : (selectedCollection?.name ?? '저장한 장소')}</h1>
           <p>
-            {selectedCollection
+            {showUncategorized
+              ? '아직 컬렉션을 지정하지 않은 장소입니다.'
+              : selectedCollection
               ? `${selectedCollection.name} 컬렉션에 저장한 장소입니다.`
               : '발견한 여행지를 모으고 방문 상태를 관리해 보세요.'}
           </p>
@@ -172,6 +188,24 @@ export function SavedPlacesPage() {
 
       <section className="place-filters" aria-label="저장 장소 필터">
         <div>
+          <label>
+            컬렉션
+            <select
+              value={collectionScope}
+              onChange={(event) => {
+                const value = event.target.value
+                if (value === 'all') navigate('/saved')
+                else if (value === 'none') navigate('/saved?collection=none')
+                else navigate(`/saved/collections/${value}`)
+              }}
+            >
+              <option value="all">전체 컬렉션</option>
+              <option value="none">컬렉션 없음</option>
+              {collectionsQuery.data?.map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </select>
+          </label>
           <label>
             지역
             <select value={regionFilter} onChange={(event) => setRegionFilter(event.target.value)}>
@@ -266,8 +300,38 @@ export function SavedPlacesPage() {
                 <h2>{place.name}</h2>
                 <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
                 {place.memo && <p className="place-memo">{place.memo}</p>}
+                <label
+                  className="place-collection-control"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  컬렉션
+                  <select
+                    value={place.collectionId ?? 'none'}
+                    disabled={updateMutation.isPending}
+                    onChange={(event) => {
+                      const value = event.target.value
+                      updateMutation.mutate({
+                        id: place.savedPlaceId,
+                        request: value === 'none'
+                          ? { clearCollection: true }
+                          : { collectionId: Number(value) },
+                      })
+                    }}
+                  >
+                    <option value="none">컬렉션 없음</option>
+                    {collectionsQuery.data?.map((item) => (
+                      <option key={item.id} value={item.id}>{item.name}</option>
+                    ))}
+                  </select>
+                </label>
                 <div className="place-actions" onClick={(event) => event.stopPropagation()}>
-                  <select value={place.visitStatus} onChange={(e) => updateMutation.mutate({ id: place.savedPlaceId, status: e.target.value as VisitStatus })}>
+                  <select
+                    value={place.visitStatus}
+                    onChange={(e) => updateMutation.mutate({
+                      id: place.savedPlaceId,
+                      request: { visitStatus: e.target.value as VisitStatus },
+                    })}
+                  >
                     {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
                   <button onClick={() => deleteMutation.mutate(place.savedPlaceId)}>삭제</button>
