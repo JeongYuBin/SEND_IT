@@ -81,4 +81,24 @@ public class AnalysisJob {
         errorMessage = error;
         sharedContent.failAnalysis(error);
     }
+
+    public void retryOrFail(Instant now, String error, int maxRetries) {
+        if (retryCount < maxRetries) {
+            retryCount++;
+            status = JobStatus.PENDING;
+            startedAt = null;
+            errorMessage = error;
+            sharedContent.queueForAnalysis();
+            return;
+        }
+        fail(now, error);
+    }
+
+    JobStatus getStatus() {
+        return status;
+    }
+
+    int getRetryCount() {
+        return retryCount;
+    }
 }

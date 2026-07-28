@@ -3,6 +3,7 @@ package com.sendit.share;
 import java.time.Instant;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,9 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnalysisJobService {
 
     private final AnalysisJobRepository analysisJobRepository;
+    private final int maxRetries;
 
-    public AnalysisJobService(AnalysisJobRepository analysisJobRepository) {
+    public AnalysisJobService(
+            AnalysisJobRepository analysisJobRepository,
+            @Value("${app.analysis.max-retries}") int maxRetries
+    ) {
         this.analysisJobRepository = analysisJobRepository;
+        this.maxRetries = maxRetries;
     }
 
     @Transactional
@@ -40,9 +46,9 @@ public class AnalysisJobService {
     }
 
     @Transactional
-    public void fail(Long jobId, String error) {
+    public void retryOrFail(Long jobId, String error) {
         analysisJobRepository.findById(jobId)
-                .ifPresent(job -> job.fail(Instant.now(), truncate(error)));
+                .ifPresent(job -> job.retryOrFail(Instant.now(), truncate(error), maxRetries));
     }
 
     private String truncate(String error) {
@@ -55,4 +61,3 @@ public class AnalysisJobService {
     public record ClaimedJob(Long jobId, String url) {
     }
 }
-

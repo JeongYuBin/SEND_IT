@@ -55,12 +55,11 @@ public class VisitKoreaMetadataClient {
                     .build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                return fallback;
+                throw new ContentAnalysisException("한국관광공사 상세 API 응답 오류: HTTP " + response.statusCode());
             }
             return merge(fallback, response.body());
         } catch (Exception ignored) {
-            // 제공자별 보강 실패가 기본 HTML 분석 결과까지 실패시키지는 않는다.
-            return fallback;
+            throw new ContentAnalysisException("한국관광공사 상세 정보를 불러오지 못했습니다.");
         }
     }
 

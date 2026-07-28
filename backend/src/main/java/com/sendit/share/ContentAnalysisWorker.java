@@ -32,7 +32,7 @@ public class ContentAnalysisWorker {
                 metadata = visitKoreaMetadataClient.enrich(page.finalUrl(), metadata);
                 analysisJobService.complete(job.jobId(), metadata);
             } catch (RuntimeException exception) {
-                analysisJobService.fail(job.jobId(), exception.getMessage());
+                analysisJobService.retryOrFail(job.jobId(), exception.getMessage());
             }
         });
     }
