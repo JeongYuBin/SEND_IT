@@ -1,5 +1,6 @@
 package com.sendit.itinerary;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -34,6 +35,18 @@ public final class ItineraryDtos {
             @NotNull @Min(15) @Max(720) Integer stayMinutes
     ) {}
 
+    public record UpdateItemTransportRequest(@NotNull TransportType transportType) {}
+
+    public record ReorderItemRequest(
+            @NotNull Long savedPlaceId,
+            @NotNull LocalDate visitDate,
+            @Min(1) int sequence
+    ) {}
+
+    public record ReorderRequest(
+            @NotEmpty List<@NotNull @Valid ReorderItemRequest> items
+    ) {}
+
     public record ItemResponse(
             Long savedPlaceId, int sequence, int daySequence, LocalDate visitDate,
             LocalTime arrivalTime, LocalTime departureTime,
@@ -41,7 +54,8 @@ public final class ItineraryDtos {
             boolean coordinateAvailable, LocalDate preferredVisitDate,
             LocalTime preferredStartTime, String name, String category,
             String address, Double latitude, Double longitude, String imageUrl,
-            int stayMinutes, TransitRouteResponse transit
+            int stayMinutes, TransitRouteResponse transit,
+            TransportType transportTypeFromPrevious, boolean crossDayTransfer
     ) {}
 
     public record TransitRouteResponse(

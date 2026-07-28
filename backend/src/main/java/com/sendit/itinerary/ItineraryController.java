@@ -48,6 +48,26 @@ public class ItineraryController {
         return service.updateItemSchedule(principal.getName(), id, savedPlaceId, request);
     }
 
+    @PutMapping("/{id}/items/{savedPlaceId}/transport")
+    ItineraryDtos.Response updateItemTransport(
+            Principal principal,
+            @PathVariable Long id,
+            @PathVariable Long savedPlaceId,
+            @Valid @RequestBody ItineraryDtos.UpdateItemTransportRequest request
+    ) {
+        return service.updateItemTransport(
+                principal.getName(), id, savedPlaceId, request.transportType());
+    }
+
+    @PutMapping("/{id}/items/order")
+    ItineraryDtos.Response reorder(
+            Principal principal,
+            @PathVariable Long id,
+            @Valid @RequestBody ItineraryDtos.ReorderRequest request
+    ) {
+        return service.reorder(principal.getName(), id, request);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(Principal principal, @PathVariable Long id) {

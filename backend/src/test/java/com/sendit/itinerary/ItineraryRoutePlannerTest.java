@@ -105,6 +105,27 @@ class ItineraryRoutePlannerTest {
         assertThat(secondStop.transitRoute()).isNotNull();
     }
 
+    @Test
+    void includesTransferFromPreviousDaysLastPlace() {
+        ItineraryItem firstDay = item(1, 38.1906, 128.6020);
+        ItineraryItem secondDay = item(2, 37.4803, 126.8898);
+        when(firstDay.getPreferredVisitDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(secondDay.getPreferredVisitDate()).thenReturn(LocalDate.of(2026, 8, 2));
+        Itinerary itinerary = mock(Itinerary.class);
+        when(itinerary.getItems()).thenReturn(List.of(firstDay, secondDay));
+        when(itinerary.getStartDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(itinerary.getEndDate()).thenReturn(LocalDate.of(2026, 8, 2));
+        when(itinerary.getDailyStartTime()).thenReturn(LocalTime.of(10, 0));
+        when(itinerary.getDailyEndTime()).thenReturn(LocalTime.of(18, 0));
+        when(itinerary.getTransportType()).thenReturn(TransportType.CAR);
+
+        var secondDayStop = planner.plan(itinerary).get(1).stops().getFirst();
+
+        assertThat(secondDayStop.crossDayTransfer()).isTrue();
+        assertThat(secondDayStop.travelMinutesFromPrevious()).isPositive();
+        assertThat(secondDayStop.arrivalTime()).isEqualTo(LocalTime.of(10, 0));
+    }
+
     private ItineraryItem item(int sequence, Double latitude, Double longitude) {
         Place place = mock(Place.class);
         when(place.getName()).thenReturn("테스트 장소 " + sequence);

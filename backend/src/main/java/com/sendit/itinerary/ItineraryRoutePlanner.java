@@ -52,21 +52,24 @@ public class ItineraryRoutePlanner {
         }
 
         List<DaySchedule> schedules = new ArrayList<>();
+        ItineraryItem previous = null;
+        int previousDayIndex = -1;
         for (int dayIndex = 0; dayIndex < dayCount; dayIndex++) {
             List<ItineraryItem> ordered = new ArrayList<>(
                     nearestNeighborOrder(dayBuckets.get(dayIndex)));
-            ordered.sort(Comparator
-                    .comparing(ItineraryItem::getPreferredStartTime,
-                            Comparator.nullsLast(Comparator.naturalOrder()))
-                    .thenComparingInt(ItineraryItem::getSequence));
+            ordered.sort(Comparator.comparingInt(ItineraryItem::getSequence));
             LocalTime currentTime = itinerary.getDailyStartTime();
             List<ScheduledStop> stops = new ArrayList<>();
-            ItineraryItem previous = null;
-
             for (int index = 0; index < ordered.size(); index++) {
                 ItineraryItem item = ordered.get(index);
-                TravelEstimate travel = estimate(previous, item, itinerary.getTransportType());
-                currentTime = currentTime.plusMinutes(travel.minutes());
+                TransportType transportType = item.getTransportTypeFromPrevious() == null
+                        ? itinerary.getTransportType()
+                        : item.getTransportTypeFromPrevious();
+                TravelEstimate travel = estimate(previous, item, transportType);
+                boolean crossDayTransfer = previous != null && previousDayIndex != dayIndex;
+                if (!crossDayTransfer) {
+                    currentTime = currentTime.plusMinutes(travel.minutes());
+                }
                 LocalTime arrivalTime = item.getPreferredStartTime() != null
                         && item.getPreferredStartTime().isAfter(currentTime)
                         ? item.getPreferredStartTime()
@@ -80,10 +83,13 @@ public class ItineraryRoutePlanner {
                         travel.minutes(),
                         travel.distanceKm(),
                         coordinates(item) != null,
-                        travel.transitRoute()
+                        travel.transitRoute(),
+                        transportType,
+                        crossDayTransfer
                 ));
                 currentTime = departureTime;
                 previous = item;
+                previousDayIndex = dayIndex;
             }
             schedules.add(new DaySchedule(
                     itinerary.getStartDate().plusDays(dayIndex),
@@ -201,6 +207,9 @@ public class ItineraryRoutePlanner {
             Double distanceKmFromPrevious,
             boolean coordinateAvailable,
             KakaoTransitClient.TransitRoute transitRoute
+            ,
+            TransportType transportType,
+            boolean crossDayTransfer
     ) {}
 
     private record Coordinates(double latitude, double longitude) {}

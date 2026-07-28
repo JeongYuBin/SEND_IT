@@ -24,6 +24,9 @@ public class ItineraryItem {
     private LocalDate preferredVisitDate;
     @Column(name = "preferred_start_time")
     private LocalTime preferredStartTime;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transport_type_from_previous")
+    private TransportType transportTypeFromPrevious;
     @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -41,11 +44,21 @@ public class ItineraryItem {
     public int getStayMinutes() { return stayMinutes; }
     public LocalDate getPreferredVisitDate() { return preferredVisitDate; }
     public LocalTime getPreferredStartTime() { return preferredStartTime; }
+    public TransportType getTransportTypeFromPrevious() { return transportTypeFromPrevious; }
 
     public void updateSchedule(LocalDate visitDate, LocalTime startTime, int stayMinutes) {
         this.preferredVisitDate = visitDate;
         this.preferredStartTime = visitDate == null ? null : startTime;
         this.stayMinutes = stayMinutes;
+    }
+
+    public void updateOrdering(LocalDate visitDate, int sequence) {
+        this.preferredVisitDate = visitDate;
+        this.sequence = sequence;
+    }
+
+    public void updateTransportType(TransportType transportType) {
+        this.transportTypeFromPrevious = transportType;
     }
 
     void clearPreferenceOutside(LocalDate startDate, LocalDate endDate) {

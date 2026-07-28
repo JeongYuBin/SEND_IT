@@ -105,6 +105,47 @@ public class ItineraryService {
         itineraries.delete(ownedItinerary(email, id));
     }
 
+    public ItineraryDtos.Response updateItemTransport(
+            String email, Long id, Long savedPlaceId, TransportType transportType
+    ) {
+        Itinerary itinerary = ownedItinerary(email, id);
+        itineraryItem(itinerary, savedPlaceId).updateTransportType(transportType);
+        return response(itinerary);
+    }
+
+    public ItineraryDtos.Response reorder(
+            String email, Long id, ItineraryDtos.ReorderRequest request
+    ) {
+        Itinerary itinerary = ownedItinerary(email, id);
+        if (request.items().size() != itinerary.getItems().size()
+                || request.items().stream().map(ItineraryDtos.ReorderItemRequest::savedPlaceId)
+                .distinct().count() != itinerary.getItems().size()) {
+            throw new IllegalArgumentException("모든 장소를 중복 없이 전달해 주세요.");
+        }
+        for (int index = 0; index < request.items().size(); index++) {
+            itineraryItem(itinerary, request.items().get(index).savedPlaceId())
+                    .updateOrdering(request.items().get(index).visitDate(), 10_000 + index);
+        }
+        itineraries.flush();
+        for (var ordered : request.items()) {
+            if (ordered.visitDate().isBefore(itinerary.getStartDate())
+                    || ordered.visitDate().isAfter(itinerary.getEndDate())) {
+                throw new IllegalArgumentException("여행 기간 안의 날짜를 선택해 주세요.");
+            }
+            itineraryItem(itinerary, ordered.savedPlaceId())
+                    .updateOrdering(ordered.visitDate(), ordered.sequence());
+        }
+        return response(itinerary);
+    }
+
+    private ItineraryItem itineraryItem(Itinerary itinerary, Long savedPlaceId) {
+        return itinerary.getItems().stream()
+                .filter(item -> item.getSavedPlace().getId().equals(savedPlaceId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "여행 계획에서 장소를 찾을 수 없습니다."));
+    }
+
     private Itinerary ownedItinerary(String email, Long id) {
         return itineraries.findByIdAndUserEmail(id, email)
                 .orElseThrow(() -> new ResourceNotFoundException("여행 계획을 찾을 수 없습니다."));
@@ -178,7 +219,9 @@ public class ItineraryService {
                 place.getLongitude(),
                 place.getPrimaryImageUrl(),
                 stop.item().getStayMinutes(),
-                transitResponse(stop.transitRoute())
+                transitResponse(stop.transitRoute()),
+                stop.transportType(),
+                stop.crossDayTransfer()
         );
     }
 
