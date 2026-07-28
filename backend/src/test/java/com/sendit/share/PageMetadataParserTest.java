@@ -60,4 +60,19 @@ class PageMetadataParserTest {
         assertThat(result.latitude()).isEqualTo(37.5796);
         assertThat(result.longitude()).isEqualTo(126.9770);
     }
+
+    @Test
+    void cleansVisitKoreaSiteSuffixFromPlaceName() {
+        String html = """
+                <title>월래순교자관&gt; 여행지 :대한민국 구석구석 </title>
+                <meta property="og:title" content="월래순교자관&gt; 여행지 :대한민국 구석구석 ">
+                """;
+
+        PageMetadata result = parser.parse(
+                html,
+                "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=test"
+        );
+
+        assertThat(result.placeName()).isEqualTo("월래순교자관");
+    }
 }

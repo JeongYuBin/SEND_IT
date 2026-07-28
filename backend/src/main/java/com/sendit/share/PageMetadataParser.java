@@ -2,6 +2,7 @@ package com.sendit.share;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
 import java.util.ArrayDeque;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -35,7 +36,8 @@ public class PageMetadataParser {
         );
         String placeName = firstNonBlank(
                 place.name(),
-                content(document, "meta[property=place:name]")
+                content(document, "meta[property=place:name]"),
+                visitKoreaPlaceName(title, baseUrl)
         );
         String address = firstNonBlank(
                 place.address(),
@@ -175,6 +177,19 @@ public class PageMetadataParser {
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value;
+    }
+
+    private String visitKoreaPlaceName(String title, String baseUrl) {
+        try {
+            if (!"korean.visitkorea.or.kr".equalsIgnoreCase(URI.create(baseUrl).getHost())) {
+                return null;
+            }
+            return blankToNull(title == null
+                    ? null
+                    : title.replaceFirst("\\s*>\\s*여행지\\s*:\\s*대한민국\\s*구석구석.*$", "").trim());
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     private record PlaceCandidate(
