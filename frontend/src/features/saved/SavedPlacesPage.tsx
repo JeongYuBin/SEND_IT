@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   createCollection,
   createSavedPlace,
@@ -19,7 +19,9 @@ const statusLabels: Record<VisitStatus, string> = {
 
 export function SavedPlacesPage() {
   const queryClient = useQueryClient()
-  const [filter, setFilter] = useState<number | 'all'>('all')
+  const navigate = useNavigate()
+  const { collectionId: collectionIdParam } = useParams()
+  const selectedCollectionId = collectionIdParam ? Number(collectionIdParam) : null
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
@@ -30,6 +32,7 @@ export function SavedPlacesPage() {
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
+  const selectedCollection = collectionsQuery.data?.find((item) => item.id === selectedCollectionId)
   const refreshPlaces = () => queryClient.invalidateQueries({ queryKey: ['saved-places'] })
 
   const createMutation = useMutation({
@@ -58,8 +61,10 @@ export function SavedPlacesPage() {
   })
 
   const places = useMemo(
-    () => (placesQuery.data ?? []).filter((place) => filter === 'all' || place.collectionId === filter),
-    [placesQuery.data, filter],
+    () => (placesQuery.data ?? []).filter(
+      (place) => selectedCollectionId === null || place.collectionId === selectedCollectionId,
+    ),
+    [placesQuery.data, selectedCollectionId],
   )
 
   const handleSubmit = (event: FormEvent) => {
@@ -80,8 +85,12 @@ export function SavedPlacesPage() {
       <header className="saved-header">
         <div>
           <span className="eyebrow">MY PLACES</span>
-          <h1>저장한 장소</h1>
-          <p>발견한 여행지를 모으고 방문 상태를 관리해 보세요.</p>
+          <h1>{selectedCollection?.name ?? '저장한 장소'}</h1>
+          <p>
+            {selectedCollection
+              ? `${selectedCollection.name} 컬렉션에 저장한 장소입니다.`
+              : '발견한 여행지를 모으고 방문 상태를 관리해 보세요.'}
+          </p>
         </div>
         <button className="primary-button" onClick={() => setShowForm((value) => !value)}>
           {showForm ? '닫기' : '+ 장소 추가'}
@@ -105,9 +114,13 @@ export function SavedPlacesPage() {
 
       <section className="collection-bar">
         <div className="filter-chips">
-          <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>전체</button>
+          <button className={selectedCollectionId === null ? 'active' : ''} onClick={() => navigate('/saved')}>전체</button>
           {collectionsQuery.data?.map((item) => (
-            <button key={item.id} className={filter === item.id ? 'active' : ''} onClick={() => setFilter(item.id)}>
+            <button
+              key={item.id}
+              className={selectedCollectionId === item.id ? 'active' : ''}
+              onClick={() => navigate(`/saved/collections/${item.id}`)}
+            >
               {item.name}
             </button>
           ))}
@@ -123,6 +136,9 @@ export function SavedPlacesPage() {
       {!placesQuery.isLoading && places.length === 0 && (
         <div className="empty-state"><strong>아직 저장한 장소가 없어요.</strong><span>첫 여행지를 추가해 보세요.</span></div>
       )}
+      {collectionIdParam && !collectionsQuery.isLoading && !selectedCollection && (
+        <div className="form-error">존재하지 않거나 접근할 수 없는 컬렉션입니다.</div>
+      )}
       <section className="place-grid">
         {places.map((place) => (
           <article className="place-card" key={place.savedPlaceId}>
@@ -130,7 +146,19 @@ export function SavedPlacesPage() {
               {place.imageUrl ? <img src={place.imageUrl} alt="" /> : <span>{place.name.slice(0, 1)}</span>}
             </div>
             <div className="place-content">
-              <div className="place-meta"><span>{place.category ?? '미분류'}</span><span>{place.collectionName ?? '컬렉션 없음'}</span></div>
+              <div className="place-meta">
+                <span>{place.category ?? '미분류'}</span>
+                {place.collectionId && place.collectionName ? (
+                  <button
+                    className="collection-link"
+                    onClick={() => navigate(`/saved/collections/${place.collectionId}`)}
+                  >
+                    {place.collectionName}
+                  </button>
+                ) : (
+                  <span>컬렉션 없음</span>
+                )}
+              </div>
               <h2>{place.name}</h2>
               <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
               {place.memo && <p className="place-memo">{place.memo}</p>}
@@ -147,4 +175,3 @@ export function SavedPlacesPage() {
     </main>
   )
 }
-

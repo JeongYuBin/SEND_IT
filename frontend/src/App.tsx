@@ -18,6 +18,14 @@ export function App() {
       <Route path="/signup" element={<AuthPage mode="signup" />} />
       <Route path="/shares/:shareId" element={<ProtectedRoute><ShareResultPage /></ProtectedRoute>} />
       <Route
+        path="/saved/collections/:collectionId"
+        element={
+          <ProtectedRoute>
+            <SavedPlacesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/saved"
         element={
           <ProtectedRoute>

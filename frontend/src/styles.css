@@ -408,9 +408,21 @@ h1 {
 
 .place-meta {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   color: #718078;
   font-size: 0.78rem;
+}
+
+.collection-link {
+  padding: 0;
+  border: 0;
+  color: #176b52;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .place-content h2 {
