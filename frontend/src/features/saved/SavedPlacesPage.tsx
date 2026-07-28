@@ -147,9 +147,12 @@ export function SavedPlacesPage() {
               : '발견한 여행지를 모으고 방문 상태를 관리해 보세요.'}
           </p>
         </div>
-        <button className="primary-button" onClick={() => setShowForm((value) => !value)}>
-          {showForm ? '닫기' : '+ 장소 추가'}
-        </button>
+        <div className="saved-header-actions">
+          <Link className="secondary-button" to="/itineraries">여행 계획 만들기</Link>
+          <button className="primary-button" onClick={() => setShowForm((value) => !value)}>
+            {showForm ? '닫기' : '+ 장소 추가'}
+          </button>
+        </div>
       </header>
 
       {showForm && (

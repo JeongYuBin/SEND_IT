@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthPage } from './features/auth/AuthPage'
 import { HomePage } from './features/home/HomePage'
+import { ItinerariesPage } from './features/itinerary/ItinerariesPage'
+import { ItineraryDetailPage } from './features/itinerary/ItineraryDetailPage'
 import { SavedPlacesPage } from './features/saved/SavedPlacesPage'
 import { SavedPlaceDetailPage } from './features/saved/SavedPlaceDetailPage'
 import { ShareResultPage } from './features/share/ShareResultPage'
@@ -18,6 +20,14 @@ export function App() {
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
       <Route path="/shares/:shareId" element={<ProtectedRoute><ShareResultPage /></ProtectedRoute>} />
+      <Route
+        path="/itineraries/:itineraryId"
+        element={<ProtectedRoute><ItineraryDetailPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/itineraries"
+        element={<ProtectedRoute><ItinerariesPage /></ProtectedRoute>}
+      />
       <Route
         path="/saved/places/:savedPlaceId"
         element={
