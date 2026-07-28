@@ -53,9 +53,14 @@ public class SavedPlaceService {
 
     public SavedPlaceDtos.Response update(String email, Long id, SavedPlaceDtos.UpdateRequest request) {
         var saved = owned(email, id);
-        Collection selectedCollection = request.collectionId() == null
-                ? saved.getCollection()
-                : collection(email, request.collectionId());
+        Collection selectedCollection;
+        if (Boolean.TRUE.equals(request.clearCollection())) {
+            selectedCollection = null;
+        } else if (request.collectionId() != null) {
+            selectedCollection = collection(email, request.collectionId());
+        } else {
+            selectedCollection = saved.getCollection();
+        }
         saved.update(request.memo(), request.visitStatus(), request.priority(),
                 selectedCollection);
         return response(saved);

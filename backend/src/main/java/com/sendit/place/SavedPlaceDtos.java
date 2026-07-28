@@ -23,7 +23,8 @@ public final class SavedPlaceDtos {
             @Size(max=1000) String memo,
             VisitStatus visitStatus,
             @Min(0) @Max(5) Integer priority,
-            Long collectionId
+            Long collectionId,
+            Boolean clearCollection
     ) {}
     public record Response(
             Long savedPlaceId, Long placeId, String name, String category,
