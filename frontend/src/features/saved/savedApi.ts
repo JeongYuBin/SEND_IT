@@ -5,6 +5,10 @@ export async function getSavedPlaces() {
   return (await http.get<SavedPlace[]>('/saved-places')).data
 }
 
+export async function getSavedPlace(id: number) {
+  return (await http.get<SavedPlace>(`/saved-places/${id}`)).data
+}
+
 export async function createSavedPlace(request: CreateSavedPlace) {
   return (await http.post<SavedPlace>('/saved-places', request)).data
 }
@@ -27,4 +31,3 @@ export async function getCollections() {
 export async function createCollection(name: string) {
   return (await http.post<Collection>('/collections', { name })).data
 }
-

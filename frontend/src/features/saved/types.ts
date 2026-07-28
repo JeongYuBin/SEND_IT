@@ -25,6 +25,7 @@ export type SavedPlace = {
   visitStatus: VisitStatus
   priority: number
   savedAt: string
+  originalUrl: string | null
 }
 
 export type CreateSavedPlace = {

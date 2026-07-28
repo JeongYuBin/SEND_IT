@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthPage } from './features/auth/AuthPage'
 import { HomePage } from './features/home/HomePage'
 import { SavedPlacesPage } from './features/saved/SavedPlacesPage'
+import { SavedPlaceDetailPage } from './features/saved/SavedPlaceDetailPage'
 import { ShareResultPage } from './features/share/ShareResultPage'
 import { useAuthStore } from './stores/authStore'
 
@@ -17,6 +18,14 @@ export function App() {
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
       <Route path="/shares/:shareId" element={<ProtectedRoute><ShareResultPage /></ProtectedRoute>} />
+      <Route
+        path="/saved/places/:savedPlaceId"
+        element={
+          <ProtectedRoute>
+            <SavedPlaceDetailPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/saved/collections/:collectionId"
         element={

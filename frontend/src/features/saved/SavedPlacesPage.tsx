@@ -141,7 +141,19 @@ export function SavedPlacesPage() {
       )}
       <section className="place-grid">
         {places.map((place) => (
-          <article className="place-card" key={place.savedPlaceId}>
+          <article
+            className="place-card"
+            key={place.savedPlaceId}
+            role="link"
+            tabIndex={0}
+            onClick={() => navigate(`/saved/places/${place.savedPlaceId}`)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                navigate(`/saved/places/${place.savedPlaceId}`)
+              }
+            }}
+          >
             <div className="place-image">
               {place.imageUrl ? <img src={place.imageUrl} alt="" /> : <span>{place.name.slice(0, 1)}</span>}
             </div>
@@ -151,7 +163,10 @@ export function SavedPlacesPage() {
                 {place.collectionId && place.collectionName ? (
                   <button
                     className="collection-link"
-                    onClick={() => navigate(`/saved/collections/${place.collectionId}`)}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      navigate(`/saved/collections/${place.collectionId}`)
+                    }}
                   >
                     {place.collectionName}
                   </button>
@@ -162,7 +177,7 @@ export function SavedPlacesPage() {
               <h2>{place.name}</h2>
               <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
               {place.memo && <p className="place-memo">{place.memo}</p>}
-              <div className="place-actions">
+              <div className="place-actions" onClick={(event) => event.stopPropagation()}>
                 <select value={place.visitStatus} onChange={(e) => updateMutation.mutate({ id: place.savedPlaceId, status: e.target.value as VisitStatus })}>
                   {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                 </select>

@@ -383,6 +383,15 @@ h1 {
   border: 1px solid #d8ded9;
   border-radius: 18px;
   background: white;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.place-card:hover,
+.place-card:focus-visible {
+  outline: none;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgb(30 77 60 / 12%);
 }
 
 .place-image {
@@ -464,6 +473,94 @@ h1 {
   gap: 8px;
   color: #718078;
   text-align: center;
+}
+
+.place-detail-shell {
+  min-height: 100vh;
+  padding: 32px 20px 80px;
+  background:
+    radial-gradient(circle at 90% 10%, #d8ebc9 0, transparent 26rem),
+    #f5f3ec;
+}
+
+.place-detail {
+  display: grid;
+  width: min(100%, 1100px);
+  margin: 80px auto 0;
+  grid-template-columns: minmax(0, 1.1fr) minmax(340px, .9fr);
+  gap: 48px;
+}
+
+.place-detail-visual img,
+.place-detail-visual .preview-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 22px;
+  object-fit: cover;
+}
+
+.place-detail-content {
+  align-self: start;
+  padding: 28px;
+  border: 1px solid #d7ddd8;
+  border-radius: 22px;
+  background: rgb(255 255 255 / 88%);
+}
+
+.place-detail-content h1 {
+  margin: 16px 0 8px;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+}
+
+.place-detail-address,
+.place-detail-content section p {
+  color: #64766f;
+  line-height: 1.7;
+}
+
+.place-detail-content section {
+  margin-top: 28px;
+}
+
+.place-detail-content section h2 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.place-detail-facts {
+  display: grid;
+  margin: 28px 0 0;
+  gap: 12px;
+}
+
+.place-detail-facts > div {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: center;
+}
+
+.place-detail-facts dt {
+  color: #718078;
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.place-detail-facts dd {
+  margin: 0;
+}
+
+.place-detail-facts select {
+  padding: 8px;
+  border: 1px solid #c8d2cd;
+  border-radius: 9px;
+  background: white;
+}
+
+.place-source-link {
+  display: inline-block;
+  margin-top: 28px;
+  color: #176b52;
+  font-weight: 750;
 }
 
 .result-shell {
@@ -652,6 +749,11 @@ h1 {
   }
 
   .result-layout {
+    margin-top: 50px;
+    grid-template-columns: 1fr;
+  }
+
+  .place-detail {
     margin-top: 50px;
     grid-template-columns: 1fr;
   }
