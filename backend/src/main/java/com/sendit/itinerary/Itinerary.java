@@ -58,6 +58,10 @@ public class Itinerary {
         items.add(new ItineraryItem(this, savedPlace, sequence, 60));
     }
 
+    public void markGenerated() {
+        status = ItineraryStatus.GENERATED;
+    }
+
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public LocalDate getStartDate() { return startDate; }

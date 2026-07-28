@@ -20,12 +20,15 @@ public class ItineraryService {
     private final ItineraryRepository itineraries;
     private final UserRepository users;
     private final UserSavedPlaceRepository savedPlaces;
+    private final ItineraryRoutePlanner routePlanner;
 
     public ItineraryService(ItineraryRepository itineraries, UserRepository users,
-                            UserSavedPlaceRepository savedPlaces) {
+                            UserSavedPlaceRepository savedPlaces,
+                            ItineraryRoutePlanner routePlanner) {
         this.itineraries = itineraries;
         this.users = users;
         this.savedPlaces = savedPlaces;
+        this.routePlanner = routePlanner;
     }
 
     public ItineraryDtos.Response create(String email, ItineraryDtos.CreateRequest request) {
@@ -47,6 +50,7 @@ public class ItineraryService {
             itinerary.addPlace(savedPlace, index + 1);
             savedPlace.update(null, VisitStatus.PLANNED, null, savedPlace.getCollection());
         }
+        itinerary.markGenerated();
         return response(itineraries.save(itinerary));
     }
 
@@ -75,19 +79,49 @@ public class ItineraryService {
     }
 
     private ItineraryDtos.Response response(Itinerary itinerary) {
-        List<ItineraryDtos.ItemResponse> items = itinerary.getItems().stream().map(item -> {
-            UserSavedPlace saved = item.getSavedPlace();
-            Place place = saved.getPlace();
-            return new ItineraryDtos.ItemResponse(saved.getId(), item.getSequence(),
-                    place.getName(), place.getCategory(),
-                    place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress(),
-                    place.getLatitude(), place.getLongitude(), place.getPrimaryImageUrl(),
-                    item.getStayMinutes());
-        }).toList();
+        List<ItineraryDtos.DayResponse> days = routePlanner.plan(itinerary).stream()
+                .map(day -> new ItineraryDtos.DayResponse(
+                        day.date(),
+                        day.dayNumber(),
+                        day.exceedsDailyWindow(),
+                        day.stops().stream()
+                                .map(stop -> itemResponse(day, stop))
+                                .toList()
+                ))
+                .toList();
+        List<ItineraryDtos.ItemResponse> items = days.stream()
+                .flatMap(day -> day.items().stream())
+                .toList();
         return new ItineraryDtos.Response(itinerary.getId(), itinerary.getTitle(),
                 itinerary.getStartDate(), itinerary.getEndDate(),
                 itinerary.getDailyStartTime(), itinerary.getDailyEndTime(),
                 itinerary.getTransportType(), itinerary.getStatus(), items,
-                itinerary.getCreatedAt());
+                days, itinerary.getCreatedAt());
+    }
+
+    private ItineraryDtos.ItemResponse itemResponse(
+            ItineraryRoutePlanner.DaySchedule day,
+            ItineraryRoutePlanner.ScheduledStop stop
+    ) {
+        UserSavedPlace saved = stop.item().getSavedPlace();
+        Place place = saved.getPlace();
+        return new ItineraryDtos.ItemResponse(
+                saved.getId(),
+                stop.item().getSequence(),
+                stop.daySequence(),
+                day.date(),
+                stop.arrivalTime(),
+                stop.departureTime(),
+                stop.travelMinutesFromPrevious(),
+                stop.distanceKmFromPrevious(),
+                stop.coordinateAvailable(),
+                place.getName(),
+                place.getCategory(),
+                place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress(),
+                place.getLatitude(),
+                place.getLongitude(),
+                place.getPrimaryImageUrl(),
+                stop.item().getStayMinutes()
+        );
     }
 }

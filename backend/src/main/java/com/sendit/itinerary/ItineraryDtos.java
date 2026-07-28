@@ -20,15 +20,23 @@ public final class ItineraryDtos {
     ) {}
 
     public record ItemResponse(
-            Long savedPlaceId, int sequence, String name, String category,
+            Long savedPlaceId, int sequence, int daySequence, LocalDate visitDate,
+            LocalTime arrivalTime, LocalTime departureTime,
+            int travelMinutesFromPrevious, Double distanceKmFromPrevious,
+            boolean coordinateAvailable, String name, String category,
             String address, Double latitude, Double longitude, String imageUrl,
             int stayMinutes
+    ) {}
+
+    public record DayResponse(
+            LocalDate date, int dayNumber, boolean exceedsDailyWindow,
+            List<ItemResponse> items
     ) {}
 
     public record Response(
             Long id, String title, LocalDate startDate, LocalDate endDate,
             LocalTime dailyStartTime, LocalTime dailyEndTime,
             TransportType transportType, ItineraryStatus status,
-            List<ItemResponse> items, Instant createdAt
+            List<ItemResponse> items, List<DayResponse> days, Instant createdAt
     ) {}
 }
