@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getCollections, createSavedPlace } from '../saved/savedApi'
-import { getShare } from './shareApi'
+import { getShare, reanalyzeShare } from './shareApi'
 
 const processingStatuses = new Set(['PENDING', 'ANALYZING'])
 
@@ -38,6 +38,16 @@ export function ShareResultPage() {
   const saveMutation = useMutation({
     mutationFn: createSavedPlace,
     onSuccess: () => navigate('/saved', { replace: true }),
+  })
+  const reanalyzeMutation = useMutation({
+    mutationFn: () => reanalyzeShare(shareId),
+    onSuccess: () => {
+      initialized.current = false
+      setName('')
+      setCategory('')
+      setAddress('')
+      shareQuery.refetch()
+    },
   })
 
   const handleSave = (event: FormEvent) => {
@@ -79,6 +89,17 @@ export function ShareResultPage() {
           <h1>{share.title ?? '장소 정보를 찾는 중이에요.'}</h1>
           <p>{share.description ?? '원본 콘텐츠에서 설명을 가져오지 못했습니다.'}</p>
           <a href={share.originalUrl} target="_blank" rel="noreferrer">원본 콘텐츠 열기 ↗</a>
+          {!isProcessing && (
+            <button
+              className="reanalyze-button"
+              type="button"
+              disabled={reanalyzeMutation.isPending}
+              onClick={() => reanalyzeMutation.mutate()}
+            >
+              {reanalyzeMutation.isPending ? '재분석 요청 중...' : '다시 분석하기'}
+            </button>
+          )}
+          {reanalyzeMutation.isError && <div className="form-error">재분석을 요청하지 못했습니다.</div>}
         </div>
 
         <aside className="save-panel">

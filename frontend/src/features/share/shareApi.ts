@@ -10,3 +10,8 @@ export async function getShare(shareId: number) {
   const response = await http.get<ShareDetail>(`/shares/${shareId}`)
   return response.data
 }
+
+export async function reanalyzeShare(shareId: number) {
+  const response = await http.post<ShareAcceptedResponse>(`/shares/${shareId}/reanalyze`)
+  return response.data
+}

@@ -528,6 +528,18 @@ h1 {
   font-weight: 750;
 }
 
+.reanalyze-button {
+  display: block;
+  margin-top: 14px;
+  padding: 9px 13px;
+  border: 1px solid #176b52;
+  border-radius: 999px;
+  color: #176b52;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+}
+
 .save-panel {
   align-self: start;
   padding: 26px;
