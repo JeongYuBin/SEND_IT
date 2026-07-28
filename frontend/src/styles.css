@@ -464,6 +464,61 @@ h1 {
   gap: 8px;
 }
 
+.place-filters {
+  display: flex;
+  width: min(100%, 1100px);
+  margin: 0 auto 18px;
+  padding: 16px 18px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid #d7ddd8;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 75%);
+}
+
+.place-filters > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.place-filters label {
+  display: grid;
+  min-width: 150px;
+  gap: 6px;
+  color: #64766f;
+  font-size: .78rem;
+  font-weight: 750;
+}
+
+.place-filters select {
+  padding: 10px 34px 10px 11px;
+  border: 1px solid #c6d0cb;
+  border-radius: 10px;
+  background: white;
+}
+
+.filter-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #718078;
+  font-size: .85rem;
+  white-space: nowrap;
+}
+
+.filter-summary button {
+  padding: 7px 10px;
+  border: 0;
+  color: #176b52;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .place-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -830,9 +885,19 @@ h1 {
   }
 
   .saved-header,
-  .collection-bar {
+  .collection-bar,
+  .place-filters {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .place-filters > div:first-child,
+  .place-filters label {
+    width: 100%;
+  }
+
+  .filter-summary {
+    justify-content: space-between;
   }
 
   .place-form,

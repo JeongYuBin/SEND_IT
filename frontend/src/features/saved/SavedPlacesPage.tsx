@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -31,6 +31,15 @@ export function SavedPlacesPage() {
   const [collectionId, setCollectionId] = useState<number | undefined>()
   const [newCollection, setNewCollection] = useState('')
   const [view, setView] = useState<'list' | 'map'>('list')
+  const [regionFilter, setRegionFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<VisitStatus | 'all'>('all')
+
+  useEffect(() => {
+    setRegionFilter('all')
+    setCategoryFilter('all')
+    setStatusFilter('all')
+  }, [selectedCollectionId])
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
@@ -62,12 +71,40 @@ export function SavedPlacesPage() {
     },
   })
 
-  const places = useMemo(
+  const collectionPlaces = useMemo(
     () => (placesQuery.data ?? []).filter(
       (place) => selectedCollectionId === null || place.collectionId === selectedCollectionId,
     ),
     [placesQuery.data, selectedCollectionId],
   )
+  const categoryOptions = useMemo(
+    () => [...new Set(collectionPlaces.map((place) => place.category).filter(Boolean) as string[])].sort(),
+    [collectionPlaces],
+  )
+  const regionOptions = useMemo(
+    () => [...new Set(collectionPlaces.map((place) => {
+      const placeAddress = place.roadAddress ?? place.address
+      return placeAddress?.trim().split(/\s+/)[0] ?? null
+    }).filter(Boolean) as string[])].sort(),
+    [collectionPlaces],
+  )
+  const places = useMemo(
+    () => collectionPlaces.filter((place) => {
+      const placeAddress = place.roadAddress ?? place.address
+      const region = placeAddress?.trim().split(/\s+/)[0] ?? null
+      return (regionFilter === 'all' || region === regionFilter)
+        && (categoryFilter === 'all' || place.category === categoryFilter)
+        && (statusFilter === 'all' || place.visitStatus === statusFilter)
+    }),
+    [categoryFilter, collectionPlaces, regionFilter, statusFilter],
+  )
+  const filtersActive = regionFilter !== 'all' || categoryFilter !== 'all' || statusFilter !== 'all'
+
+  const clearFilters = () => {
+    setRegionFilter('all')
+    setCategoryFilter('all')
+    setStatusFilter('all')
+  }
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
@@ -133,19 +170,62 @@ export function SavedPlacesPage() {
         </form>
       </section>
 
+      <section className="place-filters" aria-label="저장 장소 필터">
+        <div>
+          <label>
+            지역
+            <select value={regionFilter} onChange={(event) => setRegionFilter(event.target.value)}>
+              <option value="all">전체 지역</option>
+              {regionOptions.map((region) => <option key={region} value={region}>{region}</option>)}
+            </select>
+          </label>
+          <label>
+            카테고리
+            <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+              <option value="all">전체 카테고리</option>
+              {categoryOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          <label>
+            방문 상태
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as VisitStatus | 'all')}
+            >
+              <option value="all">전체 상태</option>
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="filter-summary">
+          <span>{collectionPlaces.length}개 중 {places.length}개 장소</span>
+          {filtersActive && <button type="button" onClick={clearFilters}>필터 초기화</button>}
+        </div>
+      </section>
+
       {placesQuery.isLoading && <div className="empty-state">장소를 불러오고 있습니다.</div>}
       {placesQuery.isError && <div className="form-error">저장한 장소를 불러오지 못했습니다.</div>}
-      {!placesQuery.isLoading && places.length === 0 && (
+      {!placesQuery.isLoading && collectionPlaces.length === 0 && (
         <div className="empty-state"><strong>아직 저장한 장소가 없어요.</strong><span>첫 여행지를 추가해 보세요.</span></div>
+      )}
+      {!placesQuery.isLoading && collectionPlaces.length > 0 && places.length === 0 && (
+        <div className="empty-state">
+          <strong>조건에 맞는 장소가 없어요.</strong>
+          <span>다른 필터를 선택하거나 필터를 초기화해 보세요.</span>
+        </div>
       )}
       {collectionIdParam && !collectionsQuery.isLoading && !selectedCollection && (
         <div className="form-error">존재하지 않거나 접근할 수 없는 컬렉션입니다.</div>
       )}
-      <div className="view-switcher" aria-label="장소 보기 방식">
-        <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>목록</button>
-        <button className={view === 'map' ? 'active' : ''} onClick={() => setView('map')}>지도</button>
-      </div>
-      {view === 'map' ? (
+      {places.length > 0 && (
+        <div className="view-switcher" aria-label="장소 보기 방식">
+          <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>목록</button>
+          <button className={view === 'map' ? 'active' : ''} onClick={() => setView('map')}>지도</button>
+        </div>
+      )}
+      {places.length > 0 && (view === 'map' ? (
         <SavedPlacesMap places={places} />
       ) : (
         <section className="place-grid">
@@ -196,7 +276,7 @@ export function SavedPlacesPage() {
             </article>
           ))}
         </section>
-      )}
+      ))}
     </main>
   )
 }
