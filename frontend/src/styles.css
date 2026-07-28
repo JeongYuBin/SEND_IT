@@ -1049,6 +1049,12 @@ h1 {
   background: #eef5f1;
 }
 
+.place-schedule-form > .primary-button {
+  color: white;
+  border-color: #176b52;
+  background: #176b52;
+}
+
 .itinerary-layout {
   display: grid;
   margin-top: 42px;
