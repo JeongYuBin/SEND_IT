@@ -562,6 +562,15 @@ h1 {
   margin: 0 0 4px;
 }
 
+.auto-fill-notice {
+  padding: 11px 12px;
+  border-radius: 9px;
+  color: #176b52;
+  background: #dceee6;
+  font-size: .86rem;
+  line-height: 1.5;
+}
+
 .result-form label {
   display: grid;
   gap: 7px;

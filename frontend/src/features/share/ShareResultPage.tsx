@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getCollections, createSavedPlace } from '../saved/savedApi'
@@ -15,6 +15,7 @@ export function ShareResultPage() {
   const [address, setAddress] = useState('')
   const [memo, setMemo] = useState('')
   const [collectionId, setCollectionId] = useState<number | undefined>()
+  const initialized = useRef(false)
 
   const shareQuery = useQuery({
     queryKey: ['share', shareId],
@@ -26,10 +27,13 @@ export function ShareResultPage() {
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
 
   useEffect(() => {
-    if (shareQuery.data?.title && !name) {
-      setName(shareQuery.data.title)
-    }
-  }, [shareQuery.data?.title, name])
+    const share = shareQuery.data
+    if (!share || initialized.current || share.status !== 'COMPLETED') return
+    setName(share.extractedPlaceName ?? share.title ?? '')
+    setCategory(share.extractedCategory ?? '')
+    setAddress(share.extractedAddress ?? '')
+    initialized.current = true
+  }, [shareQuery.data])
 
   const saveMutation = useMutation({
     mutationFn: createSavedPlace,
@@ -48,6 +52,8 @@ export function ShareResultPage() {
       sharedContentId: shareQuery.data.shareId,
       description: shareQuery.data.description ?? undefined,
       imageUrl: shareQuery.data.thumbnailUrl ?? undefined,
+      latitude: shareQuery.data.extractedLatitude ?? undefined,
+      longitude: shareQuery.data.extractedLongitude ?? undefined,
     })
   }
 
@@ -85,6 +91,9 @@ export function ShareResultPage() {
           {canSave && (
             <form className="result-form" onSubmit={handleSave}>
               <h2>장소 정보 확인</h2>
+              {(share.extractedPlaceName || share.extractedAddress) && (
+                <div className="auto-fill-notice">구조화된 장소 정보를 자동으로 채웠습니다. 저장 전에 내용을 확인해 주세요.</div>
+              )}
               <label>장소명 *<input required value={name} onChange={(e) => setName(e.target.value)} placeholder="실제 장소명을 입력하세요" /></label>
               <label>카테고리<input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="관광지, 음식점, 카페..." /></label>
               <label>주소<input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="방문할 주소를 입력하세요" /></label>

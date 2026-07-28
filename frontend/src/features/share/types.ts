@@ -22,5 +22,10 @@ export type ShareDetail = {
   thumbnailUrl: string | null
   status: AnalysisStatus
   analysisError: string | null
+  extractedPlaceName: string | null
+  extractedCategory: string | null
+  extractedAddress: string | null
+  extractedLatitude: number | null
+  extractedLongitude: number | null
   createdAt: string
 }
