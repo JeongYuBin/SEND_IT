@@ -1187,6 +1187,56 @@ h1 {
   line-height: 1.6;
 }
 
+.itinerary-days {
+  display: grid;
+  gap: 36px;
+}
+
+.itinerary-day {
+  display: grid;
+  gap: 16px;
+}
+
+.itinerary-day-header {
+  display: flex;
+  padding-bottom: 14px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #d7ddd8;
+}
+
+.itinerary-day-header span {
+  color: #176b52;
+  font-size: .78rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.itinerary-day-header h2 {
+  margin: 4px 0 0;
+}
+
+.itinerary-day-header small {
+  color: #64766f;
+}
+
+.schedule-warning {
+  padding: 11px 13px;
+  border-radius: 10px;
+  color: #8a4a16;
+  background: #fff1dd;
+  font-size: .88rem;
+}
+
+.day-empty {
+  padding: 24px;
+  border-radius: 12px;
+  color: #708078;
+  background: #f5f3ec;
+  text-align: center;
+}
+
 .itinerary-timeline {
   display: grid;
   margin: 0;
@@ -1200,6 +1250,17 @@ h1 {
   grid-template-columns: 40px minmax(0, 1fr);
   gap: 14px;
   align-items: center;
+}
+
+.timeline-stop {
+  min-width: 0;
+}
+
+.travel-estimate {
+  margin: 0 0 7px 4px;
+  color: #64766f;
+  font-size: .8rem;
+  font-weight: 700;
 }
 
 .timeline-number {

@@ -15,6 +15,10 @@ const statusLabels: Record<ItineraryStatus, string> = {
   COMPLETED: '여행 완료',
 }
 
+function time(value: string) {
+  return value.slice(0, 5)
+}
+
 export function ItineraryDetailPage() {
   const { itineraryId } = useParams()
   const id = Number(itineraryId)
@@ -46,28 +50,62 @@ export function ItineraryDetailPage() {
             <h1>{itineraryQuery.data.title}</h1>
             <p>
               {itineraryQuery.data.startDate} — {itineraryQuery.data.endDate}
-              <span>매일 {itineraryQuery.data.dailyStartTime.slice(0, 5)}–{itineraryQuery.data.dailyEndTime.slice(0, 5)}</span>
+              <span>매일 {time(itineraryQuery.data.dailyStartTime)}–{time(itineraryQuery.data.dailyEndTime)}</span>
               <span>{transportLabels[itineraryQuery.data.transportType]}</span>
             </p>
           </header>
           <section className="itinerary-notice">
-            현재는 선택한 순서로 장소를 보여줍니다. 다음 단계에서 위치와 이동 수단을 반영한 일자별 경로를 생성할 예정입니다.
+            장소 좌표의 직선거리와 이동 수단별 평균 속도로 계산한 예상 동선입니다.
+            실제 도로 상황과 대중교통 시간은 다를 수 있습니다.
           </section>
-          <ol className="itinerary-timeline">
-            {itineraryQuery.data.items.map((item) => (
-              <li key={item.savedPlaceId}>
-                <span className="timeline-number">{item.sequence}</span>
-                <Link to={`/saved/places/${item.savedPlaceId}`}>
-                  {item.imageUrl ? <img src={item.imageUrl} alt="" /> : <div className="timeline-placeholder">{item.name.slice(0, 1)}</div>}
-                  <span>
-                    <small>{item.category ?? '미분류'} · 기본 체류 {item.stayMinutes}분</small>
-                    <strong>{item.name}</strong>
-                    <span>{item.address ?? '주소 정보 없음'}</span>
-                  </span>
-                </Link>
-              </li>
+          <div className="itinerary-days">
+            {itineraryQuery.data.days.map((day) => (
+              <section className="itinerary-day" key={day.date}>
+                <header className="itinerary-day-header">
+                  <div>
+                    <span>DAY {day.dayNumber}</span>
+                    <h2>{day.date}</h2>
+                  </div>
+                  <small>{day.items.length}개 장소</small>
+                </header>
+                {day.exceedsDailyWindow && (
+                  <div className="schedule-warning">
+                    설정한 하루 종료 시간을 넘습니다. 장소 수나 체류 시간을 조정해야 합니다.
+                  </div>
+                )}
+                {day.items.length === 0 ? (
+                  <div className="day-empty">이 날짜에 배정된 장소가 없습니다.</div>
+                ) : (
+                  <ol className="itinerary-timeline">
+                    {day.items.map((item) => (
+                      <li key={item.savedPlaceId}>
+                        <span className="timeline-number">{item.daySequence}</span>
+                        <div className="timeline-stop">
+                          {item.travelMinutesFromPrevious > 0 && (
+                            <div className="travel-estimate">
+                              예상 이동 {item.travelMinutesFromPrevious}분
+                              {item.distanceKmFromPrevious !== null && ` · 약 ${item.distanceKmFromPrevious}km`}
+                              {!item.coordinateAvailable && ' · 좌표 없음'}
+                            </div>
+                          )}
+                          <Link to={`/saved/places/${item.savedPlaceId}`}>
+                            {item.imageUrl
+                              ? <img src={item.imageUrl} alt="" />
+                              : <div className="timeline-placeholder">{item.name.slice(0, 1)}</div>}
+                            <span>
+                              <small>{time(item.arrivalTime)}–{time(item.departureTime)} · 체류 {item.stayMinutes}분</small>
+                              <strong>{item.name}</strong>
+                              <span>{item.address ?? '주소 정보 없음'}</span>
+                            </span>
+                          </Link>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
             ))}
-          </ol>
+          </div>
         </article>
       )}
     </main>

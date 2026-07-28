@@ -4,6 +4,13 @@ export type ItineraryStatus = 'DRAFT' | 'GENERATED' | 'COMPLETED'
 export type ItineraryItem = {
   savedPlaceId: number
   sequence: number
+  daySequence: number
+  visitDate: string
+  arrivalTime: string
+  departureTime: string
+  travelMinutesFromPrevious: number
+  distanceKmFromPrevious: number | null
+  coordinateAvailable: boolean
   name: string
   category: string | null
   address: string | null
@@ -11,6 +18,13 @@ export type ItineraryItem = {
   longitude: number | null
   imageUrl: string | null
   stayMinutes: number
+}
+
+export type ItineraryDay = {
+  date: string
+  dayNumber: number
+  exceedsDailyWindow: boolean
+  items: ItineraryItem[]
 }
 
 export type Itinerary = {
@@ -23,6 +37,7 @@ export type Itinerary = {
   transportType: TransportType
   status: ItineraryStatus
   items: ItineraryItem[]
+  days: ItineraryDay[]
   createdAt: string
 }
 
