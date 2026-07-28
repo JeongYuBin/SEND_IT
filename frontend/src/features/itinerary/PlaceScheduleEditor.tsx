@@ -6,6 +6,7 @@ type Props = {
   startDate: string
   endDate: string
   pending: boolean
+  errorMessage?: string | null
   onCancel: () => void
   onSave: (request: UpdateItineraryItemSchedule) => void
 }
@@ -15,6 +16,7 @@ export function PlaceScheduleEditor({
   startDate,
   endDate,
   pending,
+  errorMessage,
   onCancel,
   onSave,
 }: Props) {
@@ -46,7 +48,10 @@ export function PlaceScheduleEditor({
         </select>
       </label>
       <button type="button" onClick={onCancel}>취소</button>
-      <button className="primary-button" disabled={pending}>적용</button>
+      <button type="submit" className="primary-button" disabled={pending}>
+        {pending ? '적용 중…' : '적용'}
+      </button>
+      {errorMessage && <div className="form-error schedule-form-error">{errorMessage}</div>}
     </form>
   )
 }

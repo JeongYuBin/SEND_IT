@@ -1063,6 +1063,37 @@ h1 {
   background: #f4faf7;
 }
 
+.transit-unavailable {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border: 1px solid #ead9b9;
+  border-radius: 14px;
+  background: #fff9ee;
+  color: #6d5527;
+}
+
+.transit-unavailable span,
+.transit-unavailable small {
+  color: #796b50;
+}
+
+.form-success {
+  margin: 14px 0;
+  padding: 13px 16px;
+  border: 1px solid #bcd9cb;
+  border-radius: 12px;
+  background: #edf8f2;
+  color: #176b52;
+  font-weight: 700;
+}
+
+.schedule-form-error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 .transit-guide summary {
   display: flex;
   flex-wrap: wrap;

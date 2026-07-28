@@ -10,11 +10,18 @@ const transportLabels: Record<TransportType, string> = {
 type Props = {
   itinerary: Itinerary
   pending: boolean
+  errorMessage?: string | null
   onCancel: () => void
   onSave: (request: UpdateItinerary) => void
 }
 
-export function ItineraryEditPanel({ itinerary, pending, onCancel, onSave }: Props) {
+export function ItineraryEditPanel({
+  itinerary,
+  pending,
+  errorMessage,
+  onCancel,
+  onSave,
+}: Props) {
   const [title, setTitle] = useState(itinerary.title)
   const [startDate, setStartDate] = useState(itinerary.startDate)
   const [endDate, setEndDate] = useState(itinerary.endDate)
@@ -49,8 +56,11 @@ export function ItineraryEditPanel({ itinerary, pending, onCancel, onSave }: Pro
       </label>
       <div className="edit-actions">
         <button type="button" onClick={onCancel}>취소</button>
-        <button className="primary-button" disabled={pending}>{pending ? '저장 중…' : '변경 저장'}</button>
+        <button type="submit" className="primary-button" disabled={pending}>
+          {pending ? '저장 중…' : '변경 저장'}
+        </button>
       </div>
+      {errorMessage && <div className="form-error">{errorMessage}</div>}
     </form>
   )
 }

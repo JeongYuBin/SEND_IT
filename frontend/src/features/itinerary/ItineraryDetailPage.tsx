@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -41,6 +42,7 @@ export function ItineraryDetailPage() {
   const queryClient = useQueryClient()
   const [editingPlan, setEditingPlan] = useState(false)
   const [editingPlaceId, setEditingPlaceId] = useState<number | null>(null)
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const itineraryQuery = useQuery({
     queryKey: ['itineraries', id],
     queryFn: () => getItinerary(id),
@@ -55,7 +57,9 @@ export function ItineraryDetailPage() {
     onSuccess: (data) => {
       refresh(data)
       setEditingPlan(false)
+      setSaveMessage('여행 계획 변경사항을 저장했습니다.')
     },
+    onMutate: () => setSaveMessage(null),
   })
   const scheduleMutation = useMutation({
     mutationFn: ({
@@ -68,7 +72,9 @@ export function ItineraryDetailPage() {
     onSuccess: (data) => {
       refresh(data)
       setEditingPlaceId(null)
+      setSaveMessage('방문 일정과 체류 시간을 저장했습니다.')
     },
+    onMutate: () => setSaveMessage(null),
   })
   const deleteMutation = useMutation({
     mutationFn: () => deleteItinerary(id),
@@ -83,6 +89,13 @@ export function ItineraryDetailPage() {
       deleteMutation.mutate()
     }
   }
+
+  const mutationError = updateMutation.error ?? scheduleMutation.error
+  const mutationErrorMessage = mutationError
+    ? axios.isAxiosError<{ message?: string }>(mutationError)
+      ? mutationError.response?.data?.message ?? '서버가 변경 요청을 처리하지 못했습니다.'
+      : '변경 요청 중 알 수 없는 오류가 발생했습니다.'
+    : null
 
   if (!Number.isInteger(id) || id <= 0) {
     return <main className="itinerary-shell"><div className="form-error">올바르지 않은 여행 계획 주소입니다.</div></main>
@@ -122,12 +135,16 @@ export function ItineraryDetailPage() {
             <ItineraryEditPanel
               itinerary={itineraryQuery.data}
               pending={updateMutation.isPending}
+              errorMessage={updateMutation.isError ? mutationErrorMessage : null}
               onCancel={() => setEditingPlan(false)}
               onSave={(request) => updateMutation.mutate(request)}
             />
           )}
-          {(updateMutation.isError || deleteMutation.isError || scheduleMutation.isError) && (
-            <div className="form-error">변경사항을 저장하지 못했습니다. 입력값을 확인해 주세요.</div>
+          {saveMessage && <div className="form-success">{saveMessage}</div>}
+          {(mutationErrorMessage || deleteMutation.isError) && (
+            <div className="form-error">
+              {mutationErrorMessage ?? '여행 계획을 삭제하지 못했습니다.'}
+            </div>
           )}
           <section className="itinerary-notice">
             장소 좌표의 직선거리와 이동 수단별 평균 속도로 계산한 예상 동선입니다.
@@ -159,6 +176,17 @@ export function ItineraryDetailPage() {
                         <div className="timeline-stop">
                           {item.transit ? (
                             <TransitRouteGuide route={item.transit} />
+                          ) : itineraryQuery.data.transportType === 'PUBLIC_TRANSIT'
+                            && item.travelMinutesFromPrevious > 0 ? (
+                            <div className="transit-unavailable">
+                              <strong>카카오맵 대중교통 경로 없음</strong>
+                              <span>
+                                이 구간은 카카오가 이용 가능한 버스·지하철 경로를 반환하지 않았습니다.
+                              </span>
+                              <small>
+                                가까운 거리는 도보 이동이 더 적합할 수 있으며, 직선거리 기반 시간은 표시하지 않습니다.
+                              </small>
+                            </div>
                           ) : item.travelMinutesFromPrevious > 0 && (
                             <div className="travel-estimate">
                               예상 이동 {item.travelMinutesFromPrevious}분
@@ -182,6 +210,7 @@ export function ItineraryDetailPage() {
                               startDate={itineraryQuery.data.startDate}
                               endDate={itineraryQuery.data.endDate}
                               pending={scheduleMutation.isPending}
+                              errorMessage={scheduleMutation.isError ? mutationErrorMessage : null}
                               onCancel={() => setEditingPlaceId(null)}
                               onSave={(request) => scheduleMutation.mutate({
                                 savedPlaceId: item.savedPlaceId,
