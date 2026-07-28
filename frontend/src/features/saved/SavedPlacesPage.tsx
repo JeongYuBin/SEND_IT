@@ -10,6 +10,7 @@ import {
   updateSavedPlace,
 } from './savedApi'
 import type { VisitStatus } from './types'
+import { SavedPlacesMap } from './SavedPlacesMap'
 
 const statusLabels: Record<VisitStatus, string> = {
   WANT_TO_VISIT: '가고 싶어요',
@@ -29,6 +30,7 @@ export function SavedPlacesPage() {
   const [memo, setMemo] = useState('')
   const [collectionId, setCollectionId] = useState<number | undefined>()
   const [newCollection, setNewCollection] = useState('')
+  const [view, setView] = useState<'list' | 'map'>('list')
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
@@ -139,54 +141,62 @@ export function SavedPlacesPage() {
       {collectionIdParam && !collectionsQuery.isLoading && !selectedCollection && (
         <div className="form-error">존재하지 않거나 접근할 수 없는 컬렉션입니다.</div>
       )}
-      <section className="place-grid">
-        {places.map((place) => (
-          <article
-            className="place-card"
-            key={place.savedPlaceId}
-            role="link"
-            tabIndex={0}
-            onClick={() => navigate(`/saved/places/${place.savedPlaceId}`)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                navigate(`/saved/places/${place.savedPlaceId}`)
-              }
-            }}
-          >
-            <div className="place-image">
-              {place.imageUrl ? <img src={place.imageUrl} alt="" /> : <span>{place.name.slice(0, 1)}</span>}
-            </div>
-            <div className="place-content">
-              <div className="place-meta">
-                <span>{place.category ?? '미분류'}</span>
-                {place.collectionId && place.collectionName ? (
-                  <button
-                    className="collection-link"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      navigate(`/saved/collections/${place.collectionId}`)
-                    }}
-                  >
-                    {place.collectionName}
-                  </button>
-                ) : (
-                  <span>컬렉션 없음</span>
-                )}
+      <div className="view-switcher" aria-label="장소 보기 방식">
+        <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>목록</button>
+        <button className={view === 'map' ? 'active' : ''} onClick={() => setView('map')}>지도</button>
+      </div>
+      {view === 'map' ? (
+        <SavedPlacesMap places={places} />
+      ) : (
+        <section className="place-grid">
+          {places.map((place) => (
+            <article
+              className="place-card"
+              key={place.savedPlaceId}
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate(`/saved/places/${place.savedPlaceId}`)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  navigate(`/saved/places/${place.savedPlaceId}`)
+                }
+              }}
+            >
+              <div className="place-image">
+                {place.imageUrl ? <img src={place.imageUrl} alt="" /> : <span>{place.name.slice(0, 1)}</span>}
               </div>
-              <h2>{place.name}</h2>
-              <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
-              {place.memo && <p className="place-memo">{place.memo}</p>}
-              <div className="place-actions" onClick={(event) => event.stopPropagation()}>
-                <select value={place.visitStatus} onChange={(e) => updateMutation.mutate({ id: place.savedPlaceId, status: e.target.value as VisitStatus })}>
-                  {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
-                <button onClick={() => deleteMutation.mutate(place.savedPlaceId)}>삭제</button>
+              <div className="place-content">
+                <div className="place-meta">
+                  <span>{place.category ?? '미분류'}</span>
+                  {place.collectionId && place.collectionName ? (
+                    <button
+                      className="collection-link"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        navigate(`/saved/collections/${place.collectionId}`)
+                      }}
+                    >
+                      {place.collectionName}
+                    </button>
+                  ) : (
+                    <span>컬렉션 없음</span>
+                  )}
+                </div>
+                <h2>{place.name}</h2>
+                <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
+                {place.memo && <p className="place-memo">{place.memo}</p>}
+                <div className="place-actions" onClick={(event) => event.stopPropagation()}>
+                  <select value={place.visitStatus} onChange={(e) => updateMutation.mutate({ id: place.savedPlaceId, status: e.target.value as VisitStatus })}>
+                    {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  </select>
+                  <button onClick={() => deleteMutation.mutate(place.savedPlaceId)}>삭제</button>
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
-      </section>
+            </article>
+          ))}
+        </section>
+      )}
     </main>
   )
 }
