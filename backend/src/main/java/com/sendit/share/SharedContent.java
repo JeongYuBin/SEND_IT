@@ -57,6 +57,17 @@ public class SharedContent {
     @Column(name = "analysis_error", columnDefinition = "text")
     private String analysisError;
 
+    @Column(name = "extracted_place_name", length = 200)
+    private String extractedPlaceName;
+    @Column(name = "extracted_category", length = 100)
+    private String extractedCategory;
+    @Column(name = "extracted_address", length = 500)
+    private String extractedAddress;
+    @Column(name = "extracted_latitude")
+    private Double extractedLatitude;
+    @Column(name = "extracted_longitude")
+    private Double extractedLongitude;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -130,6 +141,11 @@ public class SharedContent {
     public Instant getCreatedAt() {
         return createdAt;
     }
+    public String getExtractedPlaceName() { return extractedPlaceName; }
+    public String getExtractedCategory() { return extractedCategory; }
+    public String getExtractedAddress() { return extractedAddress; }
+    public Double getExtractedLatitude() { return extractedLatitude; }
+    public Double getExtractedLongitude() { return extractedLongitude; }
 
     public void queueForAnalysis() {
         analysisStatus = AnalysisStatus.PENDING;
@@ -145,6 +161,11 @@ public class SharedContent {
         title = truncate(metadata.title(), 500);
         description = metadata.description();
         thumbnailUrl = truncate(metadata.imageUrl(), 2048);
+        extractedPlaceName = truncate(metadata.placeName(), 200);
+        extractedCategory = truncate(metadata.category(), 100);
+        extractedAddress = truncate(metadata.address(), 500);
+        extractedLatitude = metadata.latitude();
+        extractedLongitude = metadata.longitude();
         analysisStatus = AnalysisStatus.COMPLETED;
         analysisError = null;
     }

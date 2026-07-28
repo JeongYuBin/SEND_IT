@@ -34,8 +34,12 @@ public final class ShareDtos {
             String thumbnailUrl,
             AnalysisStatus status,
             String analysisError,
+            String extractedPlaceName,
+            String extractedCategory,
+            String extractedAddress,
+            Double extractedLatitude,
+            Double extractedLongitude,
             Instant createdAt
     ) {
     }
 }
-

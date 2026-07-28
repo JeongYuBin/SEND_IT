@@ -99,8 +99,12 @@ public class ShareService {
                 content.getThumbnailUrl(),
                 content.getAnalysisStatus(),
                 content.getAnalysisError(),
+                content.getExtractedPlaceName(),
+                content.getExtractedCategory(),
+                content.getExtractedAddress(),
+                content.getExtractedLatitude(),
+                content.getExtractedLongitude(),
                 content.getCreatedAt()
         );
     }
 }
-
