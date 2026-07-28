@@ -11,6 +11,8 @@ export type ItineraryItem = {
   travelMinutesFromPrevious: number
   distanceKmFromPrevious: number | null
   coordinateAvailable: boolean
+  preferredVisitDate: string | null
+  preferredStartTime: string | null
   name: string
   category: string | null
   address: string | null
@@ -49,4 +51,12 @@ export type CreateItinerary = {
   dailyEndTime: string
   transportType: TransportType
   savedPlaceIds: number[]
+}
+
+export type UpdateItinerary = Omit<CreateItinerary, 'savedPlaceIds'>
+
+export type UpdateItineraryItemSchedule = {
+  visitDate: string | null
+  startTime: string | null
+  stayMinutes: number
 }

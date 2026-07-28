@@ -969,6 +969,86 @@ h1 {
   line-height: 1.7;
 }
 
+.itinerary-header-actions {
+  display: flex;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.itinerary-header-actions button,
+.edit-actions > button:first-child,
+.place-schedule-form > button {
+  padding: 10px 14px;
+  border: 1px solid #b8c7c0;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.itinerary-header-actions .danger-button {
+  color: #a93b31;
+  border-color: #deb6b1;
+}
+
+.itinerary-edit-form {
+  display: grid;
+  margin: 28px 0;
+  padding: 20px;
+  gap: 15px;
+  border: 1px solid #cbd8d2;
+  border-radius: 14px;
+  background: #f7faf8;
+}
+
+.itinerary-edit-form label,
+.place-schedule-form label {
+  display: grid;
+  gap: 6px;
+  font-size: .88rem;
+  font-weight: 750;
+}
+
+.itinerary-edit-form input,
+.itinerary-edit-form select,
+.place-schedule-form input,
+.place-schedule-form select {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #c6d0cb;
+  border-radius: 9px;
+  background: white;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.schedule-edit-button {
+  margin-top: 8px;
+  padding: 7px 10px;
+  border: 1px solid #c4d4cd;
+  border-radius: 8px;
+  color: #176b52;
+  background: #f3f9f6;
+  cursor: pointer;
+  font-size: .82rem;
+  font-weight: 750;
+}
+
+.place-schedule-form {
+  display: grid;
+  margin-top: 10px;
+  padding: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto;
+  gap: 8px;
+  align-items: end;
+  border-radius: 10px;
+  background: #eef5f1;
+}
+
 .itinerary-layout {
   display: grid;
   margin-top: 42px;
@@ -1367,6 +1447,7 @@ h1 {
   .itinerary-layout { grid-template-columns: 1fr; }
   .itinerary-list { position: static; }
   .itinerary-place-options { grid-template-columns: 1fr; }
+  .place-schedule-form { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 500px) {

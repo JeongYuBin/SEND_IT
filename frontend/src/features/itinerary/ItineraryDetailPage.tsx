@@ -1,8 +1,21 @@
-import { useQuery } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router-dom'
-import { getItinerary } from './itineraryApi'
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import {
+  deleteItinerary,
+  getItinerary,
+  updateItinerary,
+  updateItineraryItemSchedule,
+} from './itineraryApi'
+import { ItineraryEditPanel } from './ItineraryEditPanel'
 import { ItineraryRouteMap } from './ItineraryRouteMap'
-import type { ItineraryStatus, TransportType } from './types'
+import { PlaceScheduleEditor } from './PlaceScheduleEditor'
+import type {
+  ItineraryStatus,
+  TransportType,
+  UpdateItinerary,
+  UpdateItineraryItemSchedule,
+} from './types'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -23,11 +36,52 @@ function time(value: string) {
 export function ItineraryDetailPage() {
   const { itineraryId } = useParams()
   const id = Number(itineraryId)
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [editingPlan, setEditingPlan] = useState(false)
+  const [editingPlaceId, setEditingPlaceId] = useState<number | null>(null)
   const itineraryQuery = useQuery({
     queryKey: ['itineraries', id],
     queryFn: () => getItinerary(id),
     enabled: Number.isInteger(id) && id > 0,
   })
+  const refresh = (data: Awaited<ReturnType<typeof getItinerary>>) => {
+    queryClient.setQueryData(['itineraries', id], data)
+    queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+  }
+  const updateMutation = useMutation({
+    mutationFn: (request: UpdateItinerary) => updateItinerary(id, request),
+    onSuccess: (data) => {
+      refresh(data)
+      setEditingPlan(false)
+    },
+  })
+  const scheduleMutation = useMutation({
+    mutationFn: ({
+      savedPlaceId,
+      request,
+    }: {
+      savedPlaceId: number
+      request: UpdateItineraryItemSchedule
+    }) => updateItineraryItemSchedule(id, savedPlaceId, request),
+    onSuccess: (data) => {
+      refresh(data)
+      setEditingPlaceId(null)
+    },
+  })
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteItinerary(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+      navigate('/itineraries', { replace: true })
+    },
+  })
+
+  const handleDelete = () => {
+    if (window.confirm('이 여행 계획을 삭제할까요? 삭제한 계획은 복구할 수 없습니다.')) {
+      deleteMutation.mutate()
+    }
+  }
 
   if (!Number.isInteger(id) || id <= 0) {
     return <main className="itinerary-shell"><div className="form-error">올바르지 않은 여행 계획 주소입니다.</div></main>
@@ -54,7 +108,26 @@ export function ItineraryDetailPage() {
               <span>매일 {time(itineraryQuery.data.dailyStartTime)}–{time(itineraryQuery.data.dailyEndTime)}</span>
               <span>{transportLabels[itineraryQuery.data.transportType]}</span>
             </p>
+            <div className="itinerary-header-actions">
+              <button type="button" onClick={() => setEditingPlan((value) => !value)}>
+                {editingPlan ? '편집 닫기' : '계획 수정'}
+              </button>
+              <button className="danger-button" type="button" disabled={deleteMutation.isPending} onClick={handleDelete}>
+                {deleteMutation.isPending ? '삭제 중…' : '계획 삭제'}
+              </button>
+            </div>
           </header>
+          {editingPlan && (
+            <ItineraryEditPanel
+              itinerary={itineraryQuery.data}
+              pending={updateMutation.isPending}
+              onCancel={() => setEditingPlan(false)}
+              onSave={(request) => updateMutation.mutate(request)}
+            />
+          )}
+          {(updateMutation.isError || deleteMutation.isError || scheduleMutation.isError) && (
+            <div className="form-error">변경사항을 저장하지 못했습니다. 입력값을 확인해 주세요.</div>
+          )}
           <section className="itinerary-notice">
             장소 좌표의 직선거리와 이동 수단별 평균 속도로 계산한 예상 동선입니다.
             실제 도로 상황과 대중교통 시간은 다를 수 있습니다.
@@ -100,6 +173,27 @@ export function ItineraryDetailPage() {
                               <span>{item.address ?? '주소 정보 없음'}</span>
                             </span>
                           </Link>
+                          {editingPlaceId === item.savedPlaceId ? (
+                            <PlaceScheduleEditor
+                              item={item}
+                              startDate={itineraryQuery.data.startDate}
+                              endDate={itineraryQuery.data.endDate}
+                              pending={scheduleMutation.isPending}
+                              onCancel={() => setEditingPlaceId(null)}
+                              onSave={(request) => scheduleMutation.mutate({
+                                savedPlaceId: item.savedPlaceId,
+                                request,
+                              })}
+                            />
+                          ) : (
+                            <button
+                              className="schedule-edit-button"
+                              type="button"
+                              onClick={() => setEditingPlaceId(item.savedPlaceId)}
+                            >
+                              방문 시간 설정
+                            </button>
+                          )}
                         </div>
                       </li>
                     ))}
