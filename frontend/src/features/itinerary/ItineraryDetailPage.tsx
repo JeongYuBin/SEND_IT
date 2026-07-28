@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import { getItinerary } from './itineraryApi'
+import { ItineraryRouteMap } from './ItineraryRouteMap'
 import type { ItineraryStatus, TransportType } from './types'
 
 const transportLabels: Record<TransportType, string> = {
@@ -58,6 +59,7 @@ export function ItineraryDetailPage() {
             장소 좌표의 직선거리와 이동 수단별 평균 속도로 계산한 예상 동선입니다.
             실제 도로 상황과 대중교통 시간은 다를 수 있습니다.
           </section>
+          <ItineraryRouteMap days={itineraryQuery.data.days} />
           <div className="itinerary-days">
             {itineraryQuery.data.days.map((day) => (
               <section className="itinerary-day" key={day.date}>

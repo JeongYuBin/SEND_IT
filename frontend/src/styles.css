@@ -325,48 +325,37 @@ h1 {
   box-shadow: 0 18px 44px rgb(30 77 60 / 10%);
 }
 
-.saved-map .leaflet-container {
+.kakao-map {
   width: 100%;
   height: min(68vh, 680px);
   min-height: 440px;
   font-family: inherit;
 }
 
-.saved-place-marker {
-  border: 0;
-  background: transparent;
-}
-
-.saved-place-marker span {
-  display: block;
-  width: 28px;
-  height: 28px;
-  border: 5px solid white;
-  border-radius: 50% 50% 50% 0;
-  background: #176b52;
-  box-shadow: 0 4px 12px rgb(20 55 43 / 35%);
-  transform: rotate(-45deg);
-}
-
-.map-place-popup {
-  display: grid;
-  min-width: 190px;
-  gap: 6px;
-}
-
-.map-place-popup span,
-.map-place-popup small {
-  color: #64766f;
-}
-
-.map-place-popup strong {
-  font-size: 1rem;
-}
-
-.map-place-popup a {
-  margin-top: 4px;
+.kakao-map-label {
+  max-width: 140px;
+  padding: 6px 9px;
+  overflow: hidden;
+  border: 1px solid rgb(23 107 82 / 28%);
+  border-radius: 999px;
   color: #176b52;
-  font-weight: 750;
+  background: white;
+  box-shadow: 0 4px 12px rgb(20 55 43 / 22%);
+  cursor: pointer;
+  font-size: .76rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-error {
+  display: grid;
+  min-height: 440px;
+  place-content: center;
+  padding: 24px;
+  color: #a93b31;
+  background: #f9e6e3;
+  text-align: center;
 }
 
 .map-empty-state {
@@ -1185,6 +1174,66 @@ h1 {
   color: #176b52;
   background: #dceee6;
   line-height: 1.6;
+}
+
+.itinerary-map-panel {
+  margin: 0 0 42px;
+  overflow: hidden;
+  border: 1px solid #d7ddd8;
+  border-radius: 18px;
+  background: white;
+}
+
+.itinerary-map-heading {
+  display: flex;
+  padding: 18px 20px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.itinerary-map-heading > div:first-child > span {
+  color: #176b52;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.itinerary-map-heading h2 {
+  margin: 4px 0 0;
+}
+
+.itinerary-map-panel .kakao-map {
+  height: min(55vh, 520px);
+  min-height: 360px;
+}
+
+.route-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 12px;
+}
+
+.route-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #64766f;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.route-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.itinerary-map-empty {
+  width: 100%;
+  min-height: 240px;
+  margin-bottom: 42px;
 }
 
 .itinerary-days {
