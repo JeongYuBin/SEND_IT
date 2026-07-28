@@ -1055,6 +1055,94 @@ h1 {
   background: #176b52;
 }
 
+.transit-guide {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border: 1px solid #cfe2d9;
+  border-radius: 14px;
+  background: #f4faf7;
+}
+
+.transit-guide summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  cursor: pointer;
+  color: #365449;
+}
+
+.transit-guide summary strong {
+  color: #135c47;
+}
+
+.transit-guide ol {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transit-guide li {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.transit-guide li div {
+  display: grid;
+  gap: 3px;
+}
+
+.transit-guide li div span,
+.transit-guide li small,
+.transit-guide p {
+  color: #64756e;
+}
+
+.transit-step-type {
+  padding: 4px 6px;
+  border-radius: 7px;
+  background: #dcebe4;
+  color: #245d4c;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.transit-step-bus {
+  background: #dcead7;
+  color: #39702f;
+}
+
+.transit-step-subway {
+  background: #e2e5f5;
+  color: #3f4f93;
+}
+
+.transit-guide > a {
+  display: inline-block;
+  color: #176b52;
+  font-weight: 700;
+}
+
+.transit-guide p {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .transit-guide li {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .transit-guide li small {
+    grid-column: 2;
+  }
+}
+
 .itinerary-layout {
   display: grid;
   margin-top: 42px;

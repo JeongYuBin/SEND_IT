@@ -1,6 +1,26 @@
 export type TransportType = 'WALKING' | 'PUBLIC_TRANSIT' | 'CAR'
 export type ItineraryStatus = 'DRAFT' | 'GENERATED' | 'COMPLETED'
 
+export type TransitStep = {
+  type: string
+  guidance: string
+  minutes: number
+  distanceMeters: number
+  startStop: string | null
+  endStop: string | null
+  vehicles: string[]
+}
+
+export type TransitRoute = {
+  type: string
+  totalMinutes: number
+  totalDistanceMeters: number
+  transfers: number
+  fare: number
+  landingUrl: string | null
+  steps: TransitStep[]
+}
+
 export type ItineraryItem = {
   savedPlaceId: number
   sequence: number
@@ -20,6 +40,7 @@ export type ItineraryItem = {
   longitude: number | null
   imageUrl: string | null
   stayMinutes: number
+  transit: TransitRoute | null
 }
 
 export type ItineraryDay = {

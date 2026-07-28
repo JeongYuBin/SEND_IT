@@ -10,6 +10,7 @@ import {
 import { ItineraryEditPanel } from './ItineraryEditPanel'
 import { ItineraryRouteMap } from './ItineraryRouteMap'
 import { PlaceScheduleEditor } from './PlaceScheduleEditor'
+import { TransitRouteGuide } from './TransitRouteGuide'
 import type {
   ItineraryStatus,
   TransportType,
@@ -156,7 +157,9 @@ export function ItineraryDetailPage() {
                       <li key={item.savedPlaceId}>
                         <span className="timeline-number">{item.daySequence}</span>
                         <div className="timeline-stop">
-                          {item.travelMinutesFromPrevious > 0 && (
+                          {item.transit ? (
+                            <TransitRouteGuide route={item.transit} />
+                          ) : item.travelMinutesFromPrevious > 0 && (
                             <div className="travel-estimate">
                               예상 이동 {item.travelMinutesFromPrevious}분
                               {item.distanceKmFromPrevious !== null && ` · 약 ${item.distanceKmFromPrevious}km`}
