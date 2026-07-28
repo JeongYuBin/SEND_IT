@@ -34,5 +34,7 @@ export type CreateSavedPlace = {
   collectionId?: number
   memo?: string
   priority?: number
+  sharedContentId?: number
+  description?: string
+  imageUrl?: string
 }
-

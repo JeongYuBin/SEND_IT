@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthPage } from './features/auth/AuthPage'
 import { HomePage } from './features/home/HomePage'
 import { SavedPlacesPage } from './features/saved/SavedPlacesPage'
+import { ShareResultPage } from './features/share/ShareResultPage'
 import { useAuthStore } from './stores/authStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,7 @@ export function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
+      <Route path="/shares/:shareId" element={<ProtectedRoute><ShareResultPage /></ProtectedRoute>} />
       <Route
         path="/saved"
         element={

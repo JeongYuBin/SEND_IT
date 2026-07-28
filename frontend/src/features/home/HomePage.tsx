@@ -41,7 +41,10 @@ export function HomePage() {
       return
     }
     shareMutation.mutate(url, {
-      onSuccess: () => setUrl(''),
+      onSuccess: (result) => {
+        setUrl('')
+        navigate(`/shares/${result.shareId}`)
+      },
     })
   }
 

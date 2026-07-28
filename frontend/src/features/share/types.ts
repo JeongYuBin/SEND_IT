@@ -12,3 +12,15 @@ export type ShareAcceptedResponse = {
   duplicate: boolean
 }
 
+export type ShareDetail = {
+  shareId: number
+  originalUrl: string
+  sourceType: 'INSTAGRAM' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB'
+  sharedText: string | null
+  title: string | null
+  description: string | null
+  thumbnailUrl: string | null
+  status: AnalysisStatus
+  analysisError: string | null
+  createdAt: string
+}
