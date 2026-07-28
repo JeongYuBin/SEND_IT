@@ -46,6 +46,11 @@ public class SavedPlaceService {
                 .map(this::response).toList();
     }
 
+    @Transactional(readOnly = true)
+    public SavedPlaceDtos.Response get(String email, Long id) {
+        return response(owned(email, id));
+    }
+
     public SavedPlaceDtos.Response update(String email, Long id, SavedPlaceDtos.UpdateRequest request) {
         var saved = owned(email, id);
         Collection selectedCollection = request.collectionId() == null
@@ -76,10 +81,12 @@ public class SavedPlaceService {
     }
     private SavedPlaceDtos.Response response(UserSavedPlace saved) {
         Place p=saved.getPlace(); Collection c=saved.getCollection();
+        SharedContent share=saved.getSharedContent();
         return new SavedPlaceDtos.Response(saved.getId(), p.getId(), p.getName(), p.getCategory(),
                 p.getAddress(), p.getRoadAddress(), p.getLatitude(), p.getLongitude(),
                 p.getDescription(), p.getPrimaryImageUrl(), c==null?null:c.getId(),
                 c==null?null:c.getName(), saved.getMemo(), saved.getVisitStatus(),
-                saved.getPriority(), saved.getSavedAt());
+                saved.getPriority(), saved.getSavedAt(),
+                share==null?null:share.getOriginalUrl());
     }
 }

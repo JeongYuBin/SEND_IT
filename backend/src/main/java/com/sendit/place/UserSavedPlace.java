@@ -41,6 +41,7 @@ public class UserSavedPlace {
     }
     public Long getId() { return id; }
     public Place getPlace() { return place; }
+    public SharedContent getSharedContent() { return sharedContent; }
     public Collection getCollection() { return collection; }
     public String getMemo() { return memo; }
     public VisitStatus getVisitStatus() { return visitStatus; }
@@ -53,4 +54,3 @@ public class UserSavedPlace {
         this.collection = collection;
     }
 }
-

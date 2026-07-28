@@ -29,7 +29,7 @@ public final class SavedPlaceDtos {
             Long savedPlaceId, Long placeId, String name, String category,
             String address, String roadAddress, Double latitude, Double longitude,
             String description, String imageUrl, Long collectionId, String collectionName,
-            String memo, VisitStatus visitStatus, int priority, Instant savedAt
+            String memo, VisitStatus visitStatus, int priority, Instant savedAt,
+            String originalUrl
     ) {}
 }
-

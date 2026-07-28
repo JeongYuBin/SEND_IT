@@ -21,6 +21,10 @@ public class SavedPlaceController {
     List<SavedPlaceDtos.Response> list(Principal principal) {
         return service.list(principal.getName());
     }
+    @GetMapping("/{id}")
+    SavedPlaceDtos.Response get(Principal principal, @PathVariable Long id) {
+        return service.get(principal.getName(), id);
+    }
     @PatchMapping("/{id}")
     SavedPlaceDtos.Response update(Principal principal, @PathVariable Long id,
             @Valid @RequestBody SavedPlaceDtos.UpdateRequest request) {
@@ -31,4 +35,3 @@ public class SavedPlaceController {
         service.delete(principal.getName(), id);
     }
 }
-
