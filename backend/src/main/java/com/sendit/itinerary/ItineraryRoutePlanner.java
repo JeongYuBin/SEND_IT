@@ -15,27 +15,56 @@ public class ItineraryRoutePlanner {
     private static final double EARTH_RADIUS_KM = 6371.0088;
 
     public List<DaySchedule> plan(Itinerary itinerary) {
-        List<ItineraryItem> ordered = nearestNeighborOrder(itinerary.getItems());
         int dayCount = Math.toIntExact(
                 ChronoUnit.DAYS.between(itinerary.getStartDate(), itinerary.getEndDate()) + 1);
-        List<DaySchedule> schedules = new ArrayList<>();
-        int cursor = 0;
+        List<List<ItineraryItem>> dayBuckets = new ArrayList<>();
+        for (int index = 0; index < dayCount; index++) {
+            dayBuckets.add(new ArrayList<>());
+        }
+        List<ItineraryItem> flexibleItems = new ArrayList<>();
+        for (ItineraryItem item : itinerary.getItems()) {
+            LocalDate preferredDate = item.getPreferredVisitDate();
+            if (preferredDate == null
+                    || preferredDate.isBefore(itinerary.getStartDate())
+                    || preferredDate.isAfter(itinerary.getEndDate())) {
+                flexibleItems.add(item);
+            } else {
+                int dayIndex = Math.toIntExact(
+                        ChronoUnit.DAYS.between(itinerary.getStartDate(), preferredDate));
+                dayBuckets.get(dayIndex).add(item);
+            }
+        }
+        int targetPlacesPerDay = (int) Math.ceil(
+                (double) itinerary.getItems().size() / dayCount);
+        int flexibleDayIndex = 0;
+        for (ItineraryItem item : nearestNeighborOrder(flexibleItems)) {
+            while (flexibleDayIndex < dayCount - 1
+                    && dayBuckets.get(flexibleDayIndex).size() >= targetPlacesPerDay) {
+                flexibleDayIndex++;
+            }
+            dayBuckets.get(flexibleDayIndex).add(item);
+        }
 
+        List<DaySchedule> schedules = new ArrayList<>();
         for (int dayIndex = 0; dayIndex < dayCount; dayIndex++) {
-            int remainingPlaces = ordered.size() - cursor;
-            int remainingDays = dayCount - dayIndex;
-            int placesToday = remainingPlaces == 0
-                    ? 0
-                    : (int) Math.ceil((double) remainingPlaces / remainingDays);
+            List<ItineraryItem> ordered = new ArrayList<>(
+                    nearestNeighborOrder(dayBuckets.get(dayIndex)));
+            ordered.sort(Comparator
+                    .comparing(ItineraryItem::getPreferredStartTime,
+                            Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparingInt(ItineraryItem::getSequence));
             LocalTime currentTime = itinerary.getDailyStartTime();
             List<ScheduledStop> stops = new ArrayList<>();
             ItineraryItem previous = null;
 
-            for (int index = 0; index < placesToday; index++) {
-                ItineraryItem item = ordered.get(cursor++);
+            for (int index = 0; index < ordered.size(); index++) {
+                ItineraryItem item = ordered.get(index);
                 TravelEstimate travel = estimate(previous, item, itinerary.getTransportType());
                 currentTime = currentTime.plusMinutes(travel.minutes());
-                LocalTime arrivalTime = currentTime;
+                LocalTime arrivalTime = item.getPreferredStartTime() != null
+                        && item.getPreferredStartTime().isAfter(currentTime)
+                        ? item.getPreferredStartTime()
+                        : currentTime;
                 LocalTime departureTime = arrivalTime.plusMinutes(item.getStayMinutes());
                 stops.add(new ScheduledStop(
                         item,

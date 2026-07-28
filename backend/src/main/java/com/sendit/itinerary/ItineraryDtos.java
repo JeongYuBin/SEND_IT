@@ -19,11 +19,27 @@ public final class ItineraryDtos {
             @NotEmpty @Size(max = 20) List<@NotNull Long> savedPlaceIds
     ) {}
 
+    public record UpdateRequest(
+            @NotBlank @Size(max = 150) String title,
+            @NotNull LocalDate startDate,
+            @NotNull LocalDate endDate,
+            @NotNull LocalTime dailyStartTime,
+            @NotNull LocalTime dailyEndTime,
+            @NotNull TransportType transportType
+    ) {}
+
+    public record UpdateItemScheduleRequest(
+            LocalDate visitDate,
+            LocalTime startTime,
+            @NotNull @Min(15) @Max(720) Integer stayMinutes
+    ) {}
+
     public record ItemResponse(
             Long savedPlaceId, int sequence, int daySequence, LocalDate visitDate,
             LocalTime arrivalTime, LocalTime departureTime,
             int travelMinutesFromPrevious, Double distanceKmFromPrevious,
-            boolean coordinateAvailable, String name, String category,
+            boolean coordinateAvailable, LocalDate preferredVisitDate,
+            LocalTime preferredStartTime, String name, String category,
             String address, Double latitude, Double longitude, String imageUrl,
             int stayMinutes
     ) {}

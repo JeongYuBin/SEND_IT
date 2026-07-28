@@ -66,15 +66,68 @@ public class ItineraryService {
                 .orElseThrow(() -> new ResourceNotFoundException("여행 계획을 찾을 수 없습니다.")));
     }
 
+    public ItineraryDtos.Response update(String email, Long id,
+                                          ItineraryDtos.UpdateRequest request) {
+        validateDatesAndTimes(request.startDate(), request.endDate(),
+                request.dailyStartTime(), request.dailyEndTime());
+        Itinerary itinerary = ownedItinerary(email, id);
+        itinerary.update(request.title(), request.startDate(), request.endDate(),
+                request.dailyStartTime(), request.dailyEndTime(), request.transportType());
+        return response(itinerary);
+    }
+
+    public ItineraryDtos.Response updateItemSchedule(
+            String email,
+            Long id,
+            Long savedPlaceId,
+            ItineraryDtos.UpdateItemScheduleRequest request
+    ) {
+        Itinerary itinerary = ownedItinerary(email, id);
+        if (request.visitDate() != null
+                && (request.visitDate().isBefore(itinerary.getStartDate())
+                || request.visitDate().isAfter(itinerary.getEndDate()))) {
+            throw new IllegalArgumentException("방문일은 여행 기간 안에서 선택해 주세요.");
+        }
+        if (request.startTime() != null && request.visitDate() == null) {
+            throw new IllegalArgumentException("방문 시간을 지정하려면 방문일도 선택해 주세요.");
+        }
+        ItineraryItem item = itinerary.getItems().stream()
+                .filter(candidate -> candidate.getSavedPlace().getId().equals(savedPlaceId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("여행 계획에서 장소를 찾을 수 없습니다."));
+        item.updateSchedule(request.visitDate(), request.startTime(), request.stayMinutes());
+        itinerary.markGenerated();
+        return response(itinerary);
+    }
+
+    public void delete(String email, Long id) {
+        itineraries.delete(ownedItinerary(email, id));
+    }
+
+    private Itinerary ownedItinerary(String email, Long id) {
+        return itineraries.findByIdAndUserEmail(id, email)
+                .orElseThrow(() -> new ResourceNotFoundException("여행 계획을 찾을 수 없습니다."));
+    }
+
     private void validate(ItineraryDtos.CreateRequest request) {
-        if (request.endDate().isBefore(request.startDate())) {
-            throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
-        }
-        if (!request.dailyEndTime().isAfter(request.dailyStartTime())) {
-            throw new IllegalArgumentException("종료 시간은 시작 시간보다 늦어야 합니다.");
-        }
+        validateDatesAndTimes(request.startDate(), request.endDate(),
+                request.dailyStartTime(), request.dailyEndTime());
         if (new LinkedHashSet<>(request.savedPlaceIds()).size() != request.savedPlaceIds().size()) {
             throw new IllegalArgumentException("같은 장소를 중복 선택할 수 없습니다.");
+        }
+    }
+
+    private void validateDatesAndTimes(
+            java.time.LocalDate startDate,
+            java.time.LocalDate endDate,
+            java.time.LocalTime dailyStartTime,
+            java.time.LocalTime dailyEndTime
+    ) {
+        if (endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("종료일은 시작일보다 빠를 수 없습니다.");
+        }
+        if (!dailyEndTime.isAfter(dailyStartTime)) {
+            throw new IllegalArgumentException("종료 시간은 시작 시간보다 늦어야 합니다.");
         }
     }
 
@@ -115,6 +168,8 @@ public class ItineraryService {
                 stop.travelMinutesFromPrevious(),
                 stop.distanceKmFromPrevious(),
                 stop.coordinateAvailable(),
+                stop.item().getPreferredVisitDate(),
+                stop.item().getPreferredStartTime(),
                 place.getName(),
                 place.getCategory(),
                 place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress(),

@@ -58,6 +58,25 @@ class ItineraryRoutePlannerTest {
         assertThat(stops.get(1).coordinateAvailable()).isFalse();
     }
 
+    @Test
+    void honorsPreferredVisitDateAndStartTime() {
+        ItineraryItem fixed = item(1, 37.5, 127.0);
+        when(fixed.getPreferredVisitDate()).thenReturn(LocalDate.of(2026, 8, 2));
+        when(fixed.getPreferredStartTime()).thenReturn(LocalTime.of(14, 30));
+        Itinerary itinerary = mock(Itinerary.class);
+        when(itinerary.getItems()).thenReturn(List.of(fixed));
+        when(itinerary.getStartDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(itinerary.getEndDate()).thenReturn(LocalDate.of(2026, 8, 2));
+        when(itinerary.getDailyStartTime()).thenReturn(LocalTime.of(9, 0));
+        when(itinerary.getDailyEndTime()).thenReturn(LocalTime.of(18, 0));
+        when(itinerary.getTransportType()).thenReturn(TransportType.PUBLIC_TRANSIT);
+
+        var days = planner.plan(itinerary);
+
+        assertThat(days.getFirst().stops()).isEmpty();
+        assertThat(days.get(1).stops().getFirst().arrivalTime()).isEqualTo(LocalTime.of(14, 30));
+    }
+
     private ItineraryItem item(int sequence, Double latitude, Double longitude) {
         Place place = mock(Place.class);
         when(place.getLatitude()).thenReturn(latitude);

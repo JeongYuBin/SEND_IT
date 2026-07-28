@@ -31,4 +31,26 @@ public class ItineraryController {
     ItineraryDtos.Response get(Principal principal, @PathVariable Long id) {
         return service.get(principal.getName(), id);
     }
+
+    @PutMapping("/{id}")
+    ItineraryDtos.Response update(Principal principal, @PathVariable Long id,
+                                  @Valid @RequestBody ItineraryDtos.UpdateRequest request) {
+        return service.update(principal.getName(), id, request);
+    }
+
+    @PutMapping("/{id}/items/{savedPlaceId}/schedule")
+    ItineraryDtos.Response updateItemSchedule(
+            Principal principal,
+            @PathVariable Long id,
+            @PathVariable Long savedPlaceId,
+            @Valid @RequestBody ItineraryDtos.UpdateItemScheduleRequest request
+    ) {
+        return service.updateItemSchedule(principal.getName(), id, savedPlaceId, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void delete(Principal principal, @PathVariable Long id) {
+        service.delete(principal.getName(), id);
+    }
 }

@@ -62,6 +62,19 @@ public class Itinerary {
         status = ItineraryStatus.GENERATED;
     }
 
+    public void update(String title, LocalDate startDate, LocalDate endDate,
+                       LocalTime dailyStartTime, LocalTime dailyEndTime,
+                       TransportType transportType) {
+        this.title = title.trim();
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.dailyStartTime = dailyStartTime;
+        this.dailyEndTime = dailyEndTime;
+        this.transportType = transportType;
+        this.status = ItineraryStatus.GENERATED;
+        items.forEach(item -> item.clearPreferenceOutside(startDate, endDate));
+    }
+
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public LocalDate getStartDate() { return startDate; }
