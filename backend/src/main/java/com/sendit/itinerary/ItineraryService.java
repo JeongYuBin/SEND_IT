@@ -1,6 +1,7 @@
 package com.sendit.itinerary;
 
 import com.sendit.collection.ResourceNotFoundException;
+import com.sendit.map.KakaoTransitClient;
 import com.sendit.place.Place;
 import com.sendit.place.UserSavedPlace;
 import com.sendit.place.UserSavedPlaceRepository;
@@ -176,7 +177,33 @@ public class ItineraryService {
                 place.getLatitude(),
                 place.getLongitude(),
                 place.getPrimaryImageUrl(),
-                stop.item().getStayMinutes()
+                stop.item().getStayMinutes(),
+                transitResponse(stop.transitRoute())
+        );
+    }
+
+    private ItineraryDtos.TransitRouteResponse transitResponse(
+            KakaoTransitClient.TransitRoute route
+    ) {
+        if (route == null) return null;
+        return new ItineraryDtos.TransitRouteResponse(
+                route.type(),
+                route.totalMinutes(),
+                route.totalDistanceMeters(),
+                route.transfers(),
+                route.fare(),
+                route.landingUrl(),
+                route.steps().stream()
+                        .map(step -> new ItineraryDtos.TransitStepResponse(
+                                step.type(),
+                                step.guidance(),
+                                step.minutes(),
+                                step.distanceMeters(),
+                                step.startStop(),
+                                step.endStop(),
+                                step.vehicles()
+                        ))
+                        .toList()
         );
     }
 }

@@ -41,7 +41,18 @@ public final class ItineraryDtos {
             boolean coordinateAvailable, LocalDate preferredVisitDate,
             LocalTime preferredStartTime, String name, String category,
             String address, Double latitude, Double longitude, String imageUrl,
-            int stayMinutes
+            int stayMinutes, TransitRouteResponse transit
+    ) {}
+
+    public record TransitRouteResponse(
+            String type, int totalMinutes, int totalDistanceMeters,
+            int transfers, int fare, String landingUrl,
+            List<TransitStepResponse> steps
+    ) {}
+
+    public record TransitStepResponse(
+            String type, String guidance, int minutes, int distanceMeters,
+            String startStop, String endStop, List<String> vehicles
     ) {}
 
     public record DayResponse(

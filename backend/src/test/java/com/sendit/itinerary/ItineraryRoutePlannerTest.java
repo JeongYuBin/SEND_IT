@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.sendit.map.KakaoTransitClient;
 import com.sendit.place.Place;
 import com.sendit.place.UserSavedPlace;
 import java.time.LocalDate;
@@ -13,7 +14,8 @@ import org.junit.jupiter.api.Test;
 
 class ItineraryRoutePlannerTest {
 
-    private final ItineraryRoutePlanner planner = new ItineraryRoutePlanner();
+    private final KakaoTransitClient transitClient = mock(KakaoTransitClient.class);
+    private final ItineraryRoutePlanner planner = new ItineraryRoutePlanner(transitClient);
 
     @Test
     void ordersNearbyPlacesAndSplitsThemAcrossTravelDays() {
@@ -77,8 +79,35 @@ class ItineraryRoutePlannerTest {
         assertThat(days.get(1).stops().getFirst().arrivalTime()).isEqualTo(LocalTime.of(14, 30));
     }
 
+    @Test
+    void usesKakaoTransitRouteForPublicTransitSegments() {
+        ItineraryItem first = item(1, 37.5547, 126.9706);
+        ItineraryItem second = item(2, 37.5665, 126.9780);
+        when(transitClient.route(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any()
+        )).thenReturn(java.util.Optional.of(new KakaoTransitClient.TransitRoute(
+                "PUBLIC_TRANSIT", 32, 7_100, 1, 1_500,
+                "https://map.kakao.com", List.of()
+        )));
+        Itinerary itinerary = mock(Itinerary.class);
+        when(itinerary.getItems()).thenReturn(List.of(first, second));
+        when(itinerary.getStartDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(itinerary.getEndDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(itinerary.getDailyStartTime()).thenReturn(LocalTime.of(9, 0));
+        when(itinerary.getDailyEndTime()).thenReturn(LocalTime.of(18, 0));
+        when(itinerary.getTransportType()).thenReturn(TransportType.PUBLIC_TRANSIT);
+
+        var secondStop = planner.plan(itinerary).getFirst().stops().get(1);
+
+        assertThat(secondStop.travelMinutesFromPrevious()).isEqualTo(32);
+        assertThat(secondStop.distanceKmFromPrevious()).isEqualTo(7.1);
+        assertThat(secondStop.transitRoute()).isNotNull();
+    }
+
     private ItineraryItem item(int sequence, Double latitude, Double longitude) {
         Place place = mock(Place.class);
+        when(place.getName()).thenReturn("테스트 장소 " + sequence);
         when(place.getLatitude()).thenReturn(latitude);
         when(place.getLongitude()).thenReturn(longitude);
         UserSavedPlace savedPlace = mock(UserSavedPlace.class);

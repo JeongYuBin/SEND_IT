@@ -1,5 +1,6 @@
 package com.sendit.itinerary;
 
+import com.sendit.map.KakaoTransitClient;
 import com.sendit.place.Place;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -13,6 +14,11 @@ import org.springframework.stereotype.Component;
 public class ItineraryRoutePlanner {
 
     private static final double EARTH_RADIUS_KM = 6371.0088;
+    private final KakaoTransitClient transitClient;
+
+    public ItineraryRoutePlanner(KakaoTransitClient transitClient) {
+        this.transitClient = transitClient;
+    }
 
     public List<DaySchedule> plan(Itinerary itinerary) {
         int dayCount = Math.toIntExact(
@@ -73,7 +79,8 @@ public class ItineraryRoutePlanner {
                         departureTime,
                         travel.minutes(),
                         travel.distanceKm(),
-                        coordinates(item) != null
+                        coordinates(item) != null,
+                        travel.transitRoute()
                 ));
                 currentTime = departureTime;
                 previous = item;
@@ -120,12 +127,30 @@ public class ItineraryRoutePlanner {
     private TravelEstimate estimate(ItineraryItem from, ItineraryItem to,
                                     TransportType transportType) {
         if (from == null) {
-            return new TravelEstimate(0, 0.0);
+            return new TravelEstimate(0, 0.0, null);
         }
         Coordinates fromCoordinates = coordinates(from);
         Coordinates toCoordinates = coordinates(to);
         if (fromCoordinates == null || toCoordinates == null) {
-            return new TravelEstimate(20, null);
+            return new TravelEstimate(20, null, null);
+        }
+        if (transportType == TransportType.PUBLIC_TRANSIT) {
+            Place fromPlace = from.getSavedPlace().getPlace();
+            Place toPlace = to.getSavedPlace().getPlace();
+            var route = transitClient.route(
+                    new KakaoTransitClient.Location(
+                            fromPlace.getName(), fromCoordinates.latitude(), fromCoordinates.longitude()),
+                    new KakaoTransitClient.Location(
+                            toPlace.getName(), toCoordinates.latitude(), toCoordinates.longitude())
+            );
+            if (route.isPresent()) {
+                KakaoTransitClient.TransitRoute transitRoute = route.get();
+                return new TravelEstimate(
+                        transitRoute.totalMinutes(),
+                        Math.round(transitRoute.totalDistanceMeters() / 100.0) / 10.0,
+                        transitRoute
+                );
+            }
         }
         double straightDistance = distance(fromCoordinates, toCoordinates);
         double routeFactor = transportType == TransportType.WALKING ? 1.2 : 1.35;
@@ -138,7 +163,7 @@ public class ItineraryRoutePlanner {
         int rawMinutes = (int) Math.ceil(routeDistance / speed * 60);
         int roundedMinutes = rawMinutes == 0 ? 0 : Math.max(5, ((rawMinutes + 4) / 5) * 5);
         return new TravelEstimate(roundedMinutes,
-                Math.round(routeDistance * 10.0) / 10.0);
+                Math.round(routeDistance * 10.0) / 10.0, null);
     }
 
     private Coordinates coordinates(ItineraryItem item) {
@@ -174,9 +199,14 @@ public class ItineraryRoutePlanner {
             LocalTime departureTime,
             int travelMinutesFromPrevious,
             Double distanceKmFromPrevious,
-            boolean coordinateAvailable
+            boolean coordinateAvailable,
+            KakaoTransitClient.TransitRoute transitRoute
     ) {}
 
     private record Coordinates(double latitude, double longitude) {}
-    private record TravelEstimate(int minutes, Double distanceKm) {}
+    private record TravelEstimate(
+            int minutes,
+            Double distanceKm,
+            KakaoTransitClient.TransitRoute transitRoute
+    ) {}
 }
