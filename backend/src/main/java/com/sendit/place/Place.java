@@ -32,6 +32,16 @@ public class Place {
     private String primaryImageUrl;
     @Column(name = "data_source", nullable = false, length = 30)
     private String dataSource;
+    @Column(name = "tourism_content_id", length = 50)
+    private String tourismContentId;
+    @Column(name = "tourism_content_type_id", length = 20)
+    private String tourismContentTypeId;
+    @Column(name = "operating_hours", columnDefinition = "text")
+    private String operatingHours;
+    @Column(name = "rest_days", columnDefinition = "text")
+    private String restDays;
+    @Column(name = "parking_info", columnDefinition = "text")
+    private String parkingInfo;
     @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     @UpdateTimestamp @Column(name = "updated_at", nullable = false)
@@ -66,5 +76,32 @@ public class Place {
     public Double getLongitude() { return longitude; }
     public String getDescription() { return description; }
     public String getPrimaryImageUrl() { return primaryImageUrl; }
-}
+    public String getPhone() { return phone; }
+    public String getHomepageUrl() { return homepageUrl; }
+    public String getTourismContentId() { return tourismContentId; }
+    public String getTourismContentTypeId() { return tourismContentTypeId; }
+    public String getOperatingHours() { return operatingHours; }
+    public String getRestDays() { return restDays; }
+    public String getParkingInfo() { return parkingInfo; }
 
+    public void enrichTourismDetails(
+            String contentId, String contentTypeId, String enrichedDescription,
+            String enrichedImageUrl, String enrichedPhone, String enrichedHomepageUrl,
+            String enrichedOperatingHours, String enrichedRestDays, String enrichedParkingInfo
+    ) {
+        tourismContentId = firstNonBlank(contentId, tourismContentId);
+        tourismContentTypeId = firstNonBlank(contentTypeId, tourismContentTypeId);
+        description = firstNonBlank(enrichedDescription, description);
+        primaryImageUrl = firstNonBlank(enrichedImageUrl, primaryImageUrl);
+        phone = firstNonBlank(enrichedPhone, phone);
+        homepageUrl = firstNonBlank(enrichedHomepageUrl, homepageUrl);
+        operatingHours = firstNonBlank(enrichedOperatingHours, operatingHours);
+        restDays = firstNonBlank(enrichedRestDays, restDays);
+        parkingInfo = firstNonBlank(enrichedParkingInfo, parkingInfo);
+        if (tourismContentId != null) dataSource = "TOUR_API";
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred;
+    }
+}

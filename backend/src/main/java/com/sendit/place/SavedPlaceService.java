@@ -5,6 +5,7 @@ import com.sendit.collection.CollectionRepository;
 import com.sendit.collection.ResourceNotFoundException;
 import com.sendit.share.SharedContent;
 import com.sendit.share.SharedContentRepository;
+import com.sendit.tourism.TourApiClient;
 import com.sendit.user.UserRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -18,24 +19,35 @@ public class SavedPlaceService {
     private final UserSavedPlaceRepository savedPlaces;
     private final CollectionRepository collections;
     private final SharedContentRepository shares;
+    private final TourApiClient tourApiClient;
 
     public SavedPlaceService(UserRepository users, PlaceRepository places,
             UserSavedPlaceRepository savedPlaces, CollectionRepository collections,
-            SharedContentRepository shares) {
+            SharedContentRepository shares, TourApiClient tourApiClient) {
         this.users=users; this.places=places; this.savedPlaces=savedPlaces;
-        this.collections=collections; this.shares=shares;
+        this.collections=collections; this.shares=shares; this.tourApiClient=tourApiClient;
     }
 
     public SavedPlaceDtos.Response create(String email, SavedPlaceDtos.CreateRequest request) {
         var user = users.findByEmail(email).orElseThrow();
         validateCoordinates(request.latitude(), request.longitude());
         String normalizedName = request.name().trim().toLowerCase().replaceAll("\\s+", "");
+        var tourismDetail = tourApiClient.detail(
+                request.tourismContentId(), request.tourismContentTypeId());
+        String description = tourismDetail.map(TourApiClient.TourismPlaceDetail::description)
+                .orElse(request.description());
+        String imageUrl = tourismDetail.map(TourApiClient.TourismPlaceDetail::imageUrl)
+                .orElse(request.imageUrl());
         Place place = places.findFirstByNormalizedNameAndLatitudeAndLongitude(
                         normalizedName, request.latitude(), request.longitude())
                 .orElseGet(() -> places.save(new Place(
                         request.name(), request.category(), request.address(),
                         request.roadAddress(), request.latitude(), request.longitude(),
-                        request.description(), request.imageUrl())));
+                        description, imageUrl)));
+        tourismDetail.ifPresent(detail -> place.enrichTourismDetails(
+                detail.contentId(), detail.contentTypeId(), detail.description(),
+                detail.imageUrl(), detail.phone(), detail.homepageUrl(),
+                detail.operatingHours(), detail.restDays(), detail.parkingInfo()));
         var existingSaved = savedPlaces.findByUserIdAndPlaceId(user.getId(), place.getId());
         if (existingSaved.isPresent()) {
             return response(existingSaved.get());
@@ -97,7 +109,10 @@ public class SavedPlaceService {
         SharedContent share=saved.getSharedContent();
         return new SavedPlaceDtos.Response(saved.getId(), p.getId(), p.getName(), p.getCategory(),
                 p.getAddress(), p.getRoadAddress(), p.getLatitude(), p.getLongitude(),
-                p.getDescription(), p.getPrimaryImageUrl(), c==null?null:c.getId(),
+                p.getDescription(), p.getPrimaryImageUrl(), p.getPhone(), p.getHomepageUrl(),
+                p.getTourismContentId(), p.getTourismContentTypeId(),
+                p.getOperatingHours(), p.getRestDays(), p.getParkingInfo(),
+                c==null?null:c.getId(),
                 c==null?null:c.getName(), saved.getMemo(), saved.getVisitStatus(),
                 saved.getPriority(), saved.getSavedAt(),
                 share==null?null:share.getOriginalUrl());

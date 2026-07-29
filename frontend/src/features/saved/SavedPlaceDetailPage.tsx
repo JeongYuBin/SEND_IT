@@ -39,7 +39,8 @@ export function SavedPlaceDetailPage() {
       placeQuery.data!.name,
       placeQuery.data!.roadAddress ?? placeQuery.data!.address,
     ),
-    enabled: Boolean(placeQuery.data?.name),
+    enabled: Boolean(placeQuery.data?.name)
+      && placeQuery.data?.tourismContentId === null,
   })
   const nearbyQuery = useQuery({
     queryKey: ['tourism-nearby', placeQuery.data?.latitude, placeQuery.data?.longitude, 10000],
@@ -70,6 +71,8 @@ export function SavedPlaceDetailPage() {
       latitude: nearby.latitude,
       longitude: nearby.longitude,
       imageUrl: nearby.imageUrl ?? undefined,
+      tourismContentId: nearby.contentId,
+      tourismContentTypeId: nearby.contentTypeId,
       collectionId: placeQuery.data?.collectionId ?? undefined,
     }),
     onSuccess: (savedPlace) => {
@@ -95,6 +98,7 @@ export function SavedPlaceDetailPage() {
 
   const place = placeQuery.data
   const backUrl = place.collectionId ? `/saved/collections/${place.collectionId}` : '/saved'
+  const storedOperatingInfo = place.operatingHours !== null || place.restDays !== null
   const savedPlaceNames = new Set(
     savedPlacesQuery.data?.map((saved) => saved.name.replaceAll(/\s/g, '').toLowerCase()),
   )
@@ -146,18 +150,26 @@ export function SavedPlaceDetailPage() {
           </section>
           <section className="place-operating-info">
             <h2>방문 정보</h2>
-            {operatingInfoQuery.isLoading && <p>관광공사 방문 정보를 확인하고 있습니다.</p>}
-            {operatingInfoQuery.isError && <p>방문 정보를 불러오지 못했습니다.</p>}
-            {operatingInfoQuery.data?.available ? (
+            {operatingInfoQuery.isLoading && !storedOperatingInfo && (
+              <p>관광공사 방문 정보를 확인하고 있습니다.</p>
+            )}
+            {operatingInfoQuery.isError && !storedOperatingInfo && <p>방문 정보를 불러오지 못했습니다.</p>}
+            {(storedOperatingInfo || operatingInfoQuery.data?.available) ? (
               <dl>
                 <div>
                   <dt>이용시간</dt>
-                  <dd>{operatingInfoQuery.data.hours ?? '등록된 정보 없음'}</dd>
+                  <dd>{place.operatingHours ?? operatingInfoQuery.data?.hours ?? '등록된 정보 없음'}</dd>
                 </div>
                 <div>
                   <dt>휴무일</dt>
-                  <dd>{operatingInfoQuery.data.restDays ?? '등록된 정보 없음'}</dd>
+                  <dd>{place.restDays ?? operatingInfoQuery.data?.restDays ?? '등록된 정보 없음'}</dd>
                 </div>
+                {place.parkingInfo && (
+                  <div>
+                    <dt>주차 안내</dt>
+                    <dd>{place.parkingInfo}</dd>
+                  </div>
+                )}
               </dl>
             ) : (
               !operatingInfoQuery.isLoading
@@ -172,6 +184,15 @@ export function SavedPlaceDetailPage() {
             </section>
           )}
           <dl className="place-detail-facts">
+            {place.phone && <div><dt>문의</dt><dd>{place.phone}</dd></div>}
+            {place.homepageUrl && (
+              <div>
+                <dt>홈페이지</dt>
+                <dd>
+                  <a href={place.homepageUrl} target="_blank" rel="noreferrer">공식 홈페이지 ↗</a>
+                </dd>
+              </div>
+            )}
             <div><dt>방문 상태</dt><dd>
               <select
                 value={place.visitStatus}

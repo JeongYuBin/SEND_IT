@@ -19,6 +19,13 @@ export type SavedPlace = {
   longitude: number | null
   description: string | null
   imageUrl: string | null
+  phone: string | null
+  homepageUrl: string | null
+  tourismContentId: string | null
+  tourismContentTypeId: string | null
+  operatingHours: string | null
+  restDays: string | null
+  parkingInfo: string | null
   collectionId: number | null
   collectionName: string | null
   memo: string | null
@@ -41,10 +48,13 @@ export type CreateSavedPlace = {
   imageUrl?: string
   latitude?: number
   longitude?: number
+  tourismContentId?: string
+  tourismContentTypeId?: string
 }
 
 export type NearbyTourismPlace = {
   contentId: string
+  contentTypeId: string
   name: string
   category: string | null
   address: string | null

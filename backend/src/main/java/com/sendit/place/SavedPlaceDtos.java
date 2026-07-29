@@ -14,6 +14,8 @@ public final class SavedPlaceDtos {
             @DecimalMin("-180") @DecimalMax("180") Double longitude,
             @Size(max=5000) String description,
             @Size(max=2048) String imageUrl,
+            @Size(max=50) String tourismContentId,
+            @Size(max=20) String tourismContentTypeId,
             Long sharedContentId,
             Long collectionId,
             @Size(max=1000) String memo,
@@ -29,7 +31,10 @@ public final class SavedPlaceDtos {
     public record Response(
             Long savedPlaceId, Long placeId, String name, String category,
             String address, String roadAddress, Double latitude, Double longitude,
-            String description, String imageUrl, Long collectionId, String collectionName,
+            String description, String imageUrl, String phone, String homepageUrl,
+            String tourismContentId, String tourismContentTypeId,
+            String operatingHours, String restDays, String parkingInfo,
+            Long collectionId, String collectionName,
             String memo, VisitStatus visitStatus, int priority, Instant savedAt,
             String originalUrl
     ) {}

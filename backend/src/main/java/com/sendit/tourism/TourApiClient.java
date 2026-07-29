@@ -177,6 +177,7 @@ public class TourApiClient {
                     .filter(item -> item.latitude() != null && item.longitude() != null)
                     .map(item -> new NearbyPlace(
                             item.contentId(),
+                            item.contentTypeId(),
                             item.title(),
                             categoryLabel(item.contentTypeId()),
                             fullAddress(item),
@@ -187,6 +188,68 @@ public class TourApiClient {
                     .toList();
         } catch (Exception ignored) {
             return List.of();
+        }
+    }
+
+    public Optional<TourismPlaceDetail> detail(String contentId, String contentTypeId) {
+        if (serviceKey.isBlank() || contentId == null || contentId.isBlank()
+                || contentTypeId == null || contentTypeId.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            String commonBody = get("/detailCommon2", Map.of(
+                    "contentId", contentId,
+                    "contentTypeId", contentTypeId,
+                    "defaultYN", "Y",
+                    "firstImageYN", "Y",
+                    "addrinfoYN", "Y",
+                    "mapinfoYN", "Y",
+                    "overviewYN", "Y",
+                    "numOfRows", "1",
+                    "pageNo", "1"
+            ));
+            TourItem common = items(commonBody).stream().findFirst().orElse(null);
+            if (common == null) return Optional.empty();
+            JsonNode commonNode = firstItem(commonBody);
+
+            JsonNode intro = null;
+            try {
+                intro = firstItem(get("/detailIntro2", Map.of(
+                        "contentId", contentId,
+                        "contentTypeId", contentTypeId,
+                        "numOfRows", "1",
+                        "pageNo", "1"
+                )));
+            } catch (Exception ignored) {
+                // 공통 상세 정보는 보존하고 이용 안내만 비워서 반환한다.
+            }
+            String hours = intro == null ? null : cleanOverview(firstText(intro,
+                    "usetime", "usetimeculture", "usetimeleports",
+                    "opentimefood", "checkintime"));
+            String restDays = intro == null ? null : cleanOverview(firstText(intro,
+                    "restdate", "restdateculture", "restdateleports",
+                    "restdatefood", "restdateaccommodation"));
+            String parking = intro == null ? null : cleanOverview(firstText(intro,
+                    "parking", "parkingculture", "parkingleports",
+                    "parkingfood", "parkinglodging"));
+            return Optional.of(new TourismPlaceDetail(
+                    contentId,
+                    contentTypeId,
+                    common.title(),
+                    categoryLabel(contentTypeId),
+                    fullAddress(common),
+                    common.latitude(),
+                    common.longitude(),
+                    common.firstImage(),
+                    cleanOverview(common.overview()),
+                    text(commonNode, "tel"),
+                    cleanHomepage(text(commonNode, "homepage")),
+                    hours,
+                    restDays,
+                    parking
+            ));
+        } catch (Exception ignored) {
+            return Optional.empty();
         }
     }
 
@@ -362,6 +425,17 @@ public class TourApiClient {
         return overview == null ? null : Jsoup.parse(overview).text().trim();
     }
 
+    private String cleanHomepage(String homepage) {
+        if (homepage == null || homepage.isBlank()) return null;
+        var document = Jsoup.parse(homepage);
+        var link = document.selectFirst("a[href]");
+        if (link != null && link.attr("href").matches("https?://\\S+")) {
+            return link.attr("href").trim();
+        }
+        String text = document.text().trim();
+        return text.matches("https?://\\S+") ? text : null;
+    }
+
     private String text(JsonNode node, String field) {
         String value = node.path(field).asText(null);
         return value == null || value.isBlank() ? null : value.trim();
@@ -429,6 +503,7 @@ public class TourApiClient {
     public record TimeRange(LocalTime opensAt, LocalTime closesAt) {}
     public record NearbyPlace(
             String contentId,
+            String contentTypeId,
             String name,
             String category,
             String address,
@@ -436,6 +511,22 @@ public class TourApiClient {
             double longitude,
             String imageUrl,
             int distanceMeters
+    ) {}
+    public record TourismPlaceDetail(
+            String contentId,
+            String contentTypeId,
+            String name,
+            String category,
+            String address,
+            Double latitude,
+            Double longitude,
+            String imageUrl,
+            String description,
+            String phone,
+            String homepageUrl,
+            String operatingHours,
+            String restDays,
+            String parkingInfo
     ) {}
     private record OperatingInfoCacheEntry(
             Optional<OperatingInfo> info,
