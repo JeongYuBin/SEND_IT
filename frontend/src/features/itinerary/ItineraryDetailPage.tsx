@@ -11,7 +11,6 @@ import {
   updateItineraryItemTransport,
 } from './itineraryApi'
 import { ItineraryEditPanel } from './ItineraryEditPanel'
-import { ItineraryOrderEditor } from './ItineraryOrderEditor'
 import { ItineraryRouteMap } from './ItineraryRouteMap'
 import { PlaceScheduleEditor } from './PlaceScheduleEditor'
 import { TransitRouteGuide } from './TransitRouteGuide'
@@ -20,6 +19,8 @@ import type {
   TransportType,
   UpdateItinerary,
   UpdateItineraryItemSchedule,
+  ItineraryDay,
+  ReorderItineraryItem,
 } from './types'
 
 const transportLabels: Record<TransportType, string> = {
@@ -38,6 +39,13 @@ function time(value: string) {
   return value.slice(0, 5)
 }
 
+function requestErrorMessage(error: unknown) {
+  if (!error) return null
+  return axios.isAxiosError<{ message?: string }>(error)
+    ? error.response?.data?.message ?? '서버가 변경 요청을 처리하지 못했습니다.'
+    : '변경 요청 중 알 수 없는 오류가 발생했습니다.'
+}
+
 export function ItineraryDetailPage() {
   const { itineraryId } = useParams()
   const id = Number(itineraryId)
@@ -45,6 +53,8 @@ export function ItineraryDetailPage() {
   const queryClient = useQueryClient()
   const [editingPlan, setEditingPlan] = useState(false)
   const [editingOrder, setEditingOrder] = useState(false)
+  const [orderDraft, setOrderDraft] = useState<ItineraryDay[] | null>(null)
+  const [draggingPlaceId, setDraggingPlaceId] = useState<number | null>(null)
   const [editingPlaceId, setEditingPlaceId] = useState<number | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const itineraryQuery = useQuery({
@@ -88,14 +98,16 @@ export function ItineraryDetailPage() {
     },
   })
   const reorderMutation = useMutation({
-    mutationFn: (items: import('./types').ReorderItineraryItem[]) =>
-      reorderItineraryItems(id, items),
+    mutationFn: (items: ReorderItineraryItem[]) => reorderItineraryItems(id, items),
     onSuccess: (data) => {
       refresh(data)
       setEditingOrder(false)
+      setOrderDraft(null)
       setSaveMessage('날짜와 방문 순서를 저장했습니다.')
     },
-    onMutate: () => setSaveMessage(null),
+    onMutate: () => {
+      setSaveMessage(null)
+    },
   })
   const transportMutation = useMutation({
     mutationFn: ({
@@ -109,7 +121,33 @@ export function ItineraryDetailPage() {
       refresh(data)
       setSaveMessage('이동수단을 변경했습니다.')
     },
-    onMutate: () => setSaveMessage(null),
+    onMutate: async ({ savedPlaceId, transportType }) => {
+      setSaveMessage(null)
+      await queryClient.cancelQueries({ queryKey: ['itineraries', id] })
+      const previous = queryClient.getQueryData<Awaited<ReturnType<typeof getItinerary>>>(
+        ['itineraries', id],
+      )
+      if (previous) {
+        const updateItem = (item: typeof previous.items[number]) =>
+          item.savedPlaceId === savedPlaceId
+            ? { ...item, transportTypeFromPrevious: transportType }
+            : item
+        queryClient.setQueryData(['itineraries', id], {
+          ...previous,
+          items: previous.items.map(updateItem),
+          days: previous.days.map((day) => ({
+            ...day,
+            items: day.items.map(updateItem),
+          })),
+        })
+      }
+      return { previous }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['itineraries', id], context.previous)
+      }
+    },
   })
 
   const handleDelete = () => {
@@ -120,11 +158,49 @@ export function ItineraryDetailPage() {
 
   const mutationError = updateMutation.error ?? scheduleMutation.error
     ?? reorderMutation.error ?? transportMutation.error
-  const mutationErrorMessage = mutationError
-    ? axios.isAxiosError<{ message?: string }>(mutationError)
-      ? mutationError.response?.data?.message ?? '서버가 변경 요청을 처리하지 못했습니다.'
-      : '변경 요청 중 알 수 없는 오류가 발생했습니다.'
-    : null
+  const mutationErrorMessage = requestErrorMessage(mutationError)
+
+  const startOrderEditing = () => {
+    const days = itineraryQuery.data?.days
+    if (!days) return
+    reorderMutation.reset()
+    setOrderDraft(days.map((day) => ({ ...day, items: [...day.items] })))
+    setEditingOrder(true)
+  }
+
+  const cancelOrderEditing = () => {
+    setEditingOrder(false)
+    setOrderDraft(null)
+    reorderMutation.reset()
+  }
+
+  const moveCard = (targetDate: string, targetIndex: number) => {
+    if (draggingPlaceId === null) return
+    setOrderDraft((current) => {
+      if (!current) return current
+      const dragged = current.flatMap((day) => day.items)
+        .find((item) => item.savedPlaceId === draggingPlaceId)
+      if (!dragged) return current
+      return current.map((day) => {
+        const items = day.items.filter((item) => item.savedPlaceId !== draggingPlaceId)
+        if (day.date === targetDate) {
+          items.splice(Math.min(targetIndex, items.length), 0, dragged)
+        }
+        return { ...day, items }
+      })
+    })
+  }
+
+  const saveOrder = () => {
+    if (!orderDraft) return
+    reorderMutation.reset()
+    let sequence = 1
+    reorderMutation.mutate(orderDraft.flatMap((day) => day.items.map((item) => ({
+      savedPlaceId: item.savedPlaceId,
+      visitDate: day.date,
+      sequence: sequence++,
+    }))))
+  }
 
   if (!Number.isInteger(id) || id <= 0) {
     return <main className="itinerary-shell"><div className="form-error">올바르지 않은 여행 계획 주소입니다.</div></main>
@@ -155,9 +231,21 @@ export function ItineraryDetailPage() {
               <button type="button" onClick={() => setEditingPlan((value) => !value)}>
                 {editingPlan ? '편집 닫기' : '계획 수정'}
               </button>
-              <button type="button" onClick={() => setEditingOrder((value) => !value)}>
-                {editingOrder ? '순서 편집 닫기' : '날짜·순서 편집'}
-              </button>
+              {editingOrder ? (
+                <>
+                  <button type="button" onClick={cancelOrderEditing}>순서 편집 취소</button>
+                  <button
+                    type="button"
+                    className="primary-button"
+                    disabled={reorderMutation.isPending}
+                    onClick={saveOrder}
+                  >
+                    {reorderMutation.isPending ? '순서 저장 중…' : '순서 저장'}
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={startOrderEditing}>날짜·순서 편집</button>
+              )}
               <button className="danger-button" type="button" disabled={deleteMutation.isPending} onClick={handleDelete}>
                 {deleteMutation.isPending ? '삭제 중…' : '계획 삭제'}
               </button>
@@ -173,13 +261,11 @@ export function ItineraryDetailPage() {
             />
           )}
           {editingOrder && (
-            <ItineraryOrderEditor
-              itinerary={itineraryQuery.data}
-              pending={reorderMutation.isPending}
-              errorMessage={reorderMutation.isError ? mutationErrorMessage : null}
-              onCancel={() => setEditingOrder(false)}
-              onSave={(items) => reorderMutation.mutate(items)}
-            />
+            <section className="inline-order-notice">
+              <strong>장소 카드를 직접 끌어서 순서나 날짜를 변경하세요.</strong>
+              <span>변경을 마치면 위의 ‘순서 저장’을 눌러 주세요.</span>
+              {reorderMutation.isError && <div className="form-error">{mutationErrorMessage}</div>}
+            </section>
           )}
           {saveMessage && <div className="form-success">{saveMessage}</div>}
           {(mutationErrorMessage || deleteMutation.isError) && (
@@ -193,8 +279,13 @@ export function ItineraryDetailPage() {
           </section>
           <ItineraryRouteMap days={itineraryQuery.data.days} />
           <div className="itinerary-days">
-            {itineraryQuery.data.days.map((day) => (
-              <section className="itinerary-day" key={day.date}>
+            {(orderDraft ?? itineraryQuery.data.days).map((day) => (
+              <section
+                className={`itinerary-day ${editingOrder ? 'itinerary-day-dropzone' : ''}`}
+                key={day.date}
+                onDragOver={(event) => editingOrder && event.preventDefault()}
+                onDrop={() => moveCard(day.date, day.items.length)}
+              >
                 <header className="itinerary-day-header">
                   <div>
                     <span>DAY {day.dayNumber}</span>
@@ -211,31 +302,54 @@ export function ItineraryDetailPage() {
                   <div className="day-empty">이 날짜에 배정된 장소가 없습니다.</div>
                 ) : (
                   <ol className="itinerary-timeline">
-                    {day.items.map((item) => (
-                      <li key={item.savedPlaceId}>
-                        <span className="timeline-number">{item.daySequence}</span>
+                    {day.items.map((item, itemIndex) => (
+                      <li
+                        key={item.savedPlaceId}
+                        draggable={editingOrder}
+                        className={`${editingOrder ? 'timeline-draggable' : ''} ${draggingPlaceId === item.savedPlaceId ? 'dragging' : ''}`}
+                        onDragStart={() => setDraggingPlaceId(item.savedPlaceId)}
+                        onDragEnd={() => setDraggingPlaceId(null)}
+                        onDragOver={(event) => editingOrder && event.preventDefault()}
+                        onDrop={(event) => {
+                          event.stopPropagation()
+                          moveCard(day.date, itemIndex)
+                        }}
+                      >
+                        <span className="timeline-number">{editingOrder ? itemIndex + 1 : item.daySequence}</span>
                         <div className="timeline-stop">
+                          {editingOrder && <div className="card-drag-handle">⠿ 카드 이동</div>}
                           {item.crossDayTransfer && (
                             <div className="cross-day-transfer-label">
                               전날 마지막 장소에서 오늘 첫 장소로 이동
                             </div>
                           )}
                           {item.travelMinutesFromPrevious > 0 && (
-                            <label className="segment-transport-select">
-                              이 구간 이동수단
-                              <select
-                                value={item.transportTypeFromPrevious}
-                                disabled={transportMutation.isPending}
-                                onChange={(event) => transportMutation.mutate({
-                                  savedPlaceId: item.savedPlaceId,
-                                  transportType: event.target.value as TransportType,
-                                })}
-                              >
-                                <option value="PUBLIC_TRANSIT">대중교통</option>
-                                <option value="CAR">자동차</option>
-                                <option value="WALKING">도보</option>
-                              </select>
-                            </label>
+                            <div className="segment-transport-control">
+                              <label className="segment-transport-select">
+                                이 구간 이동수단
+                                <select
+                                  value={item.transportTypeFromPrevious}
+                                  disabled={transportMutation.isPending}
+                                  onChange={(event) => {
+                                    transportMutation.reset()
+                                    transportMutation.mutate({
+                                      savedPlaceId: item.savedPlaceId,
+                                      transportType: event.target.value as TransportType,
+                                    })
+                                  }}
+                                >
+                                  <option value="PUBLIC_TRANSIT">대중교통</option>
+                                  <option value="CAR">자동차</option>
+                                  <option value="WALKING">도보</option>
+                                </select>
+                              </label>
+                              {transportMutation.isPending && <small>이동수단 저장 중…</small>}
+                              {transportMutation.isError && (
+                                <small className="field-error">
+                                  {requestErrorMessage(transportMutation.error)}
+                                </small>
+                              )}
+                            </div>
                           )}
                           {item.transit ? (
                             <TransitRouteGuide route={item.transit} />
