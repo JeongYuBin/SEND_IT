@@ -8,6 +8,8 @@ import com.sendit.share.SharedContentRepository;
 import com.sendit.tourism.TourApiClient;
 import com.sendit.user.UserRepository;
 import java.util.List;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,9 +68,10 @@ public class SavedPlaceService {
                 .map(this::response).toList();
     }
 
-    @Transactional(readOnly = true)
     public SavedPlaceDtos.Response get(String email, Long id) {
-        return response(owned(email, id));
+        var saved = owned(email, id);
+        autoSyncTourism(saved.getPlace());
+        return response(saved);
     }
 
     public SavedPlaceDtos.Response update(String email, Long id, SavedPlaceDtos.UpdateRequest request) {
@@ -83,23 +86,6 @@ public class SavedPlaceService {
         }
         saved.update(request.memo(), request.visitStatus(), request.priority(),
                 selectedCollection);
-        return response(saved);
-    }
-
-    public SavedPlaceDtos.Response syncTourism(String email, Long id) {
-        var saved = owned(email, id);
-        Place place = saved.getPlace();
-        var detail = place.getTourismContentId() == null
-                ? tourApiClient.findDetail(place.getName(),
-                        place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress())
-                : tourApiClient.detail(
-                        place.getTourismContentId(), place.getTourismContentTypeId());
-        var matched = detail.orElseThrow(() ->
-                new IllegalArgumentException("관광공사에서 일치하는 장소를 찾지 못했습니다."));
-        place.enrichTourismDetails(
-                matched.contentId(), matched.contentTypeId(), matched.description(),
-                matched.imageUrl(), matched.phone(), matched.homepageUrl(),
-                matched.operatingHours(), matched.restDays(), matched.parkingInfo());
         return response(saved);
     }
 
@@ -120,6 +106,24 @@ public class SavedPlaceService {
     private void validateCoordinates(Double latitude, Double longitude) {
         if ((latitude == null) != (longitude == null))
             throw new IllegalArgumentException("위도와 경도는 함께 입력해야 합니다.");
+    }
+    private void autoSyncTourism(Place place) {
+        if (place.getTourismContentId() != null) return;
+        Instant attemptedAt = place.getTourismSyncAttemptedAt();
+        if (attemptedAt != null && attemptedAt.isAfter(Instant.now().minus(7, ChronoUnit.DAYS))) {
+            return;
+        }
+        var detail = tourApiClient.findDetail(place.getName(),
+                place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress());
+        if (detail.isEmpty()) {
+            place.markTourismSyncAttempted();
+            return;
+        }
+        var matched = detail.get();
+        place.enrichTourismDetails(
+                matched.contentId(), matched.contentTypeId(), matched.description(),
+                matched.imageUrl(), matched.phone(), matched.homepageUrl(),
+                matched.operatingHours(), matched.restDays(), matched.parkingInfo());
     }
     private SavedPlaceDtos.Response response(UserSavedPlace saved) {
         Place p=saved.getPlace(); Collection c=saved.getCollection();

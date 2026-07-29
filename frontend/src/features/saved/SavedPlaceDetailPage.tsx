@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   createSavedPlace,
@@ -7,7 +8,7 @@ import {
   getSavedPlace,
   getSavedPlaces,
   getTourismOperatingInfo,
-  syncSavedPlaceTourism,
+  getTourismPlaceDetail,
   updateSavedPlace,
 } from './savedApi'
 import type { NearbyTourismPlace, VisitStatus } from './types'
@@ -23,6 +24,7 @@ export function SavedPlaceDetailPage() {
   const { savedPlaceId: savedPlaceIdParam } = useParams()
   const savedPlaceId = Number(savedPlaceIdParam)
   const queryClient = useQueryClient()
+  const [selectedNearby, setSelectedNearby] = useState<NearbyTourismPlace | null>(null)
   const placeQuery = useQuery({
     queryKey: ['saved-place', savedPlaceId],
     queryFn: () => getSavedPlace(savedPlaceId),
@@ -53,6 +55,18 @@ export function SavedPlaceDetailPage() {
     enabled: typeof placeQuery.data?.latitude === 'number'
       && typeof placeQuery.data?.longitude === 'number',
   })
+  const nearbyDetailQuery = useQuery({
+    queryKey: [
+      'tourism-place-detail',
+      selectedNearby?.contentId,
+      selectedNearby?.contentTypeId,
+    ],
+    queryFn: () => getTourismPlaceDetail(
+      selectedNearby!.contentId,
+      selectedNearby!.contentTypeId,
+    ),
+    enabled: selectedNearby !== null,
+  })
   const updateMutation = useMutation({
     mutationFn: (request: {
       visitStatus?: VisitStatus
@@ -61,13 +75,6 @@ export function SavedPlaceDetailPage() {
     }) => updateSavedPlace(savedPlaceId, request),
     onSuccess: (place) => {
       queryClient.setQueryData(['saved-place', savedPlaceId], place)
-      queryClient.invalidateQueries({ queryKey: ['saved-places'] })
-    },
-  })
-  const syncTourismMutation = useMutation({
-    mutationFn: () => syncSavedPlaceTourism(savedPlaceId),
-    onSuccess: (syncedPlace) => {
-      queryClient.setQueryData(['saved-place', savedPlaceId], syncedPlace)
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
     },
   })
@@ -94,6 +101,7 @@ export function SavedPlaceDetailPage() {
         },
       )
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
+      setSelectedNearby(null)
     },
   })
 
@@ -236,32 +244,6 @@ export function SavedPlaceDetailPage() {
               <div><dt>좌표</dt><dd>{place.latitude.toFixed(6)}, {place.longitude.toFixed(6)}</dd></div>
             )}
           </dl>
-          <div className={`tourism-sync-panel ${place.tourismContentId ? 'connected' : ''}`}>
-            <div>
-              <strong>
-                {place.tourismContentId ? '관광공사 정보 연동됨' : '관광공사 상세정보 미연동'}
-              </strong>
-              <span>
-                {place.tourismContentId
-                  ? '저장된 관광 정보를 최신 데이터로 다시 확인할 수 있습니다.'
-                  : '장소명과 주소로 다시 매칭해 방문 정보를 보완합니다.'}
-              </span>
-            </div>
-            <button
-              type="button"
-              disabled={syncTourismMutation.isPending}
-              onClick={() => syncTourismMutation.mutate()}
-            >
-              {syncTourismMutation.isPending
-                ? '동기화 중...'
-                : place.tourismContentId ? '정보 새로고침' : '관광 정보 연결'}
-            </button>
-          </div>
-          {syncTourismMutation.isError && (
-            <div className="form-error">
-              관광공사에서 일치하는 장소를 찾지 못했습니다. 장소명과 주소를 확인해 주세요.
-            </div>
-          )}
           {place.originalUrl && (
             <a className="place-source-link" href={place.originalUrl} target="_blank" rel="noreferrer">
               원본 콘텐츠 열기 ↗
@@ -287,7 +269,10 @@ export function SavedPlaceDetailPage() {
                 const isSaving = saveNearbyMutation.isPending
                   && saveNearbyMutation.variables?.contentId === nearby.contentId
                 return (
-                  <article key={nearby.contentId}>
+                  <article
+                    key={nearby.contentId}
+                    onClick={() => setSelectedNearby(nearby)}
+                  >
                     {nearby.imageUrl
                       ? <img src={nearby.imageUrl} alt="" />
                       : (
@@ -298,13 +283,24 @@ export function SavedPlaceDetailPage() {
                       )}
                     <div>
                       <span>{nearby.category ?? '관광지'} · {nearby.distanceMeters.toLocaleString()}m</span>
-                      <h3>{nearby.name}</h3>
+                      <h3>
+                        <button
+                          className="nearby-detail-trigger"
+                          type="button"
+                          onClick={() => setSelectedNearby(nearby)}
+                        >
+                          {nearby.name}
+                        </button>
+                      </h3>
                       <p>{nearby.address ?? '주소 정보 없음'}</p>
                       <button
                         className="nearby-save-button"
                         type="button"
                         disabled={saveNearbyMutation.isPending}
-                        onClick={() => saveNearbyMutation.mutate(nearby)}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          saveNearbyMutation.mutate(nearby)
+                        }}
                       >
                         <span aria-hidden="true">＋</span>
                         {isSaving ? '저장 중...' : '내 장소에 담기'}
@@ -314,6 +310,117 @@ export function SavedPlaceDetailPage() {
                 )
               })}
           </div>
+          {selectedNearby && (
+            <div
+              className="nearby-detail-backdrop"
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setSelectedNearby(null)
+              }}
+            >
+              <section
+                className="nearby-detail-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="nearby-detail-title"
+              >
+                <button
+                  className="nearby-detail-close"
+                  type="button"
+                  onClick={() => setSelectedNearby(null)}
+                  aria-label="상세 미리보기 닫기"
+                >
+                  ×
+                </button>
+                {nearbyDetailQuery.isLoading && (
+                  <div className="analysis-state"><span className="spinner" />상세정보를 불러오고 있습니다.</div>
+                )}
+                {nearbyDetailQuery.isError && (
+                  <>
+                    {selectedNearby.imageUrl
+                      ? <img src={selectedNearby.imageUrl} alt="" />
+                      : (
+                        <div className="nearby-placeholder">
+                          <strong>{selectedNearby.category ?? '관광지'}</strong>
+                          <small>제공 이미지 없음</small>
+                        </div>
+                      )}
+                    <div className="nearby-detail-content">
+                      <span className="eyebrow">{selectedNearby.category ?? 'TOURISM'}</span>
+                      <h2 id="nearby-detail-title">{selectedNearby.name}</h2>
+                      <p className="nearby-detail-address">
+                        {selectedNearby.address ?? '주소 정보 없음'}
+                      </p>
+                      <div className="nearby-detail-description">등록된 상세 설명이 없습니다.</div>
+                      <div className="nearby-detail-actions">
+                        <button
+                          className="nearby-save-button"
+                          type="button"
+                          disabled={saveNearbyMutation.isPending}
+                          onClick={() => saveNearbyMutation.mutate(selectedNearby)}
+                        >
+                          <span aria-hidden="true">＋</span>
+                          {saveNearbyMutation.isPending ? '저장 중...' : '내 장소에 담기'}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {nearbyDetailQuery.data && (
+                  <>
+                    {nearbyDetailQuery.data.imageUrl
+                      ? <img src={nearbyDetailQuery.data.imageUrl} alt="" />
+                      : (
+                        <div className="nearby-placeholder">
+                          <strong>{nearbyDetailQuery.data.category ?? '관광지'}</strong>
+                          <small>제공 이미지 없음</small>
+                        </div>
+                      )}
+                    <div className="nearby-detail-content">
+                      <span className="eyebrow">{nearbyDetailQuery.data.category ?? 'TOURISM'}</span>
+                      <h2 id="nearby-detail-title">{nearbyDetailQuery.data.name}</h2>
+                      <p className="nearby-detail-address">
+                        {nearbyDetailQuery.data.address ?? '주소 정보 없음'}
+                      </p>
+                      <div className="nearby-detail-description">
+                        {nearbyDetailQuery.data.description ?? '등록된 상세 설명이 없습니다.'}
+                      </div>
+                      <dl>
+                        {nearbyDetailQuery.data.operatingHours && (
+                          <div><dt>이용시간</dt><dd>{nearbyDetailQuery.data.operatingHours}</dd></div>
+                        )}
+                        {nearbyDetailQuery.data.restDays && (
+                          <div><dt>휴무일</dt><dd>{nearbyDetailQuery.data.restDays}</dd></div>
+                        )}
+                        {nearbyDetailQuery.data.parkingInfo && (
+                          <div><dt>주차 안내</dt><dd>{nearbyDetailQuery.data.parkingInfo}</dd></div>
+                        )}
+                        {nearbyDetailQuery.data.phone && (
+                          <div><dt>문의</dt><dd>{nearbyDetailQuery.data.phone}</dd></div>
+                        )}
+                      </dl>
+                      <div className="nearby-detail-actions">
+                        {nearbyDetailQuery.data.homepageUrl && (
+                          <a href={nearbyDetailQuery.data.homepageUrl} target="_blank" rel="noreferrer">
+                            공식 홈페이지 ↗
+                          </a>
+                        )}
+                        <button
+                          className="nearby-save-button"
+                          type="button"
+                          disabled={saveNearbyMutation.isPending}
+                          onClick={() => saveNearbyMutation.mutate(selectedNearby)}
+                        >
+                          <span aria-hidden="true">＋</span>
+                          {saveNearbyMutation.isPending ? '저장 중...' : '내 장소에 담기'}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </section>
+            </div>
+          )}
         </section>
       )}
     </main>

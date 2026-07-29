@@ -42,6 +42,8 @@ public class Place {
     private String restDays;
     @Column(name = "parking_info", columnDefinition = "text")
     private String parkingInfo;
+    @Column(name = "tourism_sync_attempted_at")
+    private Instant tourismSyncAttemptedAt;
     @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     @UpdateTimestamp @Column(name = "updated_at", nullable = false)
@@ -83,6 +85,7 @@ public class Place {
     public String getOperatingHours() { return operatingHours; }
     public String getRestDays() { return restDays; }
     public String getParkingInfo() { return parkingInfo; }
+    public Instant getTourismSyncAttemptedAt() { return tourismSyncAttemptedAt; }
 
     public void enrichTourismDetails(
             String contentId, String contentTypeId, String enrichedDescription,
@@ -98,7 +101,12 @@ public class Place {
         operatingHours = firstNonBlank(enrichedOperatingHours, operatingHours);
         restDays = firstNonBlank(enrichedRestDays, restDays);
         parkingInfo = firstNonBlank(enrichedParkingInfo, parkingInfo);
+        tourismSyncAttemptedAt = Instant.now();
         if (tourismContentId != null) dataSource = "TOUR_API";
+    }
+
+    public void markTourismSyncAttempted() {
+        tourismSyncAttemptedAt = Instant.now();
     }
 
     private String firstNonBlank(String preferred, String fallback) {

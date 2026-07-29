@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @Validated
 @RestController
@@ -42,4 +44,14 @@ public class TourismController {
     }
 
     record OperatingInfoResponse(String hours, String restDays, boolean available) {}
+
+    @GetMapping("/places/{contentId}")
+    TourApiClient.TourismPlaceDetail detail(
+            @org.springframework.web.bind.annotation.PathVariable String contentId,
+            @RequestParam String contentTypeId
+    ) {
+        return tourApiClient.detail(contentId, contentTypeId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "관광 상세정보를 찾을 수 없습니다."));
+    }
 }

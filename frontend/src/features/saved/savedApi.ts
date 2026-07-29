@@ -5,6 +5,7 @@ import type {
   NearbyTourismPlace,
   SavedPlace,
   TourismOperatingInfo,
+  TourismPlaceDetail,
   VisitStatus,
 } from './types'
 
@@ -33,10 +34,6 @@ export async function updateSavedPlace(
   return (await http.patch<SavedPlace>(`/saved-places/${id}`, request)).data
 }
 
-export async function syncSavedPlaceTourism(id: number) {
-  return (await http.post<SavedPlace>(`/saved-places/${id}/sync-tourism`)).data
-}
-
 export async function deleteSavedPlace(id: number) {
   await http.delete(`/saved-places/${id}`)
 }
@@ -62,5 +59,11 @@ export async function getNearbyTourismPlaces(
 export async function getTourismOperatingInfo(name: string, address?: string | null) {
   return (await http.get<TourismOperatingInfo>('/tourism/operating-info', {
     params: { name, address: address || undefined },
+  })).data
+}
+
+export async function getTourismPlaceDetail(contentId: string, contentTypeId: string) {
+  return (await http.get<TourismPlaceDetail>(`/tourism/places/${contentId}`, {
+    params: { contentTypeId },
   })).data
 }

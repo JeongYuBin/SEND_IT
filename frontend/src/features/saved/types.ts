@@ -69,3 +69,20 @@ export type TourismOperatingInfo = {
   restDays: string | null
   available: boolean
 }
+
+export type TourismPlaceDetail = {
+  contentId: string
+  contentTypeId: string
+  name: string
+  category: string | null
+  address: string | null
+  latitude: number | null
+  longitude: number | null
+  imageUrl: string | null
+  description: string | null
+  phone: string | null
+  homepageUrl: string | null
+  operatingHours: string | null
+  restDays: string | null
+  parkingInfo: string | null
+}
