@@ -1560,11 +1560,24 @@ h1 {
 }
 
 .schedule-warning {
+  display: grid;
+  gap: 3px;
   padding: 11px 13px;
   border-radius: 10px;
   color: #8a4a16;
   background: #fff1dd;
   font-size: .88rem;
+}
+
+.place-operating-info {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  color: #52645d;
+  background: #f3f7f5;
+  font-size: .84rem;
 }
 
 .day-empty {

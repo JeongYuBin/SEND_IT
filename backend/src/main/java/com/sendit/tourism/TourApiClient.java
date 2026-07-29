@@ -10,11 +10,17 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +31,9 @@ public class TourApiClient {
 
     private static final String DEFAULT_BASE_URL =
             "https://apis.data.go.kr/B551011/KorService2";
+    private static final Duration OPERATING_INFO_CACHE_DURATION = Duration.ofHours(6);
+    private static final Pattern TIME_RANGE = Pattern.compile(
+            "(\\d{1,2})\\s*:?\\s*(\\d{2})\\s*[~～\\-]\\s*(\\d{1,2})\\s*:?\\s*(\\d{2})");
     private static final Map<String, String> CONTENT_TYPE_LABELS = Map.of(
             "12", "관광지",
             "14", "문화시설",
@@ -41,6 +50,8 @@ public class TourApiClient {
     private final Duration requestTimeout;
     private final String serviceKey;
     private final String baseUrl;
+    private final ConcurrentHashMap<String, OperatingInfoCacheEntry> operatingInfoCache =
+            new ConcurrentHashMap<>();
 
     @Autowired
     public TourApiClient(
@@ -101,6 +112,53 @@ public class TourApiClient {
         }
     }
 
+    public Optional<OperatingInfo> operatingInfo(String placeName, String address) {
+        if (serviceKey.isBlank() || placeName == null || placeName.isBlank()) {
+            return Optional.empty();
+        }
+        String cacheKey = normalize(placeName) + ":" + normalize(address);
+        OperatingInfoCacheEntry cached = operatingInfoCache.get(cacheKey);
+        if (cached != null && cached.expiresAt().isAfter(Instant.now())) {
+            return cached.info();
+        }
+        Optional<OperatingInfo> result;
+        try {
+            PageMetadata fallback = new PageMetadata(
+                    placeName, null, null, placeName, null, address, null, null);
+            TourItem match = bestMatch(fallback, items(get("/searchKeyword2", Map.of(
+                    "keyword", placeName,
+                    "numOfRows", "10",
+                    "pageNo", "1"
+            ))));
+            if (match == null) {
+                result = Optional.empty();
+            } else {
+                String body = get("/detailIntro2", Map.of(
+                        "contentId", match.contentId(),
+                        "contentTypeId", match.contentTypeId(),
+                        "numOfRows", "1",
+                        "pageNo", "1"
+                ));
+                JsonNode item = firstItem(body);
+                String hours = cleanOverview(firstText(item,
+                        "usetime", "usetimeculture", "usetimeleports",
+                        "opentimefood", "checkintime"));
+                String restDays = cleanOverview(firstText(item,
+                        "restdate", "restdateculture", "restdateleports",
+                        "restdatefood", "restdateaccommodation"));
+                result = hours == null && restDays == null
+                        ? Optional.empty()
+                        : Optional.of(new OperatingInfo(
+                                hours, restDays, parseTimeRange(hours)));
+            }
+        } catch (Exception ignored) {
+            result = Optional.empty();
+        }
+        operatingInfoCache.put(cacheKey, new OperatingInfoCacheEntry(
+                result, Instant.now().plus(OPERATING_INFO_CACHE_DURATION)));
+        return result;
+    }
+
     private String get(String path, Map<String, String> parameters) throws Exception {
         StringBuilder query = new StringBuilder()
                 .append("serviceKey=").append(encode(serviceKey))
@@ -141,6 +199,36 @@ public class TourApiClient {
             result.add(item(itemNode));
         }
         return result;
+    }
+
+    private JsonNode firstItem(String responseBody) throws Exception {
+        JsonNode item = objectMapper.readTree(responseBody)
+                .path("response").path("body").path("items").path("item");
+        if (item.isArray()) return item.path(0);
+        return item;
+    }
+
+    private String firstText(JsonNode node, String... fields) {
+        for (String field : fields) {
+            String value = text(node, field);
+            if (value != null) return value;
+        }
+        return null;
+    }
+
+    private TimeRange parseTimeRange(String value) {
+        if (value == null) return null;
+        Matcher matcher = TIME_RANGE.matcher(value);
+        if (!matcher.find()) return null;
+        try {
+            return new TimeRange(
+                    LocalTime.of(Integer.parseInt(matcher.group(1)),
+                            Integer.parseInt(matcher.group(2))),
+                    LocalTime.of(Integer.parseInt(matcher.group(3)),
+                            Integer.parseInt(matcher.group(4))));
+        } catch (RuntimeException ignored) {
+            return null;
+        }
     }
 
     TourItem bestMatch(PageMetadata fallback, List<TourItem> candidates) {
@@ -299,4 +387,10 @@ public class TourApiClient {
     }
 
     private record ScoredItem(TourItem item, int score) {}
+    public record OperatingInfo(String hours, String restDays, TimeRange timeRange) {}
+    public record TimeRange(LocalTime opensAt, LocalTime closesAt) {}
+    private record OperatingInfoCacheEntry(
+            Optional<OperatingInfo> info,
+            Instant expiresAt
+    ) {}
 }

@@ -47,6 +47,9 @@ export type ItineraryItem = {
   }>
   transportTypeFromPrevious: TransportType
   crossDayTransfer: boolean
+  operatingHours: string | null
+  restDays: string | null
+  visitWarning: string | null
 }
 
 export type ItineraryDay = {

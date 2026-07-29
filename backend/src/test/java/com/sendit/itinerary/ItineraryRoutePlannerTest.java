@@ -8,6 +8,7 @@ import com.sendit.map.KakaoDirectionsClient;
 import com.sendit.map.KakaoTransitClient;
 import com.sendit.place.Place;
 import com.sendit.place.UserSavedPlace;
+import com.sendit.tourism.TourApiClient;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -17,8 +18,9 @@ class ItineraryRoutePlannerTest {
 
     private final KakaoTransitClient transitClient = mock(KakaoTransitClient.class);
     private final KakaoDirectionsClient directionsClient = mock(KakaoDirectionsClient.class);
+    private final TourApiClient tourApiClient = mock(TourApiClient.class);
     private final ItineraryRoutePlanner planner =
-            new ItineraryRoutePlanner(transitClient, directionsClient);
+            new ItineraryRoutePlanner(transitClient, directionsClient, tourApiClient);
 
     @Test
     void ordersNearbyPlacesAndSplitsThemAcrossTravelDays() {
@@ -80,6 +82,31 @@ class ItineraryRoutePlannerTest {
 
         assertThat(days.getFirst().stops()).isEmpty();
         assertThat(days.get(1).stops().getFirst().arrivalTime()).isEqualTo(LocalTime.of(14, 30));
+    }
+
+    @Test
+    void warnsWhenVisitStartsBeforeTourismOperatingHours() {
+        ItineraryItem place = item(1, 37.5, 127.0);
+        when(tourApiClient.operatingInfo(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.nullable(String.class)
+        )).thenReturn(java.util.Optional.of(new TourApiClient.OperatingInfo(
+                "10:00~18:00",
+                "연중무휴",
+                new TourApiClient.TimeRange(LocalTime.of(10, 0), LocalTime.of(18, 0))
+        )));
+        Itinerary itinerary = mock(Itinerary.class);
+        when(itinerary.getItems()).thenReturn(List.of(place));
+        when(itinerary.getStartDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(itinerary.getEndDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(itinerary.getDailyStartTime()).thenReturn(LocalTime.of(9, 0));
+        when(itinerary.getDailyEndTime()).thenReturn(LocalTime.of(19, 0));
+        when(itinerary.getTransportType()).thenReturn(TransportType.WALKING);
+
+        var stop = planner.plan(itinerary).getFirst().stops().getFirst();
+
+        assertThat(stop.operatingInfo()).isNotNull();
+        assertThat(stop.visitWarning()).contains("운영 시작");
     }
 
     @Test

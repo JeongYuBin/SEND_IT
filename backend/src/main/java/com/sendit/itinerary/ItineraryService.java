@@ -228,7 +228,10 @@ public class ItineraryService {
                                 point.latitude(), point.longitude()))
                         .toList(),
                 stop.transportType(),
-                stop.crossDayTransfer()
+                stop.crossDayTransfer(),
+                stop.operatingInfo() == null ? null : stop.operatingInfo().hours(),
+                stop.operatingInfo() == null ? null : stop.operatingInfo().restDays(),
+                stop.visitWarning()
         );
     }
 

@@ -380,6 +380,12 @@ export function ItineraryDetailPage() {
                               )}
                             </>
                           )}
+                          {item.visitWarning && (
+                            <div className="schedule-warning">
+                              <strong>방문 가능성 확인 필요</strong>
+                              <span>{item.visitWarning}</span>
+                            </div>
+                          )}
                           <Link to={`/saved/places/${item.savedPlaceId}`}>
                             {item.imageUrl
                               ? <img src={item.imageUrl} alt="" />
@@ -390,6 +396,12 @@ export function ItineraryDetailPage() {
                               <span>{item.address ?? '주소 정보 없음'}</span>
                             </span>
                           </Link>
+                          {(item.operatingHours || item.restDays) && (
+                            <div className="place-operating-info">
+                              {item.operatingHours && <span>이용시간: {item.operatingHours}</span>}
+                              {item.restDays && <span>쉬는 날: {item.restDays}</span>}
+                            </div>
+                          )}
                           {!editingOrder && (editingPlaceId === item.savedPlaceId ? (
                             <PlaceScheduleEditor
                               item={item}

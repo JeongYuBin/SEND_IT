@@ -3,6 +3,7 @@ package com.sendit.itinerary;
 import com.sendit.map.KakaoTransitClient;
 import com.sendit.map.KakaoDirectionsClient;
 import com.sendit.place.Place;
+import com.sendit.tourism.TourApiClient;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -17,13 +18,16 @@ public class ItineraryRoutePlanner {
     private static final double EARTH_RADIUS_KM = 6371.0088;
     private final KakaoTransitClient transitClient;
     private final KakaoDirectionsClient directionsClient;
+    private final TourApiClient tourApiClient;
 
     public ItineraryRoutePlanner(
             KakaoTransitClient transitClient,
-            KakaoDirectionsClient directionsClient
+            KakaoDirectionsClient directionsClient,
+            TourApiClient tourApiClient
     ) {
         this.transitClient = transitClient;
         this.directionsClient = directionsClient;
+        this.tourApiClient = tourApiClient;
     }
 
     public List<DaySchedule> plan(Itinerary itinerary) {
@@ -81,6 +85,14 @@ public class ItineraryRoutePlanner {
                         ? item.getPreferredStartTime()
                         : currentTime;
                 LocalTime departureTime = arrivalTime.plusMinutes(item.getStayMinutes());
+                Place place = item.getSavedPlace().getPlace();
+                TourApiClient.OperatingInfo operatingInfo = tourApiClient
+                        .operatingInfo(
+                                place.getName(),
+                                place.getRoadAddress() == null
+                                        ? place.getAddress()
+                                        : place.getRoadAddress())
+                        .orElse(null);
                 stops.add(new ScheduledStop(
                         item,
                         index + 1,
@@ -92,7 +104,13 @@ public class ItineraryRoutePlanner {
                         travel.transitRoute(),
                         travel.path(),
                         transportType,
-                        crossDayTransfer
+                        crossDayTransfer,
+                        operatingInfo,
+                        visitWarning(
+                                itinerary.getStartDate().plusDays(dayIndex),
+                                arrivalTime,
+                                departureTime,
+                                operatingInfo)
                 ));
                 currentTime = departureTime;
                 previous = item;
@@ -212,6 +230,36 @@ public class ItineraryRoutePlanner {
         return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
     }
 
+    private String visitWarning(
+            LocalDate date,
+            LocalTime arrivalTime,
+            LocalTime departureTime,
+            TourApiClient.OperatingInfo info
+    ) {
+        if (info == null) return null;
+        if (isRestDay(date, info.restDays())) {
+            return "방문 예정일이 관광공사에 등록된 쉬는 날과 겹칠 수 있습니다.";
+        }
+        TourApiClient.TimeRange range = info.timeRange();
+        if (range == null) return null;
+        if (arrivalTime.isBefore(range.opensAt())) {
+            return "예정 도착 시간이 운영 시작 시간보다 빠릅니다.";
+        }
+        if (departureTime.isAfter(range.closesAt())) {
+            return "예정 체류 종료 시간이 운영 종료 시간보다 늦습니다.";
+        }
+        return null;
+    }
+
+    private boolean isRestDay(LocalDate date, String restDays) {
+        if (restDays == null || restDays.isBlank() || restDays.contains("연중무휴")) {
+            return false;
+        }
+        String[] weekdays = {"월요일", "화요일", "수요일", "목요일",
+                "금요일", "토요일", "일요일"};
+        return restDays.contains(weekdays[date.getDayOfWeek().getValue() - 1]);
+    }
+
     public record DaySchedule(
             LocalDate date,
             int dayNumber,
@@ -231,7 +279,9 @@ public class ItineraryRoutePlanner {
             ,
             List<RoutePathPoint> routePath,
             TransportType transportType,
-            boolean crossDayTransfer
+            boolean crossDayTransfer,
+            TourApiClient.OperatingInfo operatingInfo,
+            String visitWarning
     ) {}
 
     private record Coordinates(double latitude, double longitude) {}
