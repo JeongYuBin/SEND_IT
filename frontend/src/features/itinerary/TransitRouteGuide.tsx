@@ -31,8 +31,11 @@ export function TransitRouteGuide({ route }: { route: TransitRoute }) {
               {step.vehicles.length > 0 && <span>{step.vehicles.join(', ')}</span>}
               {step.startStop && (
                 <span>
+                  {step.type === 'BUS' ? '승차 정류장: ' : '출발: '}
                   {step.startStop}
-                  {step.endStop && step.endStop !== step.startStop ? ` → ${step.endStop}` : ''}
+                  {step.endStop && step.endStop !== step.startStop
+                    ? ` · 하차: ${step.endStop}`
+                    : ''}
                 </span>
               )}
             </div>
@@ -45,7 +48,10 @@ export function TransitRouteGuide({ route }: { route: TransitRoute }) {
           카카오맵에서 전체 경로 확인
         </a>
       )}
-      <p>조회 시점의 추천 경로입니다. 실제 운행 시간과 도착 정보는 출발 전에 확인해 주세요.</p>
+      <p>
+        카카오 API는 지정한 미래 출발 시각별 도착 예정 버스 정보는 제공하지 않습니다.
+        노선 번호와 승하차 정류장은 위 안내를 참고하고, 실제 도착 정보는 출발 전에 카카오맵에서 확인해 주세요.
+      </p>
     </details>
   )
 }
