@@ -23,14 +23,18 @@ export function ItineraryEditPanel({
   onSave,
 }: Props) {
   const [title, setTitle] = useState(itinerary.title)
-  const [startDate, setStartDate] = useState(itinerary.startDate)
-  const [endDate, setEndDate] = useState(itinerary.endDate)
-  const [dailyStartTime, setDailyStartTime] = useState(itinerary.dailyStartTime.slice(0, 5))
-  const [dailyEndTime, setDailyEndTime] = useState(itinerary.dailyEndTime.slice(0, 5))
+  const [startDateTime, setStartDateTime] = useState(
+    `${itinerary.startDate}T${itinerary.dailyStartTime.slice(0, 5)}`,
+  )
+  const [endDateTime, setEndDateTime] = useState(
+    `${itinerary.endDate}T${itinerary.dailyEndTime.slice(0, 5)}`,
+  )
   const [transportType, setTransportType] = useState(itinerary.transportType)
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
+    const [startDate, dailyStartTime] = startDateTime.split('T')
+    const [endDate, dailyEndTime] = endDateTime.split('T')
     onSave({ title, startDate, endDate, dailyStartTime, dailyEndTime, transportType })
   }
 
@@ -41,12 +45,25 @@ export function ItineraryEditPanel({
         <input required maxLength={150} value={title} onChange={(event) => setTitle(event.target.value)} />
       </label>
       <div className="itinerary-field-row">
-        <label>시작일<input required type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label>
-        <label>종료일<input required type="date" min={startDate} value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
-      </div>
-      <div className="itinerary-field-row">
-        <label>하루 시작<input required type="time" value={dailyStartTime} onChange={(event) => setDailyStartTime(event.target.value)} /></label>
-        <label>하루 종료<input required type="time" value={dailyEndTime} onChange={(event) => setDailyEndTime(event.target.value)} /></label>
+        <label>
+          여행 시작 일시
+          <input
+            required
+            type="datetime-local"
+            value={startDateTime}
+            onChange={(event) => setStartDateTime(event.target.value)}
+          />
+        </label>
+        <label>
+          여행 종료 일시
+          <input
+            required
+            type="datetime-local"
+            min={startDateTime}
+            value={endDateTime}
+            onChange={(event) => setEndDateTime(event.target.value)}
+          />
+        </label>
       </div>
       <label>
         이동 수단

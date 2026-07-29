@@ -95,7 +95,8 @@ public class ItineraryRoutePlanner {
                     itinerary.getStartDate().plusDays(dayIndex),
                     dayIndex + 1,
                     stops,
-                    currentTime.isAfter(itinerary.getDailyEndTime())
+                    dayIndex == dayCount - 1
+                            && currentTime.isAfter(itinerary.getDailyEndTime())
             ));
         }
         return schedules;

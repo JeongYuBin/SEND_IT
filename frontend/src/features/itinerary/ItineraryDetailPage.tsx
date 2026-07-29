@@ -235,7 +235,11 @@ export function ItineraryDetailPage() {
             <h1>{itineraryQuery.data.title}</h1>
             <p>
               {itineraryQuery.data.startDate} — {itineraryQuery.data.endDate}
-              <span>매일 {time(itineraryQuery.data.dailyStartTime)}–{time(itineraryQuery.data.dailyEndTime)}</span>
+              <span>
+                {itineraryQuery.data.startDate} {time(itineraryQuery.data.dailyStartTime)}
+                {' – '}
+                {itineraryQuery.data.endDate} {time(itineraryQuery.data.dailyEndTime)}
+              </span>
               <span>{transportLabels[itineraryQuery.data.transportType]}</span>
             </p>
             <div className="itinerary-header-actions">
@@ -306,7 +310,7 @@ export function ItineraryDetailPage() {
                 </header>
                 {day.exceedsDailyWindow && (
                   <div className="schedule-warning">
-                    설정한 하루 종료 시간을 넘습니다. 장소 수나 체류 시간을 조정해야 합니다.
+                    마지막 장소의 종료 시각이 여행 종료 일시를 넘습니다. 장소 수나 체류 시간을 조정해 주세요.
                   </div>
                 )}
                 {day.items.length === 0 ? (
