@@ -11,10 +11,9 @@ const DAY_COLORS = ['#176b52', '#d16d3b', '#5577b8', '#8a5aad', '#bf9b30']
 
 export function ItineraryRouteMap({ days }: { days: ItineraryDay[] }) {
   const navigate = useNavigate()
-  const routes = useMemo<KakaoMapRoute[]>(
+  const dayPoints = useMemo(
     () => days.map((day) => ({
-      id: day.date,
-      color: DAY_COLORS[(day.dayNumber - 1) % DAY_COLORS.length],
+      day,
       points: day.items
         .filter((item) => item.latitude !== null && item.longitude !== null)
         .map((item) => ({
@@ -24,12 +23,24 @@ export function ItineraryRouteMap({ days }: { days: ItineraryDay[] }) {
           longitude: item.longitude!,
           label: `${day.dayNumber}-${item.daySequence}`,
         })),
-    })).filter((route) => route.points.length > 0),
+    })),
     [days],
   )
+  const routes = useMemo<KakaoMapRoute[]>(
+    () => dayPoints.filter(({ points }) => points.length > 0).map(({ day, points }, index, populatedDays) => {
+      const previousPoints = populatedDays[index - 1]?.points ?? []
+      const previousLastPoint = previousPoints.at(-1)
+      return {
+        id: day.date,
+        color: DAY_COLORS[(day.dayNumber - 1) % DAY_COLORS.length],
+        points: previousLastPoint ? [previousLastPoint, ...points] : points,
+      }
+    }),
+    [dayPoints],
+  )
   const points = useMemo<KakaoMapPoint[]>(
-    () => routes.flatMap((route) => route.points),
-    [routes],
+    () => dayPoints.flatMap((day) => day.points),
+    [dayPoints],
   )
   const handleSelect = useCallback(
     (point: KakaoMapPoint) => navigate(`/saved/places/${point.id}`),
