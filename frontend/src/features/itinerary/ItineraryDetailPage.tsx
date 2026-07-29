@@ -157,7 +157,6 @@ export function ItineraryDetailPage() {
   }
 
   const mutationError = updateMutation.error ?? scheduleMutation.error
-    ?? reorderMutation.error ?? transportMutation.error
   const mutationErrorMessage = requestErrorMessage(mutationError)
 
   const startOrderEditing = () => {

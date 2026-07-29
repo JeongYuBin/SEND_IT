@@ -41,7 +41,7 @@ public final class ItineraryDtos {
             @NotNull Long savedPlaceId,
             @NotNull LocalDate visitDate,
             @Min(1) int sequence,
-            @NotNull TransportType transportTypeFromPrevious
+            TransportType transportTypeFromPrevious
     ) {}
 
     public record ReorderRequest(

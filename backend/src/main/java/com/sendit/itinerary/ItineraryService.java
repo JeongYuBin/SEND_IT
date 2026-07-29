@@ -134,7 +134,9 @@ public class ItineraryService {
             }
             ItineraryItem item = itineraryItem(itinerary, ordered.savedPlaceId());
             item.updateOrdering(ordered.visitDate(), ordered.sequence());
-            item.updateTransportType(ordered.transportTypeFromPrevious());
+            if (ordered.transportTypeFromPrevious() != null) {
+                item.updateTransportType(ordered.transportTypeFromPrevious());
+            }
         }
         return response(itinerary);
     }
