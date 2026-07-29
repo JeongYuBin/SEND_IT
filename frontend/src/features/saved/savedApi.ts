@@ -6,6 +6,7 @@ import type {
   SavedPlace,
   TourismOperatingInfo,
   TourismPlaceDetail,
+  TourismFestival,
   VisitStatus,
 } from './types'
 
@@ -65,5 +66,17 @@ export async function getTourismOperatingInfo(name: string, address?: string | n
 export async function getTourismPlaceDetail(contentId: string, contentTypeId: string) {
   return (await http.get<TourismPlaceDetail>(`/tourism/places/${contentId}`, {
     params: { contentTypeId },
+  })).data
+}
+
+export async function getTourismFestivals(
+  startDate: string,
+  endDate: string,
+  latitude: number,
+  longitude: number,
+  radius = 30000,
+) {
+  return (await http.get<TourismFestival[]>('/tourism/events', {
+    params: { startDate, endDate, latitude, longitude, radius },
   })).data
 }

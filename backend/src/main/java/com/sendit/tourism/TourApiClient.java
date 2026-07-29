@@ -11,7 +11,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -179,6 +181,43 @@ public class TourApiClient {
                             item.longitude(),
                             item.firstImage(),
                             item.distanceMeters()))
+                    .toList();
+        } catch (Exception ignored) {
+            return List.of();
+        }
+    }
+
+    public List<Festival> festivals(
+            LocalDate startDate,
+            LocalDate endDate,
+            double latitude,
+            double longitude,
+            int radiusMeters
+    ) {
+        if (serviceKey.isBlank()) return List.of();
+        try {
+            return items(get("/searchFestival2", Map.of(
+                    "eventStartDate", startDate.format(DateTimeFormatter.BASIC_ISO_DATE),
+                    "eventEndDate", endDate.format(DateTimeFormatter.BASIC_ISO_DATE),
+                    "arrange", "A",
+                    "numOfRows", "100",
+                    "pageNo", "1"
+            ))).stream()
+                    .filter(item -> item.latitude() != null && item.longitude() != null)
+                    .map(item -> new Festival(
+                            item.contentId(),
+                            item.title(),
+                            fullAddress(item),
+                            item.latitude(),
+                            item.longitude(),
+                            item.firstImage(),
+                            parseDate(item.eventStartDate()),
+                            parseDate(item.eventEndDate()),
+                            distanceMeters(latitude, longitude,
+                                    item.latitude(), item.longitude())))
+                    .filter(festival -> festival.distanceMeters() <= radiusMeters)
+                    .sorted(Comparator.comparingInt(Festival::distanceMeters))
+                    .limit(12)
                     .toList();
         } catch (Exception ignored) {
             return List.of();
@@ -370,8 +409,34 @@ public class TourApiClient {
                 text(node, "mapx"),
                 text(node, "firstimage"),
                 text(node, "overview"),
-                text(node, "dist")
+                text(node, "dist"),
+                text(node, "eventstartdate"),
+                text(node, "eventenddate")
         );
+    }
+
+    private LocalDate parseDate(String value) {
+        try {
+            return value == null ? null
+                    : LocalDate.parse(value, DateTimeFormatter.BASIC_ISO_DATE);
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private int distanceMeters(
+            double fromLatitude,
+            double fromLongitude,
+            double toLatitude,
+            double toLongitude
+    ) {
+        double latitudeDistance = Math.toRadians(toLatitude - fromLatitude);
+        double longitudeDistance = Math.toRadians(toLongitude - fromLongitude);
+        double a = Math.sin(latitudeDistance / 2) * Math.sin(latitudeDistance / 2)
+                + Math.cos(Math.toRadians(fromLatitude))
+                * Math.cos(Math.toRadians(toLatitude))
+                * Math.sin(longitudeDistance / 2) * Math.sin(longitudeDistance / 2);
+        return (int) Math.round(6_371_000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
     }
 
     private int matchScore(String expectedName, String expectedRegion, TourItem candidate) {
@@ -482,7 +547,9 @@ public class TourApiClient {
             String longitudeText,
             String firstImage,
             String overview,
-            String distanceText
+            String distanceText,
+            String eventStartDate,
+            String eventEndDate
     ) {
         Double latitude() {
             return parse(latitudeText);
@@ -518,6 +585,17 @@ public class TourApiClient {
             double latitude,
             double longitude,
             String imageUrl,
+            int distanceMeters
+    ) {}
+    public record Festival(
+            String contentId,
+            String name,
+            String address,
+            double latitude,
+            double longitude,
+            String imageUrl,
+            LocalDate startDate,
+            LocalDate endDate,
             int distanceMeters
     ) {}
     public record TourismPlaceDetail(

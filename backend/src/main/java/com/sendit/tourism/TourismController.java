@@ -5,6 +5,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.util.List;
+import java.time.LocalDate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,21 @@ public class TourismController {
     }
 
     record OperatingInfoResponse(String hours, String restDays, boolean available) {}
+
+    @GetMapping("/events")
+    List<TourApiClient.Festival> events(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate,
+            @RequestParam @DecimalMin("-90") @DecimalMax("90") double latitude,
+            @RequestParam @DecimalMin("-180") @DecimalMax("180") double longitude,
+            @RequestParam(defaultValue = "30000") @Min(1000) @Max(100000) int radius
+    ) {
+        if (endDate.isBefore(startDate)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "종료일은 시작일보다 빠를 수 없습니다.");
+        }
+        return tourApiClient.festivals(startDate, endDate, latitude, longitude, radius);
+    }
 
     @GetMapping("/places/{contentId}")
     TourApiClient.TourismPlaceDetail detail(

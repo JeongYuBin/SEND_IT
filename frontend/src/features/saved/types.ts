@@ -86,3 +86,15 @@ export type TourismPlaceDetail = {
   restDays: string | null
   parkingInfo: string | null
 }
+
+export type TourismFestival = {
+  contentId: string
+  name: string
+  address: string | null
+  latitude: number
+  longitude: number
+  imageUrl: string | null
+  startDate: string | null
+  endDate: string | null
+  distanceMeters: number
+}
