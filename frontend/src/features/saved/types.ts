@@ -32,6 +32,7 @@ export type CreateSavedPlace = {
   name: string
   category?: string
   address?: string
+  roadAddress?: string
   collectionId?: number
   memo?: string
   priority?: number
@@ -40,4 +41,15 @@ export type CreateSavedPlace = {
   imageUrl?: string
   latitude?: number
   longitude?: number
+}
+
+export type NearbyTourismPlace = {
+  contentId: string
+  name: string
+  category: string | null
+  address: string | null
+  latitude: number
+  longitude: number
+  imageUrl: string | null
+  distanceMeters: number
 }

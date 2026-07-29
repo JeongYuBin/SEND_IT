@@ -29,9 +29,17 @@ public class SavedPlaceService {
     public SavedPlaceDtos.Response create(String email, SavedPlaceDtos.CreateRequest request) {
         var user = users.findByEmail(email).orElseThrow();
         validateCoordinates(request.latitude(), request.longitude());
-        Place place = places.save(new Place(request.name(), request.category(), request.address(),
-                request.roadAddress(), request.latitude(), request.longitude(),
-                request.description(), request.imageUrl()));
+        String normalizedName = request.name().trim().toLowerCase().replaceAll("\\s+", "");
+        Place place = places.findFirstByNormalizedNameAndLatitudeAndLongitude(
+                        normalizedName, request.latitude(), request.longitude())
+                .orElseGet(() -> places.save(new Place(
+                        request.name(), request.category(), request.address(),
+                        request.roadAddress(), request.latitude(), request.longitude(),
+                        request.description(), request.imageUrl())));
+        var existingSaved = savedPlaces.findByUserIdAndPlaceId(user.getId(), place.getId());
+        if (existingSaved.isPresent()) {
+            return response(existingSaved.get());
+        }
         Collection collection = collection(email, request.collectionId());
         SharedContent share = request.sharedContentId() == null ? null
                 : shares.findByIdAndUserEmail(request.sharedContentId(), email)

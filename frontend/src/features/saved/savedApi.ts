@@ -1,5 +1,11 @@
 import { http } from '../../api/http'
-import type { Collection, CreateSavedPlace, SavedPlace, VisitStatus } from './types'
+import type {
+  Collection,
+  CreateSavedPlace,
+  NearbyTourismPlace,
+  SavedPlace,
+  VisitStatus,
+} from './types'
 
 export async function getSavedPlaces() {
   return (await http.get<SavedPlace[]>('/saved-places')).data
@@ -36,4 +42,14 @@ export async function getCollections() {
 
 export async function createCollection(name: string) {
   return (await http.post<Collection>('/collections', { name })).data
+}
+
+export async function getNearbyTourismPlaces(
+  latitude: number,
+  longitude: number,
+  radius = 5000,
+) {
+  return (await http.get<NearbyTourismPlace[]>('/tourism/nearby', {
+    params: { latitude, longitude, radius },
+  })).data
 }

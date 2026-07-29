@@ -159,6 +159,37 @@ public class TourApiClient {
         return result;
     }
 
+    public List<NearbyPlace> nearby(
+            double latitude,
+            double longitude,
+            int radiusMeters
+    ) {
+        if (serviceKey.isBlank()) return List.of();
+        try {
+            return items(get("/locationBasedList2", Map.of(
+                    "mapX", Double.toString(longitude),
+                    "mapY", Double.toString(latitude),
+                    "radius", Integer.toString(radiusMeters),
+                    "arrange", "E",
+                    "numOfRows", "12",
+                    "pageNo", "1"
+            ))).stream()
+                    .filter(item -> item.latitude() != null && item.longitude() != null)
+                    .map(item -> new NearbyPlace(
+                            item.contentId(),
+                            item.title(),
+                            categoryLabel(item.contentTypeId()),
+                            fullAddress(item),
+                            item.latitude(),
+                            item.longitude(),
+                            item.firstImage(),
+                            item.distanceMeters()))
+                    .toList();
+        } catch (Exception ignored) {
+            return List.of();
+        }
+    }
+
     private String get(String path, Map<String, String> parameters) throws Exception {
         StringBuilder query = new StringBuilder()
                 .append("serviceKey=").append(encode(serviceKey))
@@ -267,7 +298,8 @@ public class TourApiClient {
                 text(node, "mapy"),
                 text(node, "mapx"),
                 text(node, "firstimage"),
-                text(node, "overview")
+                text(node, "overview"),
+                text(node, "dist")
         );
     }
 
@@ -367,7 +399,8 @@ public class TourApiClient {
             String latitudeText,
             String longitudeText,
             String firstImage,
-            String overview
+            String overview,
+            String distanceText
     ) {
         Double latitude() {
             return parse(latitudeText);
@@ -375,6 +408,11 @@ public class TourApiClient {
 
         Double longitude() {
             return parse(longitudeText);
+        }
+
+        int distanceMeters() {
+            Double value = parse(distanceText);
+            return value == null ? 0 : Math.max(0, value.intValue());
         }
 
         private static Double parse(String value) {
@@ -389,6 +427,16 @@ public class TourApiClient {
     private record ScoredItem(TourItem item, int score) {}
     public record OperatingInfo(String hours, String restDays, TimeRange timeRange) {}
     public record TimeRange(LocalTime opensAt, LocalTime closesAt) {}
+    public record NearbyPlace(
+            String contentId,
+            String name,
+            String category,
+            String address,
+            double latitude,
+            double longitude,
+            String imageUrl,
+            int distanceMeters
+    ) {}
     private record OperatingInfoCacheEntry(
             Optional<OperatingInfo> info,
             Instant expiresAt

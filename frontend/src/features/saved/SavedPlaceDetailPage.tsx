@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { getCollections, getSavedPlace, updateSavedPlace } from './savedApi'
-import type { VisitStatus } from './types'
+import {
+  createSavedPlace,
+  getCollections,
+  getNearbyTourismPlaces,
+  getSavedPlace,
+  getSavedPlaces,
+  updateSavedPlace,
+} from './savedApi'
+import type { NearbyTourismPlace, VisitStatus } from './types'
 
 const statusLabels: Record<VisitStatus, string> = {
   WANT_TO_VISIT: '가고 싶어요',
@@ -19,6 +26,16 @@ export function SavedPlaceDetailPage() {
     enabled: Number.isFinite(savedPlaceId),
   })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
+  const savedPlacesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
+  const nearbyQuery = useQuery({
+    queryKey: ['tourism-nearby', placeQuery.data?.latitude, placeQuery.data?.longitude],
+    queryFn: () => getNearbyTourismPlaces(
+      placeQuery.data!.latitude!,
+      placeQuery.data!.longitude!,
+    ),
+    enabled: typeof placeQuery.data?.latitude === 'number'
+      && typeof placeQuery.data?.longitude === 'number',
+  })
   const updateMutation = useMutation({
     mutationFn: (request: {
       visitStatus?: VisitStatus
@@ -27,6 +44,20 @@ export function SavedPlaceDetailPage() {
     }) => updateSavedPlace(savedPlaceId, request),
     onSuccess: (place) => {
       queryClient.setQueryData(['saved-place', savedPlaceId], place)
+      queryClient.invalidateQueries({ queryKey: ['saved-places'] })
+    },
+  })
+  const saveNearbyMutation = useMutation({
+    mutationFn: (nearby: NearbyTourismPlace) => createSavedPlace({
+      name: nearby.name,
+      category: nearby.category ?? undefined,
+      address: nearby.address ?? undefined,
+      latitude: nearby.latitude,
+      longitude: nearby.longitude,
+      imageUrl: nearby.imageUrl ?? undefined,
+      collectionId: placeQuery.data?.collectionId ?? undefined,
+    }),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
     },
   })
@@ -114,6 +145,49 @@ export function SavedPlaceDetailPage() {
           )}
         </div>
       </article>
+      {place.latitude !== null && place.longitude !== null && (
+        <section className="nearby-tourism">
+          <div className="nearby-tourism-heading">
+            <div>
+              <span className="eyebrow">NEARBY</span>
+              <h2>주변 관광지 추천</h2>
+            </div>
+            <p>관광공사 데이터 기준 반경 5km · 가까운 순</p>
+          </div>
+          {nearbyQuery.isLoading && <div className="empty-state">주변 장소를 찾고 있습니다.</div>}
+          {nearbyQuery.isError && (
+            <div className="form-error">주변 관광지를 불러오지 못했습니다.</div>
+          )}
+          <div className="nearby-tourism-grid">
+            {nearbyQuery.data
+              ?.filter((nearby) => nearby.distanceMeters >= 10)
+              .map((nearby) => {
+                const alreadySaved = savedPlacesQuery.data?.some((saved) =>
+                  saved.name.replaceAll(/\s/g, '').toLowerCase()
+                    === nearby.name.replaceAll(/\s/g, '').toLowerCase())
+                return (
+                  <article key={nearby.contentId}>
+                    {nearby.imageUrl
+                      ? <img src={nearby.imageUrl} alt="" />
+                      : <div className="nearby-placeholder">{nearby.name.slice(0, 1)}</div>}
+                    <div>
+                      <span>{nearby.category ?? '관광지'} · {nearby.distanceMeters.toLocaleString()}m</span>
+                      <h3>{nearby.name}</h3>
+                      <p>{nearby.address ?? '주소 정보 없음'}</p>
+                      <button
+                        type="button"
+                        disabled={alreadySaved || saveNearbyMutation.isPending}
+                        onClick={() => saveNearbyMutation.mutate(nearby)}
+                      >
+                        {alreadySaved ? '저장됨' : '내 장소에 저장'}
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+          </div>
+        </section>
+      )}
     </main>
   )
 }
