@@ -11,11 +11,19 @@ import {
 } from './savedApi'
 import type { VisitStatus } from './types'
 import { SavedPlacesMap } from './SavedPlacesMap'
+import { getItineraries } from '../itinerary/itineraryApi'
+import type { TransportType } from '../itinerary/types'
 
 const statusLabels: Record<VisitStatus, string> = {
   WANT_TO_VISIT: '가고 싶어요',
   PLANNED: '방문 예정',
   VISITED: '방문 완료',
+}
+
+const transportLabels: Record<TransportType, string> = {
+  WALKING: '도보',
+  PUBLIC_TRANSIT: '대중교통',
+  CAR: '자동차',
 }
 
 export function SavedPlacesPage() {
@@ -48,6 +56,7 @@ export function SavedPlacesPage() {
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
+  const itinerariesQuery = useQuery({ queryKey: ['itineraries'], queryFn: getItineraries })
   const selectedCollection = collectionsQuery.data?.find((item) => item.id === selectedCollectionId)
   const refreshPlaces = () => queryClient.invalidateQueries({ queryKey: ['saved-places'] })
 
@@ -154,6 +163,44 @@ export function SavedPlacesPage() {
           </button>
         </div>
       </header>
+
+      <section className="saved-itinerary-overview">
+        <div className="saved-section-heading">
+          <div>
+            <span className="eyebrow">MY TRIPS</span>
+            <h2>내 여행 계획</h2>
+          </div>
+          <Link to="/itineraries">전체 계획 보기</Link>
+        </div>
+        {itinerariesQuery.isLoading && (
+          <div className="empty-state">여행 계획을 불러오고 있습니다.</div>
+        )}
+        {itinerariesQuery.isError && (
+          <div className="form-error">여행 계획을 불러오지 못했습니다.</div>
+        )}
+        {!itinerariesQuery.isLoading && (itinerariesQuery.data?.length ?? 0) === 0 && (
+          <div className="saved-itinerary-empty">
+            <span>아직 만든 여행 계획이 없습니다.</span>
+            <Link to="/itineraries">첫 여행 계획 만들기</Link>
+          </div>
+        )}
+        <div className="saved-itinerary-cards">
+          {itinerariesQuery.data?.slice(0, 3).map((itinerary) => (
+            <Link key={itinerary.id} to={`/itineraries/${itinerary.id}`}>
+              <span>{itinerary.startDate} – {itinerary.endDate}</span>
+              <strong>{itinerary.title}</strong>
+              <small>
+                {transportLabels[itinerary.transportType]} · 장소 {itinerary.items.length}개
+              </small>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <aside className="saved-recommendation-tip">
+        <span>주변 관광지를 찾고 싶나요?</span>
+        <strong>아래 장소 카드를 열면 상세 화면 하단에서 반경 5km 추천 장소를 볼 수 있습니다.</strong>
+      </aside>
 
       {showForm && (
         <form className="place-form" onSubmit={handleSubmit}>

@@ -385,6 +385,83 @@ h1 {
   color: #64766f;
 }
 
+.saved-itinerary-overview {
+  margin-bottom: 26px;
+  padding: 24px;
+  border: 1px solid #d9e2dd;
+  border-radius: 22px;
+  background: #fff;
+}
+
+.saved-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.saved-section-heading h2 {
+  margin: 4px 0 0;
+}
+
+.saved-section-heading > a {
+  color: #176b52;
+  font-weight: 800;
+}
+
+.saved-itinerary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.saved-itinerary-cards > a {
+  display: grid;
+  gap: 7px;
+  padding: 18px;
+  border: 1px solid #dce4df;
+  border-radius: 14px;
+  color: inherit;
+  background: #f9fbfa;
+  text-decoration: none;
+  transition: border-color .2s ease, transform .2s ease;
+}
+
+.saved-itinerary-cards > a:hover {
+  border-color: #79a18f;
+  transform: translateY(-2px);
+}
+
+.saved-itinerary-cards span,
+.saved-itinerary-cards small {
+  color: #66776f;
+}
+
+.saved-itinerary-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #66776f;
+}
+
+.saved-recommendation-tip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  color: #315c4a;
+  background: #eaf3ee;
+}
+
+.saved-recommendation-tip span {
+  flex: 0 0 auto;
+  font-weight: 900;
+}
+
 .primary-button,
 .place-form button {
   padding: 13px 18px;
@@ -789,6 +866,16 @@ h1 {
   }
 
   .nearby-tourism-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .saved-itinerary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .saved-recommendation-tip,
+  .saved-itinerary-empty {
     align-items: start;
     flex-direction: column;
   }
