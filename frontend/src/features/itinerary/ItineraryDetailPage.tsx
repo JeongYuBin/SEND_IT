@@ -432,10 +432,10 @@ export function ItineraryDetailPage() {
                   </ol>
                 )}
                 <ItineraryAccommodations day={day} />
-                <ItineraryFestivals day={day} />
               </section>
             ))}
           </div>
+          <ItineraryFestivals itinerary={itineraryQuery.data} />
         </article>
       )}
     </main>

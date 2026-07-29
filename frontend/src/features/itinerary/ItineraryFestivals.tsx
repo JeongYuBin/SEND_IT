@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { getTourismFestivals } from '../saved/savedApi'
-import type { ItineraryDay } from './types'
+import type { Itinerary } from './types'
 
 type Props = {
-  day: ItineraryDay
+  itinerary: Itinerary
 }
 
 function dateRange(startDate: string | null, endDate: string | null) {
@@ -12,8 +12,8 @@ function dateRange(startDate: string | null, endDate: string | null) {
   return `${startDate ?? endDate} – ${endDate}`
 }
 
-export function ItineraryFestivals({ day }: Props) {
-  const coordinates = day.items
+export function ItineraryFestivals({ itinerary }: Props) {
+  const coordinates = itinerary.items
     .filter((item) => item.latitude !== null && item.longitude !== null)
     .map((item) => ({
       latitude: item.latitude!,
@@ -21,12 +21,12 @@ export function ItineraryFestivals({ day }: Props) {
     }))
 
   const festivalsQuery = useQuery({
-    queryKey: ['tourism-events', day.date, coordinates],
+    queryKey: ['tourism-events', itinerary.id, itinerary.startDate, itinerary.endDate],
     queryFn: async () => {
       const responses = await Promise.all(coordinates.map((coordinate) =>
         getTourismFestivals(
-          day.date,
-          day.date,
+          itinerary.startDate,
+          itinerary.endDate,
           coordinate.latitude,
           coordinate.longitude,
         )))
@@ -42,20 +42,20 @@ export function ItineraryFestivals({ day }: Props) {
   if (coordinates.length === 0) return null
 
   return (
-    <section className="itinerary-festivals day-recommendation">
+    <section className="itinerary-festivals">
       <header>
         <div>
-          <span className="eyebrow">DAY {day.dayNumber} EVENTS</span>
-          <h2>이날 주변 행사</h2>
+          <span className="eyebrow">TRIP EVENTS</span>
+          <h2>여행 기간 주변 행사</h2>
         </div>
-        <p>{day.date} · 일정 장소 반경 30km</p>
+        <p>{itinerary.startDate} – {itinerary.endDate} · 전체 일정 장소 반경 30km</p>
       </header>
-      {festivalsQuery.isLoading && <div className="empty-state">이날 진행되는 행사를 찾고 있습니다.</div>}
+      {festivalsQuery.isLoading && <div className="empty-state">여행 기간의 행사를 찾고 있습니다.</div>}
       {festivalsQuery.isError && (
         <div className="empty-state">행사 정보를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.</div>
       )}
       {festivalsQuery.data?.length === 0 && (
-        <div className="empty-state">이날 일정 동선 주변에 등록된 행사가 없습니다.</div>
+        <div className="empty-state">여행 기간과 동선 주변에 등록된 행사가 없습니다.</div>
       )}
       {!!festivalsQuery.data?.length && (
         <div className="itinerary-festival-grid">

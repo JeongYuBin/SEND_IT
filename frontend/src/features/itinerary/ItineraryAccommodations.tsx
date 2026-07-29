@@ -17,6 +17,7 @@ type Props = {
 export function ItineraryAccommodations({ day }: Props) {
   const queryClient = useQueryClient()
   const [selectedStay, setSelectedStay] = useState<TourismAccommodation | null>(null)
+  const [stayIndex, setStayIndex] = useState(0)
   const lastPlace = day.items.at(-1)
   const coordinateAvailable = lastPlace?.latitude !== null
     && lastPlace?.latitude !== undefined
@@ -91,6 +92,9 @@ export function ItineraryAccommodations({ day }: Props) {
     ? savedByContentId.get(selectedStay.contentId)
     : undefined
   const mutationPending = saveMutation.isPending || deleteMutation.isPending
+  const stays = accommodationQuery.data ?? []
+  const visibleIndex = stays.length === 0 ? 0 : Math.min(stayIndex, stays.length - 1)
+  const visibleStay = stays[visibleIndex]
 
   const toggleSaved = (stay: TourismAccommodation) => {
     const savedPlace = savedByContentId.get(stay.contentId)
@@ -124,9 +128,19 @@ export function ItineraryAccommodations({ day }: Props) {
         {accommodationQuery.data?.length === 0 && (
           <div className="empty-state">반경 10km 안에 관광공사 등록 숙소가 없습니다.</div>
         )}
-        {!!accommodationQuery.data?.length && (
-          <div className="stay-carousel" aria-label={`DAY ${day.dayNumber} 주변 숙소`}>
-            {accommodationQuery.data.map((stay) => {
+        {visibleStay && (
+          <div className="stay-slideshow" aria-label={`DAY ${day.dayNumber} 주변 숙소`}>
+            <button
+              className="stay-slide-arrow previous"
+              type="button"
+              aria-label="이전 숙소"
+              onClick={() => setStayIndex((current) =>
+                current === 0 ? stays.length - 1 : current - 1)}
+            >
+              ‹
+            </button>
+            {(() => {
+                    const stay = visibleStay
                     const saved = savedByContentId.has(stay.contentId)
                     const changing = (saveMutation.isPending
                       && saveMutation.variables?.contentId === stay.contentId)
@@ -164,7 +178,27 @@ export function ItineraryAccommodations({ day }: Props) {
                         </div>
                       </article>
                     )
-            })}
+            })()}
+            <button
+              className="stay-slide-arrow next"
+              type="button"
+              aria-label="다음 숙소"
+              onClick={() => setStayIndex((current) =>
+                current >= stays.length - 1 ? 0 : current + 1)}
+            >
+              ›
+            </button>
+            <div className="stay-slide-dots" aria-label={`${stays.length}개 숙소 중 ${visibleIndex + 1}번째`}>
+              {stays.map((stay, index) => (
+                <button
+                  className={index === visibleIndex ? 'active' : ''}
+                  type="button"
+                  key={stay.contentId}
+                  aria-label={`${index + 1}번째 숙소 보기`}
+                  onClick={() => setStayIndex(index)}
+                />
+              ))}
+            </div>
           </div>
         )}
       </article>

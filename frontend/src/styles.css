@@ -1116,6 +1116,8 @@ h1 {
 
 .day-recommendation {
   margin: 24px 0 0 76px;
+  max-width: calc(100% - 76px);
+  min-width: 0;
 }
 
 .itinerary-accommodations > header {
@@ -1169,20 +1171,78 @@ h1 {
   gap: 12px;
 }
 
-.stay-carousel {
-  display: grid;
-  grid-auto-columns: minmax(280px, 32%);
-  grid-auto-flow: column;
-  gap: 14px;
-  overflow-x: auto;
-  padding: 2px 2px 14px;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-  scrollbar-color: var(--green) transparent;
+.stay-slideshow {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  padding: 0 52px 34px;
+  overflow: hidden;
 }
 
-.stay-carousel .stay-card {
-  scroll-snap-align: start;
+.stay-slideshow .stay-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+}
+
+.stay-slideshow .stay-card img,
+.stay-slideshow .stay-placeholder {
+  height: 100%;
+  min-height: 220px;
+}
+
+.stay-slide-arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+  color: #fff;
+  font-size: 32px;
+  line-height: 1;
+  background: var(--green);
+  cursor: pointer;
+  transform: translateY(-70%);
+}
+
+.stay-slide-arrow.previous {
+  left: 2px;
+}
+
+.stay-slide-arrow.next {
+  right: 2px;
+}
+
+.stay-slide-dots {
+  position: absolute;
+  right: 52px;
+  bottom: 8px;
+  left: 52px;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+
+.stay-slide-dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #c9d2cd;
+  cursor: pointer;
+}
+
+.stay-slide-dots button.active {
+  width: 22px;
+  border-radius: 999px;
+  background: var(--green);
 }
 
 .stay-card {
@@ -1275,11 +1335,29 @@ h1 {
 
   .day-recommendation {
     margin-left: 0;
+    max-width: 100%;
   }
 
-  .stay-carousel {
-    grid-auto-columns: 85%;
+  .stay-slideshow {
+    padding-right: 40px;
+    padding-left: 40px;
   }
+
+  .stay-slideshow .stay-card {
+    grid-template-columns: 1fr;
+  }
+
+  .stay-slideshow .stay-card img,
+  .stay-slideshow .stay-placeholder {
+    min-height: 170px;
+  }
+}
+
+.itinerary-day,
+.itinerary-timeline,
+.timeline-stop,
+.overnight-stay {
+  min-width: 0;
 }
 
 .place-source-link {
