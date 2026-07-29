@@ -21,6 +21,23 @@ http.interceptors.request.use((config) => {
 
 type RetryableRequest = InternalAxiosRequestConfig & { _retry?: boolean }
 
+let refreshSessionPromise: Promise<TokenResponse> | null = null
+
+function refreshSession(refreshToken: string) {
+  if (!refreshSessionPromise) {
+    refreshSessionPromise = axios
+      .post<TokenResponse>(`${baseURL}/auth/refresh`, { refreshToken })
+      .then((response) => {
+        useAuthStore.getState().setSession(response.data)
+        return response.data
+      })
+      .finally(() => {
+        refreshSessionPromise = null
+      })
+  }
+  return refreshSessionPromise
+}
+
 http.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -37,22 +54,20 @@ http.interceptors.response.use(
     ) {
       request._retry = true
       try {
-        const response = await axios.post<TokenResponse>(`${baseURL}/auth/refresh`, {
-          refreshToken: auth.refreshToken,
-        })
-        auth.setSession(response.data)
-        request.headers.Authorization = `Bearer ${response.data.accessToken}`
+        const session = await refreshSession(auth.refreshToken)
+        request.headers.Authorization = `Bearer ${session.accessToken}`
         return http(request)
       } catch {
-        auth.clearSession()
+        useAuthStore.getState().clearSession()
+        return Promise.reject(error)
       }
     }
 
     if (
       !isAuthRequest &&
-      (error.response?.status === 401 || error.response?.status === 403)
+      error.response?.status === 401
     ) {
-      auth.clearSession()
+      useAuthStore.getState().clearSession()
     }
 
     return Promise.reject(error)
