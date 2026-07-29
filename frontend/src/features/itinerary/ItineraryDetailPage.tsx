@@ -195,10 +195,15 @@ export function ItineraryDetailPage() {
     if (!orderDraft) return
     reorderMutation.reset()
     let sequence = 1
+    const transportSlots = itineraryQuery.data?.days
+      .flatMap((day) => day.items)
+      .map((item) => item.transportTypeFromPrevious) ?? []
+    let slotIndex = 0
     reorderMutation.mutate(orderDraft.flatMap((day) => day.items.map((item) => ({
       savedPlaceId: item.savedPlaceId,
       visitDate: day.date,
       sequence: sequence++,
+      transportTypeFromPrevious: transportSlots[slotIndex++] ?? itineraryQuery.data!.transportType,
     }))))
   }
 
@@ -318,58 +323,62 @@ export function ItineraryDetailPage() {
                         <span className="timeline-number">{editingOrder ? itemIndex + 1 : item.daySequence}</span>
                         <div className="timeline-stop">
                           {editingOrder && <div className="card-drag-handle">⠿ 카드 이동</div>}
-                          {item.crossDayTransfer && (
-                            <div className="cross-day-transfer-label">
-                              전날 마지막 장소에서 오늘 첫 장소로 이동
-                            </div>
-                          )}
-                          {item.travelMinutesFromPrevious > 0 && (
-                            <div className="segment-transport-control">
-                              <label className="segment-transport-select">
-                                이 구간 이동수단
-                                <select
-                                  value={item.transportTypeFromPrevious}
-                                  disabled={transportMutation.isPending}
-                                  onChange={(event) => {
-                                    transportMutation.reset()
-                                    transportMutation.mutate({
-                                      savedPlaceId: item.savedPlaceId,
-                                      transportType: event.target.value as TransportType,
-                                    })
-                                  }}
-                                >
-                                  <option value="PUBLIC_TRANSIT">대중교통</option>
-                                  <option value="CAR">자동차</option>
-                                  <option value="WALKING">도보</option>
-                                </select>
-                              </label>
-                              {transportMutation.isPending && <small>이동수단 저장 중…</small>}
-                              {transportMutation.isError && (
-                                <small className="field-error">
-                                  {requestErrorMessage(transportMutation.error)}
-                                </small>
+                          {!editingOrder && (
+                            <>
+                              {item.crossDayTransfer && (
+                                <div className="cross-day-transfer-label">
+                                  전날 마지막 장소에서 오늘 첫 장소로 이동
+                                </div>
                               )}
-                            </div>
-                          )}
-                          {item.transit ? (
-                            <TransitRouteGuide route={item.transit} />
-                          ) : item.transportTypeFromPrevious === 'PUBLIC_TRANSIT'
-                            && item.travelMinutesFromPrevious > 0 ? (
-                            <div className="transit-unavailable">
-                              <strong>카카오맵 대중교통 경로 없음</strong>
-                              <span>
-                                이 구간은 카카오가 이용 가능한 버스·지하철 경로를 반환하지 않았습니다.
-                              </span>
-                              <small>
-                                가까운 거리는 도보 이동이 더 적합할 수 있으며, 직선거리 기반 시간은 표시하지 않습니다.
-                              </small>
-                            </div>
-                          ) : item.travelMinutesFromPrevious > 0 && (
-                            <div className="travel-estimate">
-                              예상 이동 {item.travelMinutesFromPrevious}분
-                              {item.distanceKmFromPrevious !== null && ` · 약 ${item.distanceKmFromPrevious}km`}
-                              {!item.coordinateAvailable && ' · 좌표 없음'}
-                            </div>
+                              {item.travelMinutesFromPrevious > 0 && (
+                                <div className="segment-transport-control">
+                                  <label className="segment-transport-select">
+                                    이 구간 이동수단
+                                    <select
+                                      value={item.transportTypeFromPrevious}
+                                      disabled={transportMutation.isPending}
+                                      onChange={(event) => {
+                                        transportMutation.reset()
+                                        transportMutation.mutate({
+                                          savedPlaceId: item.savedPlaceId,
+                                          transportType: event.target.value as TransportType,
+                                        })
+                                      }}
+                                    >
+                                      <option value="PUBLIC_TRANSIT">대중교통</option>
+                                      <option value="CAR">자동차</option>
+                                      <option value="WALKING">도보</option>
+                                    </select>
+                                  </label>
+                                  {transportMutation.isPending && <small>이동수단 저장 중…</small>}
+                                  {transportMutation.isError && (
+                                    <small className="field-error">
+                                      {requestErrorMessage(transportMutation.error)}
+                                    </small>
+                                  )}
+                                </div>
+                              )}
+                              {item.transit ? (
+                                <TransitRouteGuide route={item.transit} />
+                              ) : item.transportTypeFromPrevious === 'PUBLIC_TRANSIT'
+                                && item.travelMinutesFromPrevious > 0 ? (
+                                <div className="transit-unavailable">
+                                  <strong>카카오맵 대중교통 경로 없음</strong>
+                                  <span>
+                                    이 구간은 카카오가 이용 가능한 버스·지하철 경로를 반환하지 않았습니다.
+                                  </span>
+                                  <small>
+                                    가까운 거리는 도보 이동이 더 적합할 수 있으며, 직선거리 기반 시간은 표시하지 않습니다.
+                                  </small>
+                                </div>
+                              ) : item.travelMinutesFromPrevious > 0 && (
+                                <div className="travel-estimate">
+                                  예상 이동 {item.travelMinutesFromPrevious}분
+                                  {item.distanceKmFromPrevious !== null && ` · 약 ${item.distanceKmFromPrevious}km`}
+                                  {!item.coordinateAvailable && ' · 좌표 없음'}
+                                </div>
+                              )}
+                            </>
                           )}
                           <Link to={`/saved/places/${item.savedPlaceId}`}>
                             {item.imageUrl
@@ -381,7 +390,7 @@ export function ItineraryDetailPage() {
                               <span>{item.address ?? '주소 정보 없음'}</span>
                             </span>
                           </Link>
-                          {editingPlaceId === item.savedPlaceId ? (
+                          {!editingOrder && (editingPlaceId === item.savedPlaceId ? (
                             <PlaceScheduleEditor
                               item={item}
                               startDate={itineraryQuery.data.startDate}
@@ -402,7 +411,7 @@ export function ItineraryDetailPage() {
                             >
                               방문 시간 설정
                             </button>
-                          )}
+                          ))}
                         </div>
                       </li>
                     ))}

@@ -88,4 +88,5 @@ export type ReorderItineraryItem = {
   savedPlaceId: number
   visitDate: string
   sequence: number
+  transportTypeFromPrevious: TransportType
 }

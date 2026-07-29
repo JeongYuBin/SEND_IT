@@ -991,6 +991,12 @@ h1 {
   border-color: #deb6b1;
 }
 
+.itinerary-header-actions > .primary-button {
+  color: white;
+  border-color: #176b52;
+  background: #176b52;
+}
+
 .itinerary-edit-form {
   display: grid;
   margin: 28px 0;
