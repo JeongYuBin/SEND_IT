@@ -109,6 +109,7 @@ export function ItineraryDetailPage() {
       refresh(data)
       setEditingOrder(false)
       setOrderDraft(null)
+      setDraggingPlaceId(null)
       setSaveMessage('날짜와 방문 순서를 저장했습니다.')
     },
     onMutate: () => {
@@ -117,6 +118,7 @@ export function ItineraryDetailPage() {
     onError: () => {
       setEditingOrder(false)
       setOrderDraft(null)
+      setDraggingPlaceId(null)
     },
   })
   const transportMutation = useMutation({
@@ -185,6 +187,7 @@ export function ItineraryDetailPage() {
       return { ...day, items }
     })
     setOrderDraft(next)
+    setDraggingPlaceId(null)
     saveOrder(next)
   }
 
@@ -262,8 +265,8 @@ export function ItineraryDetailPage() {
             </div>
           )}
           <section className="itinerary-notice">
-            장소 좌표의 직선거리와 이동 수단별 평균 속도로 계산한 예상 동선입니다.
-            실제 도로 상황과 대중교통 시간은 다를 수 있습니다.
+            카카오 API가 제공하는 이동수단별 실제 경로와 예상 시간입니다.
+            교통 상황과 대중교통 운행 정보에 따라 실제 이동 시간은 달라질 수 있습니다.
           </section>
           <ItineraryRouteMap days={itineraryQuery.data.days} />
           <div className="itinerary-days">
