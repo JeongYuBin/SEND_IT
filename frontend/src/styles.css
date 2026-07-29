@@ -835,6 +835,56 @@ h1 {
   background: white;
 }
 
+.tourism-sync-panel {
+  display: flex;
+  margin-top: 24px;
+  padding: 15px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid #dbcfae;
+  border-radius: 14px;
+  background: #fff9e9;
+}
+
+.tourism-sync-panel.connected {
+  border-color: #bfd4c8;
+  background: #eff7f2;
+}
+
+.tourism-sync-panel > div {
+  display: grid;
+  gap: 4px;
+}
+
+.tourism-sync-panel strong {
+  color: #234f3e;
+  font-size: .86rem;
+}
+
+.tourism-sync-panel span {
+  color: #6b776f;
+  font-size: .76rem;
+  line-height: 1.45;
+}
+
+.tourism-sync-panel button {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border: 1px solid #176b52;
+  border-radius: 999px;
+  color: #176b52;
+  background: #fff;
+  cursor: pointer;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.tourism-sync-panel button:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
 .nearby-tourism {
   max-width: 1180px;
   margin: 32px auto 0;

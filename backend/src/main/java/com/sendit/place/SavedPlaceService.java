@@ -86,6 +86,23 @@ public class SavedPlaceService {
         return response(saved);
     }
 
+    public SavedPlaceDtos.Response syncTourism(String email, Long id) {
+        var saved = owned(email, id);
+        Place place = saved.getPlace();
+        var detail = place.getTourismContentId() == null
+                ? tourApiClient.findDetail(place.getName(),
+                        place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress())
+                : tourApiClient.detail(
+                        place.getTourismContentId(), place.getTourismContentTypeId());
+        var matched = detail.orElseThrow(() ->
+                new IllegalArgumentException("관광공사에서 일치하는 장소를 찾지 못했습니다."));
+        place.enrichTourismDetails(
+                matched.contentId(), matched.contentTypeId(), matched.description(),
+                matched.imageUrl(), matched.phone(), matched.homepageUrl(),
+                matched.operatingHours(), matched.restDays(), matched.parkingInfo());
+        return response(saved);
+    }
+
     public void delete(String email, Long id) {
         var saved = owned(email, id);
         savedPlaces.delete(saved);

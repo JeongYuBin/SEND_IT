@@ -30,6 +30,10 @@ public class SavedPlaceController {
             @Valid @RequestBody SavedPlaceDtos.UpdateRequest request) {
         return service.update(principal.getName(), id, request);
     }
+    @PostMapping("/{id}/sync-tourism")
+    SavedPlaceDtos.Response syncTourism(Principal principal, @PathVariable Long id) {
+        return service.syncTourism(principal.getName(), id);
+    }
     @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(Principal principal, @PathVariable Long id) {
         service.delete(principal.getName(), id);

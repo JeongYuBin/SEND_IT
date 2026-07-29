@@ -253,6 +253,26 @@ public class TourApiClient {
         }
     }
 
+    public Optional<TourismPlaceDetail> findDetail(String placeName, String address) {
+        if (serviceKey.isBlank() || placeName == null || placeName.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            PageMetadata fallback = new PageMetadata(
+                    placeName, null, null, placeName, null, address, null, null);
+            TourItem match = bestMatch(fallback, items(get("/searchKeyword2", Map.of(
+                    "keyword", placeName,
+                    "numOfRows", "10",
+                    "pageNo", "1"
+            ))));
+            return match == null
+                    ? Optional.empty()
+                    : detail(match.contentId(), match.contentTypeId());
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
     private String get(String path, Map<String, String> parameters) throws Exception {
         StringBuilder query = new StringBuilder()
                 .append("serviceKey=").append(encode(serviceKey))

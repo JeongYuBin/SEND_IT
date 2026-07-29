@@ -7,6 +7,7 @@ import {
   getSavedPlace,
   getSavedPlaces,
   getTourismOperatingInfo,
+  syncSavedPlaceTourism,
   updateSavedPlace,
 } from './savedApi'
 import type { NearbyTourismPlace, VisitStatus } from './types'
@@ -60,6 +61,13 @@ export function SavedPlaceDetailPage() {
     }) => updateSavedPlace(savedPlaceId, request),
     onSuccess: (place) => {
       queryClient.setQueryData(['saved-place', savedPlaceId], place)
+      queryClient.invalidateQueries({ queryKey: ['saved-places'] })
+    },
+  })
+  const syncTourismMutation = useMutation({
+    mutationFn: () => syncSavedPlaceTourism(savedPlaceId),
+    onSuccess: (syncedPlace) => {
+      queryClient.setQueryData(['saved-place', savedPlaceId], syncedPlace)
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
     },
   })
@@ -228,6 +236,32 @@ export function SavedPlaceDetailPage() {
               <div><dt>좌표</dt><dd>{place.latitude.toFixed(6)}, {place.longitude.toFixed(6)}</dd></div>
             )}
           </dl>
+          <div className={`tourism-sync-panel ${place.tourismContentId ? 'connected' : ''}`}>
+            <div>
+              <strong>
+                {place.tourismContentId ? '관광공사 정보 연동됨' : '관광공사 상세정보 미연동'}
+              </strong>
+              <span>
+                {place.tourismContentId
+                  ? '저장된 관광 정보를 최신 데이터로 다시 확인할 수 있습니다.'
+                  : '장소명과 주소로 다시 매칭해 방문 정보를 보완합니다.'}
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={syncTourismMutation.isPending}
+              onClick={() => syncTourismMutation.mutate()}
+            >
+              {syncTourismMutation.isPending
+                ? '동기화 중...'
+                : place.tourismContentId ? '정보 새로고침' : '관광 정보 연결'}
+            </button>
+          </div>
+          {syncTourismMutation.isError && (
+            <div className="form-error">
+              관광공사에서 일치하는 장소를 찾지 못했습니다. 장소명과 주소를 확인해 주세요.
+            </div>
+          )}
           {place.originalUrl && (
             <a className="place-source-link" href={place.originalUrl} target="_blank" rel="noreferrer">
               원본 콘텐츠 열기 ↗
