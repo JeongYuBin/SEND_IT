@@ -45,11 +45,13 @@ export function SavedPlacesPage() {
   const [newCollection, setNewCollection] = useState('')
   const [view, setView] = useState<'list' | 'map'>('list')
   const [regionFilter, setRegionFilter] = useState('all')
+  const [districtFilter, setDistrictFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState<VisitStatus | 'all'>('all')
 
   useEffect(() => {
     setRegionFilter('all')
+    setDistrictFilter('all')
     setCategoryFilter('all')
     setStatusFilter('all')
   }, [collectionScope])
@@ -111,20 +113,35 @@ export function SavedPlacesPage() {
     }).filter(Boolean) as string[])].sort(),
     [collectionPlaces],
   )
+  const districtOptions = useMemo(
+    () => [...new Set(collectionPlaces.map((place) => {
+      const addressParts = (place.roadAddress ?? place.address)?.trim().split(/\s+/) ?? []
+      if (regionFilter !== 'all' && addressParts[0] !== regionFilter) return null
+      return addressParts.slice(1).find((part) => /(?:시|군|구)$/.test(part)) ?? null
+    }).filter(Boolean) as string[])].sort(),
+    [collectionPlaces, regionFilter],
+  )
   const places = useMemo(
     () => collectionPlaces.filter((place) => {
       const placeAddress = place.roadAddress ?? place.address
-      const region = placeAddress?.trim().split(/\s+/)[0] ?? null
+      const addressParts = placeAddress?.trim().split(/\s+/) ?? []
+      const region = addressParts[0] ?? null
+      const district = addressParts.slice(1).find((part) => /(?:시|군|구)$/.test(part)) ?? null
       return (regionFilter === 'all' || region === regionFilter)
+        && (districtFilter === 'all' || district === districtFilter)
         && (categoryFilter === 'all' || place.category === categoryFilter)
         && (statusFilter === 'all' || place.visitStatus === statusFilter)
     }),
-    [categoryFilter, collectionPlaces, regionFilter, statusFilter],
+    [categoryFilter, collectionPlaces, districtFilter, regionFilter, statusFilter],
   )
-  const filtersActive = regionFilter !== 'all' || categoryFilter !== 'all' || statusFilter !== 'all'
+  const filtersActive = regionFilter !== 'all'
+    || districtFilter !== 'all'
+    || categoryFilter !== 'all'
+    || statusFilter !== 'all'
 
   const clearFilters = () => {
     setRegionFilter('all')
+    setDistrictFilter('all')
     setCategoryFilter('all')
     setStatusFilter('all')
   }
@@ -258,9 +275,28 @@ export function SavedPlacesPage() {
           </label>
           <label>
             지역
-            <select value={regionFilter} onChange={(event) => setRegionFilter(event.target.value)}>
+            <select
+              value={regionFilter}
+              onChange={(event) => {
+                setRegionFilter(event.target.value)
+                setDistrictFilter('all')
+              }}
+            >
               <option value="all">전체 지역</option>
               {regionOptions.map((region) => <option key={region} value={region}>{region}</option>)}
+            </select>
+          </label>
+          <label>
+            시·군·구
+            <select
+              value={districtFilter}
+              onChange={(event) => setDistrictFilter(event.target.value)}
+              disabled={districtOptions.length === 0}
+            >
+              <option value="all">전체 시·군·구</option>
+              {districtOptions.map((district) => (
+                <option key={district} value={district}>{district}</option>
+              ))}
             </select>
           </label>
           <label>

@@ -386,8 +386,9 @@ h1 {
 }
 
 .saved-itinerary-overview {
-  margin-bottom: 26px;
-  padding: 24px;
+  width: min(100%, 1100px);
+  margin: 30px auto 18px;
+  padding: 20px;
   border: 1px solid #d9e2dd;
   border-radius: 22px;
   background: #fff;
@@ -448,9 +449,10 @@ h1 {
 
 .saved-recommendation-tip {
   display: flex;
+  width: min(100%, 1100px);
   align-items: center;
   gap: 12px;
-  margin-bottom: 22px;
+  margin: 0 auto 22px;
   padding: 14px 18px;
   border-radius: 14px;
   color: #315c4a;
@@ -833,12 +835,25 @@ h1 {
 }
 
 .nearby-placeholder {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
   color: #fff;
-  background: #7e9b8e;
-  font-size: 2rem;
-  font-weight: 800;
+  background:
+    linear-gradient(145deg, rgb(29 93 72 / 88%), rgb(126 155 142 / 78%)),
+    radial-gradient(circle at 75% 20%, #bfd6c9 0 18%, transparent 19%);
+}
+
+.nearby-placeholder strong {
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.nearby-placeholder small {
+  color: rgb(255 255 255 / 82%);
+  font-size: .76rem;
 }
 
 .nearby-tourism-grid article > div:last-child {

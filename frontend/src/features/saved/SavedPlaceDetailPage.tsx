@@ -169,7 +169,12 @@ export function SavedPlaceDetailPage() {
                   <article key={nearby.contentId}>
                     {nearby.imageUrl
                       ? <img src={nearby.imageUrl} alt="" />
-                      : <div className="nearby-placeholder">{nearby.name.slice(0, 1)}</div>}
+                      : (
+                        <div className="nearby-placeholder" aria-label="관광공사 제공 이미지 없음">
+                          <strong>{nearby.category ?? '관광지'}</strong>
+                          <small>제공 이미지 없음</small>
+                        </div>
+                      )}
                     <div>
                       <span>{nearby.category ?? '관광지'} · {nearby.distanceMeters.toLocaleString()}m</span>
                       <h3>{nearby.name}</h3>
