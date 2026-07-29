@@ -200,7 +200,7 @@ public class TourApiClient {
                     "radius", Integer.toString(radiusMeters),
                     "contentTypeId", "32",
                     "arrange", "E",
-                    "numOfRows", "12",
+                    "numOfRows", "100",
                     "pageNo", "1"
             ))).stream()
                     .filter(item -> item.latitude() != null && item.longitude() != null)
@@ -213,7 +213,6 @@ public class TourApiClient {
                             item.longitude(),
                             item.firstImage(),
                             item.distanceMeters()))
-                    .limit(6)
                     .toList();
         } catch (Exception ignored) {
             return List.of();

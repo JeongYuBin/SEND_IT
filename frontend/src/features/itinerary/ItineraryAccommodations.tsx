@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createSavedPlace,
   deleteSavedPlace,
@@ -8,35 +8,25 @@ import {
   getTourismPlaceDetail,
 } from '../saved/savedApi'
 import type { TourismAccommodation } from '../saved/types'
-import type { Itinerary } from './types'
+import type { ItineraryDay } from './types'
 
 type Props = {
-  itinerary: Itinerary
+  day: ItineraryDay
 }
 
-export function ItineraryAccommodations({ itinerary }: Props) {
+export function ItineraryAccommodations({ day }: Props) {
   const queryClient = useQueryClient()
   const [selectedStay, setSelectedStay] = useState<TourismAccommodation | null>(null)
-  const overnightStops = itinerary.days.slice(0, -1)
-    .map((day) => {
-      const lastPlace = day.items.at(-1)
-      if (!lastPlace || lastPlace.latitude === null || lastPlace.longitude === null) return null
-      return {
-        date: day.date,
-        dayNumber: day.dayNumber,
-        placeName: lastPlace.name,
-        latitude: lastPlace.latitude,
-        longitude: lastPlace.longitude,
-      }
-    })
-    .filter((stop): stop is NonNullable<typeof stop> => stop !== null)
-
-  const accommodationQueries = useQueries({
-    queries: overnightStops.map((stop) => ({
-      queryKey: ['tourism-accommodations', stop.date, stop.latitude, stop.longitude],
-      queryFn: () => getTourismAccommodations(stop.latitude, stop.longitude),
-      staleTime: 1000 * 60 * 30,
-    })),
+  const lastPlace = day.items.at(-1)
+  const coordinateAvailable = lastPlace?.latitude !== null
+    && lastPlace?.latitude !== undefined
+    && lastPlace?.longitude !== null
+    && lastPlace?.longitude !== undefined
+  const accommodationQuery = useQuery({
+    queryKey: ['tourism-accommodations', day.date, lastPlace?.latitude, lastPlace?.longitude],
+    queryFn: () => getTourismAccommodations(lastPlace!.latitude!, lastPlace!.longitude!),
+    enabled: coordinateAvailable,
+    staleTime: 1000 * 60 * 30,
   })
   const savedPlacesQuery = useQuery({
     queryKey: ['saved-places'],
@@ -90,7 +80,7 @@ export function ItineraryAccommodations({ itinerary }: Props) {
     },
   })
 
-  if (overnightStops.length === 0) return null
+  if (!lastPlace || !coordinateAvailable) return null
 
   const savedByContentId = new Map(
     savedPlacesQuery.data
@@ -112,35 +102,31 @@ export function ItineraryAccommodations({ itinerary }: Props) {
   }
 
   return (
-    <section className="itinerary-accommodations">
+    <section className="itinerary-accommodations day-recommendation">
       <header>
         <div>
-          <span className="eyebrow">STAY NEARBY</span>
-          <h2>일차별 숙소 추천</h2>
+          <span className="eyebrow">DAY {day.dayNumber} STAY</span>
+          <h2>이날 숙소 추천</h2>
         </div>
-        <p>각 일차 마지막 장소 반경 10km · 가까운 순</p>
+        <p>{lastPlace.name} 반경 10km · {accommodationQuery.data?.length ?? 0}곳</p>
       </header>
       {(saveMutation.isError || deleteMutation.isError) && (
         <div className="form-error">숙소의 저장 상태를 변경하지 못했습니다. 다시 시도해 주세요.</div>
       )}
-      <div className="overnight-stay-list">
-        {overnightStops.map((stop, index) => {
-          const query = accommodationQueries[index]
-          return (
-            <article className="overnight-stay" key={stop.date}>
-              <div className="overnight-stay-heading">
-                <span>DAY {stop.dayNumber} 숙박</span>
-                <strong>{stop.placeName} 주변</strong>
-                <small>{stop.date} 일정 종료 후</small>
-              </div>
-              {query.isLoading && <div className="empty-state">주변 숙소를 찾고 있습니다.</div>}
-              {query.isError && <div className="empty-state">숙소 정보를 불러오지 못했습니다.</div>}
-              {query.data?.length === 0 && (
-                <div className="empty-state">반경 10km 안에 관광공사 등록 숙소가 없습니다.</div>
-              )}
-              {!!query.data?.length && (
-                <div className="stay-card-row">
-                  {query.data.slice(0, 3).map((stay) => {
+      <article className="overnight-stay">
+        <div className="overnight-stay-heading">
+          <span>DAY {day.dayNumber} 숙박</span>
+          <strong>{lastPlace.name} 주변</strong>
+          <small>{day.date} 일정 종료 후</small>
+        </div>
+        {accommodationQuery.isLoading && <div className="empty-state">주변 숙소를 찾고 있습니다.</div>}
+        {accommodationQuery.isError && <div className="empty-state">숙소 정보를 불러오지 못했습니다.</div>}
+        {accommodationQuery.data?.length === 0 && (
+          <div className="empty-state">반경 10km 안에 관광공사 등록 숙소가 없습니다.</div>
+        )}
+        {!!accommodationQuery.data?.length && (
+          <div className="stay-carousel" aria-label={`DAY ${day.dayNumber} 주변 숙소`}>
+            {accommodationQuery.data.map((stay) => {
                     const saved = savedByContentId.has(stay.contentId)
                     const changing = (saveMutation.isPending
                       && saveMutation.variables?.contentId === stay.contentId)
@@ -178,13 +164,10 @@ export function ItineraryAccommodations({ itinerary }: Props) {
                         </div>
                       </article>
                     )
-                  })}
-                </div>
-              )}
-            </article>
-          )
-        })}
-      </div>
+            })}
+          </div>
+        )}
+      </article>
       {selectedStay && (
         <div
           className="nearby-detail-backdrop"

@@ -1114,6 +1114,10 @@ h1 {
   background: #fff;
 }
 
+.day-recommendation {
+  margin: 24px 0 0 76px;
+}
+
 .itinerary-accommodations > header {
   display: flex;
   align-items: end;
@@ -1163,6 +1167,22 @@ h1 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+}
+
+.stay-carousel {
+  display: grid;
+  grid-auto-columns: minmax(280px, 32%);
+  grid-auto-flow: column;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 2px 2px 14px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--green) transparent;
+}
+
+.stay-carousel .stay-card {
+  scroll-snap-align: start;
 }
 
 .stay-card {
@@ -1251,6 +1271,14 @@ h1 {
 
   .stay-card-row {
     grid-template-columns: 1fr;
+  }
+
+  .day-recommendation {
+    margin-left: 0;
+  }
+
+  .stay-carousel {
+    grid-auto-columns: 85%;
   }
 }
 
