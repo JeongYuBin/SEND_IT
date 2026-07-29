@@ -114,6 +114,10 @@ export function ItineraryDetailPage() {
     onMutate: () => {
       setSaveMessage(null)
     },
+    onError: () => {
+      setEditingOrder(false)
+      setOrderDraft(null)
+    },
   })
   const transportMutation = useMutation({
     mutationFn: ({
@@ -166,46 +170,32 @@ export function ItineraryDetailPage() {
   const mutationErrorMessage = requestErrorMessage(mutationError)
   const reorderErrorMessage = requestErrorMessage(reorderMutation.error)
 
-  const startOrderEditing = () => {
-    const days = itineraryQuery.data?.days
-    if (!days) return
-    reorderMutation.reset()
-    setOrderDraft(days.map((day) => ({ ...day, items: [...day.items] })))
-    setEditingOrder(true)
-  }
-
-  const cancelOrderEditing = () => {
-    setEditingOrder(false)
-    setOrderDraft(null)
-    reorderMutation.reset()
-  }
-
   const moveCard = (targetDate: string, targetIndex: number) => {
     if (draggingPlaceId === null) return
-    setOrderDraft((current) => {
-      if (!current) return current
-      const dragged = current.flatMap((day) => day.items)
+    const current = orderDraft ?? itineraryQuery.data?.days
+    if (!current) return
+    const dragged = current.flatMap((day) => day.items)
         .find((item) => item.savedPlaceId === draggingPlaceId)
-      if (!dragged) return current
-      return current.map((day) => {
-        const items = day.items.filter((item) => item.savedPlaceId !== draggingPlaceId)
-        if (day.date === targetDate) {
-          items.splice(Math.min(targetIndex, items.length), 0, dragged)
-        }
-        return { ...day, items }
-      })
+    if (!dragged) return
+    const next = current.map((day) => {
+      const items = day.items.filter((item) => item.savedPlaceId !== draggingPlaceId)
+      if (day.date === targetDate) {
+        items.splice(Math.min(targetIndex, items.length), 0, dragged)
+      }
+      return { ...day, items }
     })
+    setOrderDraft(next)
+    saveOrder(next)
   }
 
-  const saveOrder = () => {
-    if (!orderDraft) return
+  const saveOrder = (days: ItineraryDay[]) => {
     reorderMutation.reset()
     let sequence = 1
     const transportSlots = itineraryQuery.data?.days
       .flatMap((day) => day.items)
       .map((item) => item.transportTypeFromPrevious) ?? []
     let slotIndex = 0
-    reorderMutation.mutate(orderDraft.flatMap((day) => day.items.map((item) => ({
+    reorderMutation.mutate(days.flatMap((day) => day.items.map((item) => ({
       savedPlaceId: item.savedPlaceId,
       visitDate: day.date,
       sequence: sequence++,
@@ -246,21 +236,6 @@ export function ItineraryDetailPage() {
               <button type="button" onClick={() => setEditingPlan((value) => !value)}>
                 {editingPlan ? '편집 닫기' : '계획 수정'}
               </button>
-              {editingOrder ? (
-                <>
-                  <button type="button" onClick={cancelOrderEditing}>순서 편집 취소</button>
-                  <button
-                    type="button"
-                    className="primary-button"
-                    disabled={reorderMutation.isPending}
-                    onClick={saveOrder}
-                  >
-                    {reorderMutation.isPending ? '순서 저장 중…' : '순서 저장'}
-                  </button>
-                </>
-              ) : (
-                <button type="button" onClick={startOrderEditing}>날짜·순서 편집</button>
-              )}
               <button className="danger-button" type="button" disabled={deleteMutation.isPending} onClick={handleDelete}>
                 {deleteMutation.isPending ? '삭제 중…' : '계획 삭제'}
               </button>
@@ -275,13 +250,11 @@ export function ItineraryDetailPage() {
               onSave={(request) => updateMutation.mutate(request)}
             />
           )}
-          {editingOrder && (
-            <section className="inline-order-notice">
-              <strong>장소 카드를 직접 끌어서 순서나 날짜를 변경하세요.</strong>
-              <span>변경을 마치면 위의 ‘순서 저장’을 눌러 주세요.</span>
-              {reorderMutation.isError && <div className="form-error">{reorderErrorMessage}</div>}
-            </section>
-          )}
+          <section className="inline-order-notice">
+            <strong>장소 카드를 직접 끌어 순서나 날짜를 변경할 수 있습니다.</strong>
+            <span>{reorderMutation.isPending ? '변경 내용을 저장하고 있습니다…' : '카드를 놓으면 바로 저장됩니다.'}</span>
+            {reorderMutation.isError && <div className="form-error">{reorderErrorMessage}</div>}
+          </section>
           {saveMessage && <div className="form-success">{saveMessage}</div>}
           {(mutationErrorMessage || deleteMutation.isError) && (
             <div className="form-error">
@@ -298,7 +271,7 @@ export function ItineraryDetailPage() {
               <section
                 className={`itinerary-day ${editingOrder ? 'itinerary-day-dropzone' : ''}`}
                 key={day.date}
-                onDragOver={(event) => editingOrder && event.preventDefault()}
+                onDragOver={(event) => draggingPlaceId !== null && event.preventDefault()}
                 onDrop={() => moveCard(day.date, day.items.length)}
               >
                 <header className="itinerary-day-header">
@@ -320,11 +293,18 @@ export function ItineraryDetailPage() {
                     {day.items.map((item, itemIndex) => (
                       <li
                         key={item.savedPlaceId}
-                        draggable={editingOrder}
-                        className={`${editingOrder ? 'timeline-draggable' : ''} ${draggingPlaceId === item.savedPlaceId ? 'dragging' : ''}`}
-                        onDragStart={() => setDraggingPlaceId(item.savedPlaceId)}
+                        draggable={!reorderMutation.isPending}
+                        className={`timeline-draggable ${draggingPlaceId === item.savedPlaceId ? 'dragging' : ''}`}
+                        onDragStart={() => {
+                          setOrderDraft(itineraryQuery.data.days.map((draftDay) => ({
+                            ...draftDay,
+                            items: [...draftDay.items],
+                          })))
+                          setEditingOrder(true)
+                          setDraggingPlaceId(item.savedPlaceId)
+                        }}
                         onDragEnd={() => setDraggingPlaceId(null)}
-                        onDragOver={(event) => editingOrder && event.preventDefault()}
+                        onDragOver={(event) => event.preventDefault()}
                         onDrop={(event) => {
                           event.stopPropagation()
                           moveCard(day.date, itemIndex)
