@@ -47,7 +47,7 @@ export async function createCollection(name: string) {
 export async function getNearbyTourismPlaces(
   latitude: number,
   longitude: number,
-  radius = 5000,
+  radius = 10000,
 ) {
   return (await http.get<NearbyTourismPlace[]>('/tourism/nearby', {
     params: { latitude, longitude, radius },

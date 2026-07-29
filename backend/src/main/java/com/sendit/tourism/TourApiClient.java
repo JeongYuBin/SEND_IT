@@ -171,7 +171,7 @@ public class TourApiClient {
                     "mapY", Double.toString(latitude),
                     "radius", Integer.toString(radiusMeters),
                     "arrange", "E",
-                    "numOfRows", "12",
+                    "numOfRows", "30",
                     "pageNo", "1"
             ))).stream()
                     .filter(item -> item.latitude() != null && item.longitude() != null)

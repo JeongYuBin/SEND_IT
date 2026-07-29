@@ -870,9 +870,40 @@ h1 {
   font-size: .88rem;
 }
 
-.nearby-tourism-grid button {
+.nearby-tourism-grid .nearby-save-button {
+  display: flex;
   width: 100%;
   margin-top: 12px;
+  padding: 11px 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #176b52;
+  border-radius: 999px;
+  color: #fff;
+  background: #176b52;
+  box-shadow: 0 7px 16px rgb(23 107 82 / 18%);
+  cursor: pointer;
+  font-size: .88rem;
+  font-weight: 800;
+  transition: box-shadow .2s ease, transform .2s ease, background .2s ease;
+}
+
+.nearby-tourism-grid .nearby-save-button:hover:not(:disabled) {
+  background: #115943;
+  box-shadow: 0 10px 22px rgb(23 107 82 / 24%);
+  transform: translateY(-1px);
+}
+
+.nearby-tourism-grid .nearby-save-button:disabled {
+  cursor: wait;
+  opacity: .64;
+}
+
+.nearby-save-button span {
+  color: inherit;
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 @media (max-width: 900px) {

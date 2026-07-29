@@ -28,10 +28,11 @@ export function SavedPlaceDetailPage() {
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
   const savedPlacesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const nearbyQuery = useQuery({
-    queryKey: ['tourism-nearby', placeQuery.data?.latitude, placeQuery.data?.longitude],
+    queryKey: ['tourism-nearby', placeQuery.data?.latitude, placeQuery.data?.longitude, 10000],
     queryFn: () => getNearbyTourismPlaces(
       placeQuery.data!.latitude!,
       placeQuery.data!.longitude!,
+      10000,
     ),
     enabled: typeof placeQuery.data?.latitude === 'number'
       && typeof placeQuery.data?.longitude === 'number',
@@ -57,7 +58,16 @@ export function SavedPlaceDetailPage() {
       imageUrl: nearby.imageUrl ?? undefined,
       collectionId: placeQuery.data?.collectionId ?? undefined,
     }),
-    onSuccess: () => {
+    onSuccess: (savedPlace) => {
+      queryClient.setQueryData(
+        ['saved-places'],
+        (current: Awaited<ReturnType<typeof getSavedPlaces>> | undefined) => {
+          if (!current) return [savedPlace]
+          return current.some((place) => place.savedPlaceId === savedPlace.savedPlaceId)
+            ? current
+            : [...current, savedPlace]
+        },
+      )
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
     },
   })
@@ -71,6 +81,13 @@ export function SavedPlaceDetailPage() {
 
   const place = placeQuery.data
   const backUrl = place.collectionId ? `/saved/collections/${place.collectionId}` : '/saved'
+  const savedPlaceNames = new Set(
+    savedPlacesQuery.data?.map((saved) => saved.name.replaceAll(/\s/g, '').toLowerCase()),
+  )
+  const visibleNearbyPlaces = nearbyQuery.data
+    ?.filter((nearby) => nearby.distanceMeters >= 10)
+    .filter((nearby) => !savedPlaceNames.has(nearby.name.replaceAll(/\s/g, '').toLowerCase()))
+    .slice(0, 6)
 
   return (
     <main className="place-detail-shell">
@@ -152,19 +169,16 @@ export function SavedPlaceDetailPage() {
               <span className="eyebrow">NEARBY</span>
               <h2>주변 관광지 추천</h2>
             </div>
-            <p>관광공사 데이터 기준 반경 5km · 가까운 순</p>
+            <p>관광공사 데이터 기준 최대 10km · 가까운 6곳</p>
           </div>
           {nearbyQuery.isLoading && <div className="empty-state">주변 장소를 찾고 있습니다.</div>}
           {nearbyQuery.isError && (
             <div className="form-error">주변 관광지를 불러오지 못했습니다.</div>
           )}
           <div className="nearby-tourism-grid">
-            {nearbyQuery.data
-              ?.filter((nearby) => nearby.distanceMeters >= 10)
-              .map((nearby) => {
-                const alreadySaved = savedPlacesQuery.data?.some((saved) =>
-                  saved.name.replaceAll(/\s/g, '').toLowerCase()
-                    === nearby.name.replaceAll(/\s/g, '').toLowerCase())
+            {visibleNearbyPlaces?.map((nearby) => {
+                const isSaving = saveNearbyMutation.isPending
+                  && saveNearbyMutation.variables?.contentId === nearby.contentId
                 return (
                   <article key={nearby.contentId}>
                     {nearby.imageUrl
@@ -180,11 +194,13 @@ export function SavedPlaceDetailPage() {
                       <h3>{nearby.name}</h3>
                       <p>{nearby.address ?? '주소 정보 없음'}</p>
                       <button
+                        className="nearby-save-button"
                         type="button"
-                        disabled={alreadySaved || saveNearbyMutation.isPending}
+                        disabled={saveNearbyMutation.isPending}
                         onClick={() => saveNearbyMutation.mutate(nearby)}
                       >
-                        {alreadySaved ? '저장됨' : '내 장소에 저장'}
+                        <span aria-hidden="true">＋</span>
+                        {isSaving ? '저장 중...' : '내 장소에 담기'}
                       </button>
                     </div>
                   </article>
