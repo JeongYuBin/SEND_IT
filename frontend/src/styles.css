@@ -2326,15 +2326,17 @@ h1 {
 }
 
 .day-add-place-button {
-  display: grid;
+  display: inline-flex;
   width: 34px;
   height: 34px;
   padding: 0;
-  place-items: center;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #176b52;
-  border-radius: 50%;
+  border-radius: 8px;
   color: #176b52;
   background: white;
+  font-family: Arial, sans-serif;
   font-size: 1.35rem;
   line-height: 1;
   transition: color .16s ease, background .16s ease, transform .16s ease;
@@ -2436,15 +2438,17 @@ h1 {
   z-index: 2;
   top: 12px;
   right: 12px;
-  display: grid;
+  display: inline-flex;
   width: 32px;
   height: 32px;
   padding: 0;
-  place-items: center;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #d7ddd8;
-  border-radius: 50%;
+  border-radius: 8px;
   color: #64766f;
   background: rgba(255, 255, 255, .96);
+  font-family: Arial, sans-serif;
   font-size: 1.25rem;
   line-height: 1;
   transition: color .16s ease, border-color .16s ease, background .16s ease;
