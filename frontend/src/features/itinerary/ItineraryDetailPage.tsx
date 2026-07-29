@@ -41,9 +41,15 @@ function time(value: string) {
 
 function requestErrorMessage(error: unknown) {
   if (!error) return null
-  return axios.isAxiosError<{ message?: string }>(error)
-    ? error.response?.data?.message ?? '서버가 변경 요청을 처리하지 못했습니다.'
-    : '변경 요청 중 알 수 없는 오류가 발생했습니다.'
+  if (!axios.isAxiosError<{ message?: string; error?: string }>(error)) {
+    return '변경 요청 중 알 수 없는 오류가 발생했습니다.'
+  }
+  if (!error.response) {
+    return `백엔드 서버에 연결하지 못했습니다. 현재 접속 주소: ${window.location.origin}`
+  }
+  return error.response.data?.message
+    ?? error.response.data?.error
+    ?? `서버 요청 실패 (HTTP ${error.response.status})`
 }
 
 export function ItineraryDetailPage() {
@@ -158,6 +164,7 @@ export function ItineraryDetailPage() {
 
   const mutationError = updateMutation.error ?? scheduleMutation.error
   const mutationErrorMessage = requestErrorMessage(mutationError)
+  const reorderErrorMessage = requestErrorMessage(reorderMutation.error)
 
   const startOrderEditing = () => {
     const days = itineraryQuery.data?.days
@@ -268,7 +275,7 @@ export function ItineraryDetailPage() {
             <section className="inline-order-notice">
               <strong>장소 카드를 직접 끌어서 순서나 날짜를 변경하세요.</strong>
               <span>변경을 마치면 위의 ‘순서 저장’을 눌러 주세요.</span>
-              {reorderMutation.isError && <div className="form-error">{mutationErrorMessage}</div>}
+              {reorderMutation.isError && <div className="form-error">{reorderErrorMessage}</div>}
             </section>
           )}
           {saveMessage && <div className="form-success">{saveMessage}</div>}
