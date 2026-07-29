@@ -731,6 +731,28 @@ h1 {
   object-fit: cover;
 }
 
+.place-detail-location {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #d7ddd8;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.place-detail-location > div:first-child {
+  padding: 18px 20px 14px;
+}
+
+.place-detail-location h2 {
+  margin: 4px 0 0;
+  font-size: 1.15rem;
+}
+
+.place-detail-location .kakao-map {
+  height: 280px;
+  min-height: 280px;
+}
+
 .place-detail-content {
   align-self: start;
   padding: 28px;
@@ -757,6 +779,31 @@ h1 {
 .place-detail-content section h2 {
   margin-bottom: 8px;
   font-size: 1rem;
+}
+
+.place-operating-info dl {
+  display: grid;
+  margin: 12px 0 0;
+  gap: 10px;
+}
+
+.place-operating-info dl > div {
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: #f2f7f4;
+}
+
+.place-operating-info dt {
+  margin-bottom: 5px;
+  color: #176b52;
+  font-size: .76rem;
+  font-weight: 850;
+}
+
+.place-operating-info dd {
+  margin: 0;
+  color: #455950;
+  line-height: 1.55;
 }
 
 .place-detail-facts {

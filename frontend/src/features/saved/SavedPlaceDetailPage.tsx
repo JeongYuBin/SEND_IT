@@ -6,9 +6,11 @@ import {
   getNearbyTourismPlaces,
   getSavedPlace,
   getSavedPlaces,
+  getTourismOperatingInfo,
   updateSavedPlace,
 } from './savedApi'
 import type { NearbyTourismPlace, VisitStatus } from './types'
+import { KakaoMap } from '../../components/KakaoMap'
 
 const statusLabels: Record<VisitStatus, string> = {
   WANT_TO_VISIT: '가고 싶어요',
@@ -27,6 +29,18 @@ export function SavedPlaceDetailPage() {
   })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
   const savedPlacesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
+  const operatingInfoQuery = useQuery({
+    queryKey: [
+      'tourism-operating-info',
+      placeQuery.data?.name,
+      placeQuery.data?.roadAddress ?? placeQuery.data?.address,
+    ],
+    queryFn: () => getTourismOperatingInfo(
+      placeQuery.data!.name,
+      placeQuery.data!.roadAddress ?? placeQuery.data!.address,
+    ),
+    enabled: Boolean(placeQuery.data?.name),
+  })
   const nearbyQuery = useQuery({
     queryKey: ['tourism-nearby', placeQuery.data?.latitude, placeQuery.data?.longitude, 10000],
     queryFn: () => getNearbyTourismPlaces(
@@ -100,6 +114,23 @@ export function SavedPlaceDetailPage() {
           {place.imageUrl
             ? <img src={place.imageUrl} alt={place.name} />
             : <div className="preview-placeholder">{place.name.slice(0, 1)}</div>}
+          {place.latitude !== null && place.longitude !== null && (
+            <section className="place-detail-location">
+              <div>
+                <span className="eyebrow">LOCATION</span>
+                <h2>위치 확인</h2>
+              </div>
+              <KakaoMap
+                ariaLabel={`${place.name} 위치 지도`}
+                points={[{
+                  id: place.placeId,
+                  name: place.name,
+                  latitude: place.latitude,
+                  longitude: place.longitude,
+                }]}
+              />
+            </section>
+          )}
         </div>
         <div className="place-detail-content">
           <div className="place-meta">
@@ -112,6 +143,27 @@ export function SavedPlaceDetailPage() {
           <section>
             <h2>장소 설명</h2>
             <p>{place.description ?? '저장된 설명이 없습니다.'}</p>
+          </section>
+          <section className="place-operating-info">
+            <h2>방문 정보</h2>
+            {operatingInfoQuery.isLoading && <p>관광공사 방문 정보를 확인하고 있습니다.</p>}
+            {operatingInfoQuery.isError && <p>방문 정보를 불러오지 못했습니다.</p>}
+            {operatingInfoQuery.data?.available ? (
+              <dl>
+                <div>
+                  <dt>이용시간</dt>
+                  <dd>{operatingInfoQuery.data.hours ?? '등록된 정보 없음'}</dd>
+                </div>
+                <div>
+                  <dt>휴무일</dt>
+                  <dd>{operatingInfoQuery.data.restDays ?? '등록된 정보 없음'}</dd>
+                </div>
+              </dl>
+            ) : (
+              !operatingInfoQuery.isLoading
+              && !operatingInfoQuery.isError
+              && <p>관광공사에 등록된 이용시간과 휴무일 정보가 없습니다.</p>
+            )}
           </section>
           {place.memo && (
             <section>

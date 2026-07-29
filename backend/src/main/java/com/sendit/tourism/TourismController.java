@@ -30,4 +30,16 @@ public class TourismController {
     ) {
         return tourApiClient.nearby(latitude, longitude, radius);
     }
+
+    @GetMapping("/operating-info")
+    OperatingInfoResponse operatingInfo(
+            @RequestParam String name,
+            @RequestParam(required = false) String address
+    ) {
+        return tourApiClient.operatingInfo(name, address)
+                .map(info -> new OperatingInfoResponse(info.hours(), info.restDays(), true))
+                .orElseGet(() -> new OperatingInfoResponse(null, null, false));
+    }
+
+    record OperatingInfoResponse(String hours, String restDays, boolean available) {}
 }

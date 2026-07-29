@@ -4,6 +4,7 @@ import type {
   CreateSavedPlace,
   NearbyTourismPlace,
   SavedPlace,
+  TourismOperatingInfo,
   VisitStatus,
 } from './types'
 
@@ -51,5 +52,11 @@ export async function getNearbyTourismPlaces(
 ) {
   return (await http.get<NearbyTourismPlace[]>('/tourism/nearby', {
     params: { latitude, longitude, radius },
+  })).data
+}
+
+export async function getTourismOperatingInfo(name: string, address?: string | null) {
+  return (await http.get<TourismOperatingInfo>('/tourism/operating-info', {
+    params: { name, address: address || undefined },
   })).data
 }

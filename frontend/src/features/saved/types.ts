@@ -53,3 +53,9 @@ export type NearbyTourismPlace = {
   imageUrl: string | null
   distanceMeters: number
 }
+
+export type TourismOperatingInfo = {
+  hours: string | null
+  restDays: string | null
+  available: boolean
+}
