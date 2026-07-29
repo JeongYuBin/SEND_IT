@@ -13,6 +13,7 @@ import {
 import { ItineraryEditPanel } from './ItineraryEditPanel'
 import { ItineraryRouteMap } from './ItineraryRouteMap'
 import { ItineraryFestivals } from './ItineraryFestivals'
+import { ItineraryAccommodations } from './ItineraryAccommodations'
 import { PlaceScheduleEditor } from './PlaceScheduleEditor'
 import { TransitRouteGuide } from './TransitRouteGuide'
 import type {
@@ -270,6 +271,7 @@ export function ItineraryDetailPage() {
             교통 상황과 대중교통 운행 정보에 따라 실제 이동 시간은 달라질 수 있습니다.
           </section>
           <ItineraryRouteMap days={itineraryQuery.data.days} />
+          <ItineraryAccommodations itinerary={itineraryQuery.data} />
           <ItineraryFestivals itinerary={itineraryQuery.data} />
           <div className="itinerary-days">
             {(orderDraft ?? itineraryQuery.data.days).map((day) => (

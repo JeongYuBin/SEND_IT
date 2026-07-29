@@ -187,6 +187,39 @@ public class TourApiClient {
         }
     }
 
+    public List<Accommodation> accommodations(
+            double latitude,
+            double longitude,
+            int radiusMeters
+    ) {
+        if (serviceKey.isBlank()) return List.of();
+        try {
+            return items(get("/locationBasedList2", Map.of(
+                    "mapX", Double.toString(longitude),
+                    "mapY", Double.toString(latitude),
+                    "radius", Integer.toString(radiusMeters),
+                    "contentTypeId", "32",
+                    "arrange", "E",
+                    "numOfRows", "12",
+                    "pageNo", "1"
+            ))).stream()
+                    .filter(item -> item.latitude() != null && item.longitude() != null)
+                    .map(item -> new Accommodation(
+                            item.contentId(),
+                            item.contentTypeId(),
+                            item.title(),
+                            fullAddress(item),
+                            item.latitude(),
+                            item.longitude(),
+                            item.firstImage(),
+                            item.distanceMeters()))
+                    .limit(6)
+                    .toList();
+        } catch (Exception ignored) {
+            return List.of();
+        }
+    }
+
     public List<Festival> festivals(
             LocalDate startDate,
             LocalDate endDate,
@@ -596,6 +629,16 @@ public class TourApiClient {
             String imageUrl,
             LocalDate startDate,
             LocalDate endDate,
+            int distanceMeters
+    ) {}
+    public record Accommodation(
+            String contentId,
+            String contentTypeId,
+            String name,
+            String address,
+            double latitude,
+            double longitude,
+            String imageUrl,
             int distanceMeters
     ) {}
     public record TourismPlaceDetail(

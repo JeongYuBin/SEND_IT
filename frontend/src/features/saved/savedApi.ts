@@ -7,6 +7,7 @@ import type {
   TourismOperatingInfo,
   TourismPlaceDetail,
   TourismFestival,
+  TourismAccommodation,
   VisitStatus,
 } from './types'
 
@@ -78,5 +79,15 @@ export async function getTourismFestivals(
 ) {
   return (await http.get<TourismFestival[]>('/tourism/events', {
     params: { startDate, endDate, latitude, longitude, radius },
+  })).data
+}
+
+export async function getTourismAccommodations(
+  latitude: number,
+  longitude: number,
+  radius = 10000,
+) {
+  return (await http.get<TourismAccommodation[]>('/tourism/accommodations', {
+    params: { latitude, longitude, radius },
   })).data
 }

@@ -61,6 +61,15 @@ public class TourismController {
         return tourApiClient.festivals(startDate, endDate, latitude, longitude, radius);
     }
 
+    @GetMapping("/accommodations")
+    List<TourApiClient.Accommodation> accommodations(
+            @RequestParam @DecimalMin("-90") @DecimalMax("90") double latitude,
+            @RequestParam @DecimalMin("-180") @DecimalMax("180") double longitude,
+            @RequestParam(defaultValue = "10000") @Min(100) @Max(20000) int radius
+    ) {
+        return tourApiClient.accommodations(latitude, longitude, radius);
+    }
+
     @GetMapping("/places/{contentId}")
     TourApiClient.TourismPlaceDetail detail(
             @org.springframework.web.bind.annotation.PathVariable String contentId,

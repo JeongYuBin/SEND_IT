@@ -98,3 +98,14 @@ export type TourismFestival = {
   endDate: string | null
   distanceMeters: number
 }
+
+export type TourismAccommodation = {
+  contentId: string
+  contentTypeId: string
+  name: string
+  address: string | null
+  latitude: number
+  longitude: number
+  imageUrl: string | null
+  distanceMeters: number
+}
