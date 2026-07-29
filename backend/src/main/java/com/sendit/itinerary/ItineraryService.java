@@ -132,8 +132,9 @@ public class ItineraryService {
                     || ordered.visitDate().isAfter(itinerary.getEndDate())) {
                 throw new IllegalArgumentException("여행 기간 안의 날짜를 선택해 주세요.");
             }
-            itineraryItem(itinerary, ordered.savedPlaceId())
-                    .updateOrdering(ordered.visitDate(), ordered.sequence());
+            ItineraryItem item = itineraryItem(itinerary, ordered.savedPlaceId());
+            item.updateOrdering(ordered.visitDate(), ordered.sequence());
+            item.updateTransportType(ordered.transportTypeFromPrevious());
         }
         return response(itinerary);
     }
