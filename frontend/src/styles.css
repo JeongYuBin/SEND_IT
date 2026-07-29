@@ -1109,7 +1109,7 @@ h1 {
 .itinerary-accommodations {
   margin: 32px 0;
   padding: 28px;
-  border: 1px solid var(--line);
+  border: 1px solid #d5ded9;
   border-radius: 24px;
   background: #fff;
 }
@@ -1134,7 +1134,32 @@ h1 {
 
 .itinerary-accommodations > header p {
   margin: 0;
-  color: var(--muted);
+  color: #667a72;
+}
+
+.stay-recommendation-controls {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stay-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #3b715c;
+  border-radius: 999px;
+  color: #315f4d;
+  font-weight: 700;
+  background: #fff;
+  cursor: pointer;
+}
+
+.stay-toggle-button span {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .overnight-stay-list {
@@ -1145,7 +1170,7 @@ h1 {
 .overnight-stay {
   padding: 20px;
   border-radius: 18px;
-  background: var(--surface);
+  background: #f4f7f5;
 }
 
 .overnight-stay-heading {
@@ -1156,13 +1181,13 @@ h1 {
 }
 
 .overnight-stay-heading > span {
-  color: var(--green);
+  color: #3b715c;
   font-weight: 800;
 }
 
 .overnight-stay-heading small {
   margin-left: auto;
-  color: var(--muted);
+  color: #667a72;
 }
 
 .stay-card-row {
@@ -1177,6 +1202,8 @@ h1 {
   min-width: 0;
   padding: 0 52px 34px;
   overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 .stay-slideshow .stay-card {
@@ -1184,6 +1211,7 @@ h1 {
   grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
   width: 100%;
   min-width: 0;
+  min-height: 240px;
 }
 
 .stay-slideshow .stay-card img,
@@ -1206,7 +1234,9 @@ h1 {
   color: #fff;
   font-size: 32px;
   line-height: 1;
-  background: var(--green);
+  border: 3px solid #fff;
+  background: #315f4d;
+  box-shadow: 0 4px 14px rgba(22, 53, 44, .28);
   cursor: pointer;
   transform: translateY(-70%);
 }
@@ -1217,6 +1247,16 @@ h1 {
 
 .stay-slide-arrow.next {
   right: 2px;
+}
+
+.stay-slide-arrow svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .stay-slide-dots {
@@ -1242,12 +1282,12 @@ h1 {
 .stay-slide-dots button.active {
   width: 22px;
   border-radius: 999px;
-  background: var(--green);
+  background: #3b715c;
 }
 
 .stay-card {
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 1px solid #d5ded9;
   border-radius: 16px;
   background: #fff;
 }
@@ -1264,10 +1304,13 @@ h1 {
   place-items: center;
   color: #fff;
   font-weight: 700;
-  background: var(--green);
+  background: #3b715c;
 }
 
 .stay-card > div:last-child {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
   padding: 14px;
 }
 
@@ -1287,23 +1330,23 @@ h1 {
 
 .stay-card p,
 .stay-card span {
-  color: var(--muted);
+  color: #667a72;
 }
 
 .stay-save-button {
   width: 100%;
-  margin-top: 12px;
+  margin-top: auto;
   padding: 11px 14px;
-  border: 1px solid var(--green);
+  border: 1px solid #315f4d;
   border-radius: 999px;
   color: #fff;
   font-weight: 700;
-  background: var(--green);
+  background: #315f4d;
   cursor: pointer;
 }
 
 .stay-save-button.saved {
-  color: var(--green);
+  color: #315f4d;
   background: transparent;
 }
 
@@ -1323,6 +1366,10 @@ h1 {
   .overnight-stay-heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .stay-recommendation-controls {
+    align-items: flex-start;
   }
 
   .overnight-stay-heading small {

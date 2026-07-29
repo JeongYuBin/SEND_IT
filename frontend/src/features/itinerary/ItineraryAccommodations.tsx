@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createSavedPlace,
@@ -18,6 +18,8 @@ export function ItineraryAccommodations({ day }: Props) {
   const queryClient = useQueryClient()
   const [selectedStay, setSelectedStay] = useState<TourismAccommodation | null>(null)
   const [stayIndex, setStayIndex] = useState(0)
+  const [expanded, setExpanded] = useState(true)
+  const touchStartX = useRef<number | null>(null)
   const lastPlace = day.items.at(-1)
   const coordinateAvailable = lastPlace?.latitude !== null
     && lastPlace?.latitude !== undefined
@@ -95,6 +97,10 @@ export function ItineraryAccommodations({ day }: Props) {
   const stays = accommodationQuery.data ?? []
   const visibleIndex = stays.length === 0 ? 0 : Math.min(stayIndex, stays.length - 1)
   const visibleStay = stays[visibleIndex]
+  const showPrevious = () => setStayIndex((current) =>
+    current === 0 ? stays.length - 1 : current - 1)
+  const showNext = () => setStayIndex((current) =>
+    current >= stays.length - 1 ? 0 : current + 1)
 
   const toggleSaved = (stay: TourismAccommodation) => {
     const savedPlace = savedByContentId.get(stay.contentId)
@@ -112,12 +118,23 @@ export function ItineraryAccommodations({ day }: Props) {
           <span className="eyebrow">DAY {day.dayNumber} STAY</span>
           <h2>이날 숙소 추천</h2>
         </div>
-        <p>{lastPlace.name} 반경 10km · {accommodationQuery.data?.length ?? 0}곳</p>
+        <div className="stay-recommendation-controls">
+          <p>{lastPlace.name} 반경 10km · {accommodationQuery.data?.length ?? 0}곳</p>
+          <button
+            className="stay-toggle-button"
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? '숙소 추천 접기' : '숙소 추천 보기'}
+            <span aria-hidden="true">{expanded ? '⌃' : '⌄'}</span>
+          </button>
+        </div>
       </header>
       {(saveMutation.isError || deleteMutation.isError) && (
         <div className="form-error">숙소의 저장 상태를 변경하지 못했습니다. 다시 시도해 주세요.</div>
       )}
-      <article className="overnight-stay">
+      {expanded && <article className="overnight-stay">
         <div className="overnight-stay-heading">
           <span>DAY {day.dayNumber} 숙박</span>
           <strong>{lastPlace.name} 주변</strong>
@@ -129,15 +146,31 @@ export function ItineraryAccommodations({ day }: Props) {
           <div className="empty-state">반경 10km 안에 관광공사 등록 숙소가 없습니다.</div>
         )}
         {visibleStay && (
-          <div className="stay-slideshow" aria-label={`DAY ${day.dayNumber} 주변 숙소`}>
+          <div
+            className="stay-slideshow"
+            aria-label={`DAY ${day.dayNumber} 주변 숙소`}
+            onTouchStart={(event) => {
+              touchStartX.current = event.touches[0]?.clientX ?? null
+            }}
+            onTouchEnd={(event) => {
+              if (touchStartX.current === null) return
+              const endX = event.changedTouches[0]?.clientX ?? touchStartX.current
+              const distance = endX - touchStartX.current
+              touchStartX.current = null
+              if (Math.abs(distance) < 45) return
+              if (distance < 0) showNext()
+              else showPrevious()
+            }}
+          >
             <button
               className="stay-slide-arrow previous"
               type="button"
               aria-label="이전 숙소"
-              onClick={() => setStayIndex((current) =>
-                current === 0 ? stays.length - 1 : current - 1)}
+              onClick={showPrevious}
             >
-              ‹
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 5 8 12l7 7" />
+              </svg>
             </button>
             {(() => {
                     const stay = visibleStay
@@ -183,10 +216,11 @@ export function ItineraryAccommodations({ day }: Props) {
               className="stay-slide-arrow next"
               type="button"
               aria-label="다음 숙소"
-              onClick={() => setStayIndex((current) =>
-                current >= stays.length - 1 ? 0 : current + 1)}
+              onClick={showNext}
             >
-              ›
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m9 5 7 7-7 7" />
+              </svg>
             </button>
             <div className="stay-slide-dots" aria-label={`${stays.length}개 숙소 중 ${visibleIndex + 1}번째`}>
               {stays.map((stay, index) => (
@@ -201,7 +235,7 @@ export function ItineraryAccommodations({ day }: Props) {
             </div>
           </div>
         )}
-      </article>
+      </article>}
       {selectedStay && (
         <div
           className="nearby-detail-backdrop"
