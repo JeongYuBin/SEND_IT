@@ -2319,6 +2319,33 @@ h1 {
   color: #64766f;
 }
 
+.itinerary-day-place-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.day-add-place-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #176b52;
+  border-radius: 50%;
+  color: #176b52;
+  background: white;
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: color .16s ease, background .16s ease, transform .16s ease;
+}
+
+.day-add-place-button:hover {
+  color: white;
+  background: #176b52;
+  transform: translateY(-1px);
+}
+
 .schedule-warning {
   display: grid;
   gap: 3px;
@@ -2396,6 +2423,168 @@ h1 {
   background: white;
 }
 
+.timeline-card-shell {
+  position: relative;
+}
+
+.timeline-card-shell > a {
+  padding-right: 54px;
+}
+
+.timeline-remove-button {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #d7ddd8;
+  border-radius: 50%;
+  color: #64766f;
+  background: rgba(255, 255, 255, .96);
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.timeline-remove-button:hover {
+  color: #a84331;
+  border-color: #dda89f;
+  background: #fff5f2;
+}
+
+.place-picker-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: 24px;
+  place-items: center;
+  background: rgba(17, 36, 29, .46);
+  backdrop-filter: blur(4px);
+}
+
+.place-picker-dialog {
+  width: min(680px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  overflow: hidden;
+  padding: 26px;
+  border: 1px solid #d7ddd8;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(19, 49, 39, .2);
+}
+
+.place-picker-dialog > header {
+  display: flex;
+  margin-bottom: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.place-picker-dialog h2 {
+  margin: 7px 0 5px;
+}
+
+.place-picker-dialog p {
+  margin: 0;
+  color: #64766f;
+}
+
+.place-picker-close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #d7ddd8;
+  border-radius: 50%;
+  color: #52645d;
+  background: white;
+  font-size: 1.35rem;
+}
+
+.place-picker-list {
+  display: grid;
+  max-height: min(520px, calc(100vh - 220px));
+  overflow-y: auto;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.place-picker-list > button {
+  display: grid;
+  width: 100%;
+  padding: 10px;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid #d7ddd8;
+  border-radius: 15px;
+  color: #19372d;
+  background: white;
+  text-align: left;
+}
+
+.place-picker-list > button:hover {
+  border-color: #82a498;
+  background: #f4f8f6;
+}
+
+.place-picker-list img,
+.place-picker-placeholder {
+  width: 68px;
+  height: 58px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.place-picker-placeholder {
+  display: grid;
+  place-items: center;
+  color: #176b52;
+  background: #dceee6;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.place-picker-list span,
+.place-picker-list strong,
+.place-picker-list small {
+  display: block;
+}
+
+.place-picker-list small {
+  overflow: hidden;
+  margin-top: 5px;
+  color: #64766f;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-picker-list b {
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: white;
+  background: #176b52;
+  font-size: .82rem;
+}
+
+.place-picker-empty {
+  display: grid;
+  gap: 8px;
+}
+
+.place-picker-empty a {
+  color: #176b52;
+  font-weight: 800;
+}
+
 .itinerary-timeline img,
 .timeline-placeholder {
   width: 90px;
@@ -2461,6 +2650,39 @@ h1 {
   .timeline-placeholder {
     width: 64px;
     height: 64px;
+  }
+
+  .timeline-card-shell > a {
+    padding-right: 44px;
+  }
+
+  .timeline-remove-button {
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .place-picker-backdrop {
+    padding: 12px;
+    align-items: end;
+  }
+
+  .place-picker-dialog {
+    max-height: calc(100vh - 24px);
+    padding: 20px 16px;
+    border-radius: 22px 22px 12px 12px;
+  }
+
+  .place-picker-list > button {
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .place-picker-list img,
+  .place-picker-placeholder {
+    width: 54px;
+    height: 50px;
   }
 }
 .itinerary-festivals {

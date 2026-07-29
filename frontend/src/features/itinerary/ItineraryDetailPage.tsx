@@ -3,13 +3,16 @@ import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
+  addItineraryItem,
   deleteItinerary,
   getItinerary,
+  removeItineraryItem,
   reorderItineraryItems,
   updateItinerary,
   updateItineraryItemSchedule,
   updateItineraryItemTransport,
 } from './itineraryApi'
+import { getSavedPlaces } from '../saved/savedApi'
 import { ItineraryEditPanel } from './ItineraryEditPanel'
 import { ItineraryRouteMap } from './ItineraryRouteMap'
 import { ItineraryFestivals } from './ItineraryFestivals'
@@ -64,11 +67,17 @@ export function ItineraryDetailPage() {
   const [orderDraft, setOrderDraft] = useState<ItineraryDay[] | null>(null)
   const [draggingPlaceId, setDraggingPlaceId] = useState<number | null>(null)
   const [editingPlaceId, setEditingPlaceId] = useState<number | null>(null)
+  const [addingToDate, setAddingToDate] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const itineraryQuery = useQuery({
     queryKey: ['itineraries', id],
     queryFn: () => getItinerary(id),
     enabled: Number.isInteger(id) && id > 0,
+  })
+  const savedPlacesQuery = useQuery({
+    queryKey: ['saved-places'],
+    queryFn: getSavedPlaces,
+    enabled: addingToDate !== null,
   })
   const refresh = (data: Awaited<ReturnType<typeof getItinerary>>) => {
     queryClient.setQueryData(['itineraries', id], data)
@@ -163,6 +172,30 @@ export function ItineraryDetailPage() {
       }
     },
   })
+  const addPlaceMutation = useMutation({
+    mutationFn: ({
+      savedPlaceId,
+      visitDate,
+    }: {
+      savedPlaceId: number
+      visitDate: string
+    }) => addItineraryItem(id, savedPlaceId, visitDate),
+    onSuccess: (data) => {
+      refresh(data)
+      setAddingToDate(null)
+      setSaveMessage('저장한 장소를 여행 경로에 추가했습니다.')
+    },
+    onMutate: () => setSaveMessage(null),
+  })
+  const removePlaceMutation = useMutation({
+    mutationFn: (savedPlaceId: number) => removeItineraryItem(id, savedPlaceId),
+    onSuccess: (data) => {
+      refresh(data)
+      setEditingPlaceId(null)
+      setSaveMessage('장소를 여행 경로에서 제거했습니다. 저장한 장소에는 그대로 남아 있습니다.')
+    },
+    onMutate: () => setSaveMessage(null),
+  })
 
   const handleDelete = () => {
     if (window.confirm('이 여행 계획을 삭제할까요? 삭제한 계획은 복구할 수 없습니다.')) {
@@ -170,7 +203,10 @@ export function ItineraryDetailPage() {
     }
   }
 
-  const mutationError = updateMutation.error ?? scheduleMutation.error
+  const mutationError = updateMutation.error
+    ?? scheduleMutation.error
+    ?? addPlaceMutation.error
+    ?? removePlaceMutation.error
   const mutationErrorMessage = requestErrorMessage(mutationError)
   const reorderErrorMessage = requestErrorMessage(reorderMutation.error)
 
@@ -284,7 +320,21 @@ export function ItineraryDetailPage() {
                     <span>DAY {day.dayNumber}</span>
                     <h2>{day.date}</h2>
                   </div>
-                  <small>{day.items.length}개 장소</small>
+                  <div className="itinerary-day-place-actions">
+                    <button
+                      className="day-add-place-button"
+                      type="button"
+                      aria-label={`${day.date}에 저장한 장소 추가`}
+                      title="저장한 장소 추가"
+                      onClick={() => {
+                        addPlaceMutation.reset()
+                        setAddingToDate(day.date)
+                      }}
+                    >
+                      +
+                    </button>
+                    <small>{day.items.length}개 장소</small>
+                  </div>
                 </header>
                 {day.exceedsDailyWindow && (
                   <div className="schedule-warning">
@@ -388,16 +438,34 @@ export function ItineraryDetailPage() {
                               <span>{item.visitWarning}</span>
                             </div>
                           )}
-                          <Link to={`/saved/places/${item.savedPlaceId}`}>
-                            {item.imageUrl
-                              ? <img src={item.imageUrl} alt="" />
-                              : <div className="timeline-placeholder">{item.name.slice(0, 1)}</div>}
-                            <span>
-                              <small>{time(item.arrivalTime)}–{time(item.departureTime)} · 체류 {item.stayMinutes}분</small>
-                              <strong>{item.name}</strong>
-                              <span>{item.address ?? '주소 정보 없음'}</span>
-                            </span>
-                          </Link>
+                          <div className="timeline-card-shell">
+                            <Link to={`/saved/places/${item.savedPlaceId}`}>
+                              {item.imageUrl
+                                ? <img src={item.imageUrl} alt="" />
+                                : <div className="timeline-placeholder">{item.name.slice(0, 1)}</div>}
+                              <span>
+                                <small>{time(item.arrivalTime)}–{time(item.departureTime)} · 체류 {item.stayMinutes}분</small>
+                                <strong>{item.name}</strong>
+                                <span>{item.address ?? '주소 정보 없음'}</span>
+                              </span>
+                            </Link>
+                            <button
+                              className="timeline-remove-button"
+                              type="button"
+                              aria-label={`${item.name} 경로에서 제거`}
+                              title="경로에서 제거"
+                              disabled={removePlaceMutation.isPending}
+                              onClick={() => {
+                                if (window.confirm(
+                                  `${item.name}을(를) 현재 여행 경로에서 제거할까요?\n저장한 장소에서는 삭제되지 않습니다.`,
+                                )) {
+                                  removePlaceMutation.mutate(item.savedPlaceId)
+                                }
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
                           {(item.operatingHours || item.restDays) && (
                             <div className="place-operating-info">
                               {item.operatingHours && <span>이용시간: {item.operatingHours}</span>}
@@ -436,6 +504,91 @@ export function ItineraryDetailPage() {
             ))}
           </div>
           <ItineraryFestivals itinerary={itineraryQuery.data} />
+          {addingToDate && (
+            <div
+              className="place-picker-backdrop"
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setAddingToDate(null)
+              }}
+            >
+              <section
+                className="place-picker-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="place-picker-title"
+              >
+                <header>
+                  <div>
+                    <span className="eyebrow">ADD PLACE</span>
+                    <h2 id="place-picker-title">저장한 장소 추가</h2>
+                    <p>{addingToDate} 일정에 추가할 장소를 선택해 주세요.</p>
+                  </div>
+                  <button
+                    className="place-picker-close"
+                    type="button"
+                    aria-label="닫기"
+                    onClick={() => setAddingToDate(null)}
+                  >
+                    ×
+                  </button>
+                </header>
+                {savedPlacesQuery.isLoading && (
+                  <div className="day-empty">저장한 장소를 불러오고 있습니다.</div>
+                )}
+                {savedPlacesQuery.isError && (
+                  <div className="form-error">저장한 장소를 불러오지 못했습니다.</div>
+                )}
+                {addPlaceMutation.isError && (
+                  <div className="form-error">{requestErrorMessage(addPlaceMutation.error)}</div>
+                )}
+                {(() => {
+                  const includedIds = new Set(
+                    itineraryQuery.data.items.map((item) => item.savedPlaceId),
+                  )
+                  const availablePlaces = (savedPlacesQuery.data ?? [])
+                    .filter((place) => !includedIds.has(place.savedPlaceId))
+                  if (!savedPlacesQuery.isLoading && availablePlaces.length === 0) {
+                    return (
+                      <div className="day-empty place-picker-empty">
+                        <span>경로에 추가할 수 있는 저장 장소가 없습니다.</span>
+                        <Link to="/saved">저장한 장소 보기</Link>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="place-picker-list">
+                      {availablePlaces.map((place) => (
+                        <button
+                          type="button"
+                          key={place.savedPlaceId}
+                          disabled={addPlaceMutation.isPending}
+                          onClick={() => addPlaceMutation.mutate({
+                            savedPlaceId: place.savedPlaceId,
+                            visitDate: addingToDate,
+                          })}
+                        >
+                          {place.imageUrl
+                            ? <img src={place.imageUrl} alt="" />
+                            : <span className="place-picker-placeholder">{place.name.slice(0, 1)}</span>}
+                          <span>
+                            <strong>{place.name}</strong>
+                            <small>{place.roadAddress ?? place.address ?? place.category ?? '장소 정보 없음'}</small>
+                          </span>
+                          <b>
+                            {addPlaceMutation.isPending
+                              && addPlaceMutation.variables?.savedPlaceId === place.savedPlaceId
+                              ? '추가 중...'
+                              : '추가'}
+                          </b>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </section>
+            </div>
+          )}
         </article>
       )}
     </main>
