@@ -56,8 +56,11 @@ public final class ItineraryDtos {
             LocalTime preferredStartTime, String name, String category,
             String address, Double latitude, Double longitude, String imageUrl,
             int stayMinutes, TransitRouteResponse transit,
+            List<RoutePathPointResponse> routePathFromPrevious,
             TransportType transportTypeFromPrevious, boolean crossDayTransfer
     ) {}
+
+    public record RoutePathPointResponse(double latitude, double longitude) {}
 
     public record TransitRouteResponse(
             String type, int totalMinutes, int totalDistanceMeters,

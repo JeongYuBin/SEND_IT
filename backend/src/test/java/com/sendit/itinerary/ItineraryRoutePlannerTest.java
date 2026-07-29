@@ -91,7 +91,7 @@ class ItineraryRoutePlannerTest {
                 org.mockito.ArgumentMatchers.any()
         )).thenReturn(java.util.Optional.of(new KakaoTransitClient.TransitRoute(
                 "PUBLIC_TRANSIT", 32, 7_100, 1, 1_500,
-                "https://map.kakao.com", List.of()
+                "https://map.kakao.com", List.of(), List.of()
         )));
         Itinerary itinerary = mock(Itinerary.class);
         when(itinerary.getItems()).thenReturn(List.of(first, second));
@@ -119,7 +119,7 @@ class ItineraryRoutePlannerTest {
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any()
         )).thenReturn(java.util.Optional.of(
-                new KakaoDirectionsClient.RouteEstimate(150, 205_000)));
+                new KakaoDirectionsClient.RouteEstimate(150, 205_000, List.of())));
         Itinerary itinerary = mock(Itinerary.class);
         when(itinerary.getItems()).thenReturn(List.of(firstDay, secondDay));
         when(itinerary.getStartDate()).thenReturn(LocalDate.of(2026, 8, 1));

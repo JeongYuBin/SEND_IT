@@ -83,6 +83,7 @@ public class KakaoTransitClient {
         if (route.isMissingNode()) return Optional.empty();
         JsonNode properties = route.path("properties");
         List<TransitStep> steps = new ArrayList<>();
+        List<PathPoint> path = new ArrayList<>();
         route.path("steps").forEach(step -> {
             JsonNode stepProperties = step.path("properties");
             List<String> stops = new ArrayList<>();
@@ -90,6 +91,13 @@ public class KakaoTransitClient {
             List<String> vehicles = new ArrayList<>();
             stepProperties.path("vehicles").forEach(vehicle ->
                     vehicles.add(vehicle.path("name").asText()));
+            step.path("path").path("points").forEach(point -> {
+                if (point.size() >= 2) {
+                    path.add(new PathPoint(
+                            point.get(1).asDouble(),
+                            point.get(0).asDouble()));
+                }
+            });
             steps.add(new TransitStep(
                     stepProperties.path("type").asText(),
                     stepProperties.path("guidance").asText(),
@@ -107,7 +115,8 @@ public class KakaoTransitClient {
                 properties.path("transfers").asInt(),
                 properties.path("fare").path("value").asInt(),
                 root.path("properties").path("landingURL").asText(null),
-                steps
+                steps,
+                path
         ));
     }
 
@@ -132,7 +141,8 @@ public class KakaoTransitClient {
             int transfers,
             int fare,
             String landingUrl,
-            List<TransitStep> steps
+            List<TransitStep> steps,
+            List<PathPoint> path
     ) {}
     public record TransitStep(
             String type,
@@ -143,5 +153,6 @@ public class KakaoTransitClient {
             String endStop,
             List<String> vehicles
     ) {}
+    public record PathPoint(double latitude, double longitude) {}
     private record CacheEntry(Optional<TransitRoute> route, Instant expiresAt) {}
 }

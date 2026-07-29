@@ -41,6 +41,10 @@ export type ItineraryItem = {
   imageUrl: string | null
   stayMinutes: number
   transit: TransitRoute | null
+  routePathFromPrevious: Array<{
+    latitude: number
+    longitude: number
+  }>
   transportTypeFromPrevious: TransportType
   crossDayTransfer: boolean
 }

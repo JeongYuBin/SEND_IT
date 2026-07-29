@@ -10,6 +10,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -96,7 +98,7 @@ public class KakaoDirectionsClient {
         return URI.create(CAR_API_URL
                 + "?origin=" + start.longitude() + "," + start.latitude()
                 + "&destination=" + end.longitude() + "," + end.latitude()
-                + "&priority=RECOMMEND&summary=true");
+                + "&priority=RECOMMEND&summary=false");
     }
 
     private URI walkUri(Location start, Location end) {
@@ -113,27 +115,62 @@ public class KakaoDirectionsClient {
             return Optional.empty();
         }
         JsonNode summary = route.path("summary");
-        return estimate(summary.path("duration").asInt(), summary.path("distance").asInt());
+        List<PathPoint> path = new ArrayList<>();
+        route.path("sections").forEach(section ->
+                section.path("roads").forEach(road -> {
+                    JsonNode vertexes = road.path("vertexes");
+                    for (int index = 0; index + 1 < vertexes.size(); index += 2) {
+                        path.add(new PathPoint(
+                                vertexes.get(index + 1).asDouble(),
+                                vertexes.get(index).asDouble()));
+                    }
+                }));
+        return estimate(
+                summary.path("duration").asInt(),
+                summary.path("distance").asInt(),
+                path);
     }
 
     Optional<RouteEstimate> parseWalk(String responseBody) throws Exception {
         JsonNode root = objectMapper.readTree(responseBody);
         if (!"OK".equals(root.path("status").asText())) return Optional.empty();
-        JsonNode properties = root.path("routes").path(0).path("properties");
+        JsonNode route = root.path("route");
+        JsonNode properties = route.path("properties");
         if (properties.isMissingNode()) return Optional.empty();
+        List<PathPoint> path = new ArrayList<>();
+        route.path("legs").forEach(leg ->
+                leg.path("steps").forEach(step ->
+                        step.path("path").path("points").forEach(point -> {
+                            if (point.size() >= 2) {
+                                path.add(new PathPoint(
+                                        point.get(1).asDouble(),
+                                        point.get(0).asDouble()));
+                            }
+                        })));
         return estimate(
                 properties.path("totalTime").asInt(),
-                properties.path("totalDistance").asInt());
+                properties.path("totalDistance").asInt(),
+                path);
     }
 
-    private Optional<RouteEstimate> estimate(int seconds, int distanceMeters) {
+    private Optional<RouteEstimate> estimate(
+            int seconds,
+            int distanceMeters,
+            List<PathPoint> path
+    ) {
         if (seconds <= 0 || distanceMeters <= 0) return Optional.empty();
         return Optional.of(new RouteEstimate(
                 Math.max(1, (int) Math.ceil(seconds / 60.0)),
-                distanceMeters));
+                distanceMeters,
+                List.copyOf(path)));
     }
 
     public record Location(double latitude, double longitude) {}
-    public record RouteEstimate(int totalMinutes, int totalDistanceMeters) {}
+    public record RouteEstimate(
+            int totalMinutes,
+            int totalDistanceMeters,
+            List<PathPoint> path
+    ) {}
+    public record PathPoint(double latitude, double longitude) {}
     private record CacheEntry(Optional<RouteEstimate> route, Instant expiresAt) {}
 }

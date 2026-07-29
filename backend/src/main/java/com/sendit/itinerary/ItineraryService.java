@@ -223,6 +223,10 @@ public class ItineraryService {
                 place.getPrimaryImageUrl(),
                 stop.item().getStayMinutes(),
                 transitResponse(stop.transitRoute()),
+                stop.routePath().stream()
+                        .map(point -> new ItineraryDtos.RoutePathPointResponse(
+                                point.latitude(), point.longitude()))
+                        .toList(),
                 stop.transportType(),
                 stop.crossDayTransfer()
         );

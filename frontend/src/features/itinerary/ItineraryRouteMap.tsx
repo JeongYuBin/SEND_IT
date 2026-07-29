@@ -27,16 +27,19 @@ export function ItineraryRouteMap({ days }: { days: ItineraryDay[] }) {
     [days],
   )
   const routes = useMemo<KakaoMapRoute[]>(
-    () => dayPoints.filter(({ points }) => points.length > 0).map(({ day, points }, index, populatedDays) => {
-      const previousPoints = populatedDays[index - 1]?.points ?? []
-      const previousLastPoint = previousPoints.at(-1)
-      return {
-        id: day.date,
+    () => days.flatMap((day) => day.items
+      .filter((item) => item.routePathFromPrevious.length > 1)
+      .map((item) => ({
+        id: `${day.date}-${item.savedPlaceId}`,
         color: DAY_COLORS[(day.dayNumber - 1) % DAY_COLORS.length],
-        points: previousLastPoint ? [previousLastPoint, ...points] : points,
-      }
-    }),
-    [dayPoints],
+        points: item.routePathFromPrevious.map((point, index) => ({
+          id: `${item.savedPlaceId}-route-${index}`,
+          name: item.name,
+          latitude: point.latitude,
+          longitude: point.longitude,
+        })),
+      }))),
+    [days],
   )
   const points = useMemo<KakaoMapPoint[]>(
     () => dayPoints.flatMap((day) => day.points),
@@ -64,10 +67,12 @@ export function ItineraryRouteMap({ days }: { days: ItineraryDay[] }) {
           <h2>일자별 동선</h2>
         </div>
         <div className="route-legend">
-          {routes.map((route, index) => (
-            <span key={route.id}>
-              <i style={{ backgroundColor: route.color }} />
-              {index + 1}일차
+          {dayPoints.filter(({ points }) => points.length > 0).map(({ day }) => (
+            <span key={day.date}>
+              <i style={{
+                backgroundColor: DAY_COLORS[(day.dayNumber - 1) % DAY_COLORS.length],
+              }} />
+              {day.dayNumber}일차
             </span>
           ))}
         </div>

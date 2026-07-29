@@ -90,6 +90,7 @@ public class ItineraryRoutePlanner {
                         travel.distanceKm(),
                         coordinates(item) != null,
                         travel.transitRoute(),
+                        travel.path(),
                         transportType,
                         crossDayTransfer
                 ));
@@ -140,12 +141,12 @@ public class ItineraryRoutePlanner {
     private TravelEstimate estimate(ItineraryItem from, ItineraryItem to,
                                     TransportType transportType) {
         if (from == null) {
-            return new TravelEstimate(0, 0.0, null);
+            return new TravelEstimate(0, 0.0, null, List.of());
         }
         Coordinates fromCoordinates = coordinates(from);
         Coordinates toCoordinates = coordinates(to);
         if (fromCoordinates == null || toCoordinates == null) {
-            return new TravelEstimate(20, null, null);
+            return new TravelEstimate(20, null, null, List.of());
         }
         if (transportType == TransportType.PUBLIC_TRANSIT) {
             Place fromPlace = from.getSavedPlace().getPlace();
@@ -161,7 +162,11 @@ public class ItineraryRoutePlanner {
                 return new TravelEstimate(
                         transitRoute.totalMinutes(),
                         Math.round(transitRoute.totalDistanceMeters() / 100.0) / 10.0,
-                        transitRoute
+                        transitRoute,
+                        transitRoute.path().stream()
+                                .map(point -> new RoutePathPoint(
+                                        point.latitude(), point.longitude()))
+                                .toList()
                 );
             }
         }
@@ -177,11 +182,15 @@ public class ItineraryRoutePlanner {
                 return new TravelEstimate(
                         estimate.totalMinutes(),
                         Math.round(estimate.totalDistanceMeters() / 100.0) / 10.0,
-                        null
+                        null,
+                        estimate.path().stream()
+                                .map(point -> new RoutePathPoint(
+                                        point.latitude(), point.longitude()))
+                                .toList()
                 );
             }
         }
-        return new TravelEstimate(0, null, null);
+        return new TravelEstimate(0, null, null, List.of());
     }
 
     private Coordinates coordinates(ItineraryItem item) {
@@ -220,6 +229,7 @@ public class ItineraryRoutePlanner {
             boolean coordinateAvailable,
             KakaoTransitClient.TransitRoute transitRoute
             ,
+            List<RoutePathPoint> routePath,
             TransportType transportType,
             boolean crossDayTransfer
     ) {}
@@ -228,6 +238,8 @@ public class ItineraryRoutePlanner {
     private record TravelEstimate(
             int minutes,
             Double distanceKm,
-            KakaoTransitClient.TransitRoute transitRoute
+            KakaoTransitClient.TransitRoute transitRoute,
+            List<RoutePathPoint> path
     ) {}
+    public record RoutePathPoint(double latitude, double longitude) {}
 }
