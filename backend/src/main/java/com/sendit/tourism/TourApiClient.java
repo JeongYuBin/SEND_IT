@@ -95,12 +95,6 @@ public class TourApiClient {
             }
             String detailBody = get("/detailCommon2", Map.of(
                     "contentId", match.contentId(),
-                    "contentTypeId", match.contentTypeId(),
-                    "defaultYN", "Y",
-                    "firstImageYN", "Y",
-                    "addrinfoYN", "Y",
-                    "mapinfoYN", "Y",
-                    "overviewYN", "Y",
                     "numOfRows", "1",
                     "pageNo", "1"
             ));
@@ -199,12 +193,6 @@ public class TourApiClient {
         try {
             String commonBody = get("/detailCommon2", Map.of(
                     "contentId", contentId,
-                    "contentTypeId", contentTypeId,
-                    "defaultYN", "Y",
-                    "firstImageYN", "Y",
-                    "addrinfoYN", "Y",
-                    "mapinfoYN", "Y",
-                    "overviewYN", "Y",
                     "numOfRows", "1",
                     "pageNo", "1"
             ));
