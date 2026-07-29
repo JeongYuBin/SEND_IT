@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.sendit.map.KakaoDirectionsClient;
 import com.sendit.map.KakaoTransitClient;
 import com.sendit.place.Place;
 import com.sendit.place.UserSavedPlace;
@@ -15,7 +16,9 @@ import org.junit.jupiter.api.Test;
 class ItineraryRoutePlannerTest {
 
     private final KakaoTransitClient transitClient = mock(KakaoTransitClient.class);
-    private final ItineraryRoutePlanner planner = new ItineraryRoutePlanner(transitClient);
+    private final KakaoDirectionsClient directionsClient = mock(KakaoDirectionsClient.class);
+    private final ItineraryRoutePlanner planner =
+            new ItineraryRoutePlanner(transitClient, directionsClient);
 
     @Test
     void ordersNearbyPlacesAndSplitsThemAcrossTravelDays() {
@@ -38,7 +41,7 @@ class ItineraryRoutePlannerTest {
         assertThat(days.getFirst().stops().get(1).item()).isSameAs(nearby);
         assertThat(days.get(1).stops()).hasSize(1);
         assertThat(days.get(1).stops().getFirst().item()).isSameAs(distant);
-        assertThat(days.getFirst().stops().get(1).travelMinutesFromPrevious()).isGreaterThanOrEqualTo(5);
+        assertThat(days.getFirst().stops().get(1).travelMinutesFromPrevious()).isZero();
     }
 
     @Test
@@ -111,6 +114,12 @@ class ItineraryRoutePlannerTest {
         ItineraryItem secondDay = item(2, 37.4803, 126.8898);
         when(firstDay.getPreferredVisitDate()).thenReturn(LocalDate.of(2026, 8, 1));
         when(secondDay.getPreferredVisitDate()).thenReturn(LocalDate.of(2026, 8, 2));
+        when(directionsClient.route(
+                org.mockito.ArgumentMatchers.eq(TransportType.CAR),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any()
+        )).thenReturn(java.util.Optional.of(
+                new KakaoDirectionsClient.RouteEstimate(150, 205_000)));
         Itinerary itinerary = mock(Itinerary.class);
         when(itinerary.getItems()).thenReturn(List.of(firstDay, secondDay));
         when(itinerary.getStartDate()).thenReturn(LocalDate.of(2026, 8, 1));
@@ -122,7 +131,8 @@ class ItineraryRoutePlannerTest {
         var secondDayStop = planner.plan(itinerary).get(1).stops().getFirst();
 
         assertThat(secondDayStop.crossDayTransfer()).isTrue();
-        assertThat(secondDayStop.travelMinutesFromPrevious()).isPositive();
+        assertThat(secondDayStop.travelMinutesFromPrevious()).isEqualTo(150);
+        assertThat(secondDayStop.distanceKmFromPrevious()).isEqualTo(205.0);
         assertThat(secondDayStop.arrivalTime()).isEqualTo(LocalTime.of(10, 0));
     }
 

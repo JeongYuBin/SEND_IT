@@ -340,7 +340,7 @@ export function ItineraryDetailPage() {
                                   전날 마지막 장소에서 오늘 첫 장소로 이동
                                 </div>
                               )}
-                              {item.travelMinutesFromPrevious > 0 && (
+                              {(itemIndex > 0 || item.crossDayTransfer) && (
                                 <div className="segment-transport-control">
                                   <label className="segment-transport-select">
                                     이 구간 이동수단
@@ -381,11 +381,18 @@ export function ItineraryDetailPage() {
                                     가까운 거리는 도보 이동이 더 적합할 수 있으며, 직선거리 기반 시간은 표시하지 않습니다.
                                   </small>
                                 </div>
-                              ) : item.travelMinutesFromPrevious > 0 && (
+                              ) : item.travelMinutesFromPrevious > 0 ? (
                                 <div className="travel-estimate">
                                   예상 이동 {item.travelMinutesFromPrevious}분
                                   {item.distanceKmFromPrevious !== null && ` · 약 ${item.distanceKmFromPrevious}km`}
                                   {!item.coordinateAvailable && ' · 좌표 없음'}
+                                </div>
+                              ) : (itemIndex > 0 || item.crossDayTransfer) && (
+                                <div className="transit-unavailable">
+                                  <strong>카카오 경로를 불러오지 못했습니다.</strong>
+                                  <span>
+                                    선택한 이동수단의 실제 경로가 제공되지 않아 임의의 직선거리 시간은 표시하지 않습니다.
+                                  </span>
                                 </div>
                               )}
                             </>

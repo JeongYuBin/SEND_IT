@@ -1,6 +1,7 @@
 package com.sendit.itinerary;
 
 import com.sendit.map.KakaoTransitClient;
+import com.sendit.map.KakaoDirectionsClient;
 import com.sendit.place.Place;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -15,9 +16,14 @@ public class ItineraryRoutePlanner {
 
     private static final double EARTH_RADIUS_KM = 6371.0088;
     private final KakaoTransitClient transitClient;
+    private final KakaoDirectionsClient directionsClient;
 
-    public ItineraryRoutePlanner(KakaoTransitClient transitClient) {
+    public ItineraryRoutePlanner(
+            KakaoTransitClient transitClient,
+            KakaoDirectionsClient directionsClient
+    ) {
         this.transitClient = transitClient;
+        this.directionsClient = directionsClient;
     }
 
     public List<DaySchedule> plan(Itinerary itinerary) {
@@ -159,18 +165,23 @@ public class ItineraryRoutePlanner {
                 );
             }
         }
-        double straightDistance = distance(fromCoordinates, toCoordinates);
-        double routeFactor = transportType == TransportType.WALKING ? 1.2 : 1.35;
-        double routeDistance = straightDistance * routeFactor;
-        double speed = switch (transportType) {
-            case WALKING -> 4.0;
-            case PUBLIC_TRANSIT -> 22.0;
-            case CAR -> 35.0;
-        };
-        int rawMinutes = (int) Math.ceil(routeDistance / speed * 60);
-        int roundedMinutes = rawMinutes == 0 ? 0 : Math.max(5, ((rawMinutes + 4) / 5) * 5);
-        return new TravelEstimate(roundedMinutes,
-                Math.round(routeDistance * 10.0) / 10.0, null);
+        if (transportType == TransportType.CAR || transportType == TransportType.WALKING) {
+            var route = directionsClient.route(
+                    transportType,
+                    new KakaoDirectionsClient.Location(
+                            fromCoordinates.latitude(), fromCoordinates.longitude()),
+                    new KakaoDirectionsClient.Location(
+                            toCoordinates.latitude(), toCoordinates.longitude()));
+            if (route.isPresent()) {
+                KakaoDirectionsClient.RouteEstimate estimate = route.get();
+                return new TravelEstimate(
+                        estimate.totalMinutes(),
+                        Math.round(estimate.totalDistanceMeters() / 100.0) / 10.0,
+                        null
+                );
+            }
+        }
+        return new TravelEstimate(0, null, null);
     }
 
     private Coordinates coordinates(ItineraryItem item) {
