@@ -59,3 +59,23 @@ export async function updateItineraryItemTransport(
     { transportType },
   )).data
 }
+
+export async function addItineraryItem(
+  itineraryId: number,
+  savedPlaceId: number,
+  visitDate: string,
+) {
+  return (await http.post<Itinerary>(`/itineraries/${itineraryId}/items`, {
+    savedPlaceId,
+    visitDate,
+  })).data
+}
+
+export async function removeItineraryItem(
+  itineraryId: number,
+  savedPlaceId: number,
+) {
+  return (await http.delete<Itinerary>(
+    `/itineraries/${itineraryId}/items/${savedPlaceId}`,
+  )).data
+}

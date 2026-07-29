@@ -1299,6 +1299,68 @@ h1 {
   object-fit: cover;
 }
 
+.stay-skeleton {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 20%, rgba(255,255,255,.7) 0 22px, transparent 23px),
+    linear-gradient(155deg, #d9e8e1 0 48%, #c3d8ce 48% 100%);
+}
+
+.stay-skeleton::before,
+.stay-skeleton::after {
+  position: absolute;
+  content: "";
+}
+
+.stay-skeleton::before {
+  right: 12%;
+  bottom: 24%;
+  left: 12%;
+  height: 42%;
+  border-radius: 8px 8px 2px 2px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 13%, #9ebbad 13% 20%),
+    #f3f6f4;
+  box-shadow: 0 8px 20px rgba(49, 95, 77, .12);
+}
+
+.stay-skeleton::after {
+  right: 8%;
+  bottom: 17%;
+  left: 8%;
+  height: 9%;
+  border-radius: 50%;
+  background: #96b5a6;
+}
+
+.stay-skeleton-building {
+  position: absolute;
+  z-index: 1;
+  bottom: 24%;
+  left: 44%;
+  width: 12%;
+  height: 20%;
+  border-radius: 5px 5px 0 0;
+  background: #6f9683;
+}
+
+.stay-skeleton-ground {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 22%;
+  background: linear-gradient(#aec8bb, #8eae9f);
+}
+
+.stay-skeleton.detail {
+  min-height: 320px;
+}
+
 .stay-placeholder {
   display: grid;
   place-items: center;

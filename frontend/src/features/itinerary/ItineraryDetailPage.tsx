@@ -431,7 +431,7 @@ export function ItineraryDetailPage() {
                     ))}
                   </ol>
                 )}
-                <ItineraryAccommodations day={day} />
+                <ItineraryAccommodations itinerary={itineraryQuery.data} day={day} />
               </section>
             ))}
           </div>

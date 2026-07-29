@@ -37,6 +37,11 @@ public final class ItineraryDtos {
 
     public record UpdateItemTransportRequest(@NotNull TransportType transportType) {}
 
+    public record AddItemRequest(
+            @NotNull Long savedPlaceId,
+            @NotNull LocalDate visitDate
+    ) {}
+
     public record ReorderItemRequest(
             @NotNull Long savedPlaceId,
             @NotNull LocalDate visitDate,

@@ -58,6 +58,16 @@ public class Itinerary {
         items.add(new ItineraryItem(this, savedPlace, sequence, 60));
     }
 
+    public void addPlace(UserSavedPlace savedPlace, int sequence, LocalDate visitDate) {
+        ItineraryItem item = new ItineraryItem(this, savedPlace, sequence, 60);
+        item.updateOrdering(visitDate, sequence);
+        items.add(item);
+    }
+
+    public boolean removePlace(Long savedPlaceId) {
+        return items.removeIf(item -> item.getSavedPlace().getId().equals(savedPlaceId));
+    }
+
     public void markGenerated() {
         status = ItineraryStatus.GENERATED;
     }

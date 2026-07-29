@@ -68,6 +68,24 @@ public class ItineraryController {
         return service.reorder(principal.getName(), id, request);
     }
 
+    @PostMapping("/{id}/items")
+    ItineraryDtos.Response addItem(
+            Principal principal,
+            @PathVariable Long id,
+            @Valid @RequestBody ItineraryDtos.AddItemRequest request
+    ) {
+        return service.addItem(principal.getName(), id, request);
+    }
+
+    @DeleteMapping("/{id}/items/{savedPlaceId}")
+    ItineraryDtos.Response removeItem(
+            Principal principal,
+            @PathVariable Long id,
+            @PathVariable Long savedPlaceId
+    ) {
+        return service.removeItem(principal.getName(), id, savedPlaceId);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(Principal principal, @PathVariable Long id) {

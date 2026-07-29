@@ -113,6 +113,44 @@ public class ItineraryService {
         return response(itinerary);
     }
 
+    public ItineraryDtos.Response addItem(
+            String email, Long id, ItineraryDtos.AddItemRequest request
+    ) {
+        Itinerary itinerary = ownedItinerary(email, id);
+        if (request.visitDate().isBefore(itinerary.getStartDate())
+                || request.visitDate().isAfter(itinerary.getEndDate())) {
+            throw new IllegalArgumentException("방문일은 여행 기간 안에서 선택해 주세요.");
+        }
+        boolean alreadyIncluded = itinerary.getItems().stream()
+                .anyMatch(item -> item.getSavedPlace().getId().equals(request.savedPlaceId()));
+        if (alreadyIncluded) {
+            return response(itinerary);
+        }
+        UserSavedPlace savedPlace = savedPlaces
+                .findByIdAndUserEmail(request.savedPlaceId(), email)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "저장 장소를 찾을 수 없습니다."));
+        int nextSequence = itinerary.getItems().stream()
+                .mapToInt(ItineraryItem::getSequence)
+                .max()
+                .orElse(0) + 1;
+        itinerary.addPlace(savedPlace, nextSequence, request.visitDate());
+        savedPlace.update(null, VisitStatus.PLANNED, null, savedPlace.getCollection());
+        itinerary.markGenerated();
+        return response(itinerary);
+    }
+
+    public ItineraryDtos.Response removeItem(
+            String email, Long id, Long savedPlaceId
+    ) {
+        Itinerary itinerary = ownedItinerary(email, id);
+        if (!itinerary.removePlace(savedPlaceId)) {
+            throw new ResourceNotFoundException("여행 경로에서 장소를 찾을 수 없습니다.");
+        }
+        itinerary.markGenerated();
+        return response(itinerary);
+    }
+
     public ItineraryDtos.Response reorder(
             String email, Long id, ItineraryDtos.ReorderRequest request
     ) {

@@ -2,19 +2,20 @@ import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createSavedPlace,
-  deleteSavedPlace,
   getSavedPlaces,
   getTourismAccommodations,
   getTourismPlaceDetail,
 } from '../saved/savedApi'
+import { addItineraryItem, removeItineraryItem } from './itineraryApi'
 import type { TourismAccommodation } from '../saved/types'
-import type { ItineraryDay } from './types'
+import type { Itinerary, ItineraryDay } from './types'
 
 type Props = {
+  itinerary: Itinerary
   day: ItineraryDay
 }
 
-export function ItineraryAccommodations({ day }: Props) {
+export function ItineraryAccommodations({ itinerary, day }: Props) {
   const queryClient = useQueryClient()
   const [selectedStay, setSelectedStay] = useState<TourismAccommodation | null>(null)
   const [stayIndex, setStayIndex] = useState(0)
@@ -47,53 +48,51 @@ export function ItineraryAccommodations({ day }: Props) {
     ),
     enabled: selectedStay !== null,
   })
-  const saveMutation = useMutation({
-    mutationFn: (stay: TourismAccommodation) => createSavedPlace({
-      name: stay.name,
-      category: '숙박',
-      address: stay.address ?? undefined,
-      latitude: stay.latitude,
-      longitude: stay.longitude,
-      imageUrl: stay.imageUrl ?? undefined,
-      tourismContentId: stay.contentId,
-      tourismContentTypeId: stay.contentTypeId,
-    }),
-    onSuccess: (savedPlace) => {
-      queryClient.setQueryData(
-        ['saved-places'],
-        (current: Awaited<ReturnType<typeof getSavedPlaces>> | undefined) => {
-          if (!current) return [savedPlace]
-          return current.some((place) => place.savedPlaceId === savedPlace.savedPlaceId)
-            ? current
-            : [savedPlace, ...current]
-        },
-      )
-      queryClient.invalidateQueries({ queryKey: ['saved-places'] })
-    },
-  })
-  const deleteMutation = useMutation({
-    mutationFn: deleteSavedPlace,
-    onSuccess: (_data, savedPlaceId) => {
-      queryClient.setQueryData(
-        ['saved-places'],
-        (current: Awaited<ReturnType<typeof getSavedPlaces>> | undefined) =>
-          current?.filter((place) => place.savedPlaceId !== savedPlaceId) ?? [],
-      )
-      queryClient.invalidateQueries({ queryKey: ['saved-places'] })
-    },
-  })
-
-  if (!lastPlace || !coordinateAvailable) return null
-
   const savedByContentId = new Map(
     savedPlacesQuery.data
       ?.filter((place) => place.tourismContentId)
       .map((place) => [place.tourismContentId, place]),
   )
+  const routeSavedPlaceIds = new Set(
+    itinerary.items.map((item) => item.savedPlaceId),
+  )
+  const routeMutation = useMutation({
+    mutationFn: async (stay: TourismAccommodation) => {
+      let savedPlace = savedByContentId.get(stay.contentId)
+      if (savedPlace && routeSavedPlaceIds.has(savedPlace.savedPlaceId)) {
+        return removeItineraryItem(itinerary.id, savedPlace.savedPlaceId)
+      }
+      if (!savedPlace) {
+        savedPlace = await createSavedPlace({
+          name: stay.name,
+          category: '숙박',
+          address: stay.address ?? undefined,
+          latitude: stay.latitude,
+          longitude: stay.longitude,
+          imageUrl: stay.imageUrl ?? undefined,
+          tourismContentId: stay.contentId,
+          tourismContentTypeId: stay.contentTypeId,
+        })
+        queryClient.setQueryData(
+          ['saved-places'],
+          (current: Awaited<ReturnType<typeof getSavedPlaces>> | undefined) =>
+            current ? [savedPlace!, ...current] : [savedPlace!],
+        )
+      }
+      return addItineraryItem(itinerary.id, savedPlace.savedPlaceId, day.date)
+    },
+    onSuccess: (updatedItinerary) => {
+      queryClient.setQueryData(['itineraries', itinerary.id], updatedItinerary)
+      queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+      queryClient.invalidateQueries({ queryKey: ['saved-places'] })
+    },
+  })
   const selectedSavedPlace = selectedStay
     ? savedByContentId.get(selectedStay.contentId)
     : undefined
-  const mutationPending = saveMutation.isPending || deleteMutation.isPending
+  const selectedInRoute = selectedSavedPlace
+    ? routeSavedPlaceIds.has(selectedSavedPlace.savedPlaceId)
+    : false
   const stays = accommodationQuery.data ?? []
   const visibleIndex = stays.length === 0 ? 0 : Math.min(stayIndex, stays.length - 1)
   const visibleStay = stays[visibleIndex]
@@ -102,14 +101,7 @@ export function ItineraryAccommodations({ day }: Props) {
   const showNext = () => setStayIndex((current) =>
     current >= stays.length - 1 ? 0 : current + 1)
 
-  const toggleSaved = (stay: TourismAccommodation) => {
-    const savedPlace = savedByContentId.get(stay.contentId)
-    if (savedPlace) {
-      deleteMutation.mutate(savedPlace.savedPlaceId)
-    } else {
-      saveMutation.mutate(stay)
-    }
-  }
+  if (!lastPlace || !coordinateAvailable) return null
 
   return (
     <section className="itinerary-accommodations day-recommendation">
@@ -131,8 +123,8 @@ export function ItineraryAccommodations({ day }: Props) {
           </button>
         </div>
       </header>
-      {(saveMutation.isError || deleteMutation.isError) && (
-        <div className="form-error">숙소의 저장 상태를 변경하지 못했습니다. 다시 시도해 주세요.</div>
+      {routeMutation.isError && (
+        <div className="form-error">숙소의 경로 상태를 변경하지 못했습니다. 다시 시도해 주세요.</div>
       )}
       {expanded && <article className="overnight-stay">
         <div className="overnight-stay-heading">
@@ -174,12 +166,12 @@ export function ItineraryAccommodations({ day }: Props) {
             </button>
             {(() => {
                     const stay = visibleStay
-                    const saved = savedByContentId.has(stay.contentId)
-                    const changing = (saveMutation.isPending
-                      && saveMutation.variables?.contentId === stay.contentId)
-                      || (deleteMutation.isPending
-                        && savedByContentId.get(stay.contentId)?.savedPlaceId
-                          === deleteMutation.variables)
+                    const savedPlace = savedByContentId.get(stay.contentId)
+                    const included = savedPlace
+                      ? routeSavedPlaceIds.has(savedPlace.savedPlaceId)
+                      : false
+                    const changing = routeMutation.isPending
+                      && routeMutation.variables?.contentId === stay.contentId
                     return (
                       <article
                         className="stay-card"
@@ -188,7 +180,12 @@ export function ItineraryAccommodations({ day }: Props) {
                       >
                         {stay.imageUrl
                           ? <img src={stay.imageUrl} alt="" />
-                          : <div className="stay-placeholder">숙박</div>}
+                          : (
+                            <div className="stay-skeleton" role="img" aria-label="숙소 이미지 준비 중">
+                              <span className="stay-skeleton-building" />
+                              <span className="stay-skeleton-ground" />
+                            </div>
+                          )}
                         <div>
                           <span>약 {(stay.distanceMeters / 1000).toFixed(1)}km</span>
                           <h3>
@@ -198,15 +195,15 @@ export function ItineraryAccommodations({ day }: Props) {
                           </h3>
                           <p>{stay.address ?? '주소 정보 없음'}</p>
                           <button
-                            className={`stay-save-button ${saved ? 'saved' : ''}`}
+                            className={`stay-save-button ${included ? 'saved' : ''}`}
                             type="button"
-                            disabled={mutationPending}
+                            disabled={routeMutation.isPending}
                             onClick={(event) => {
                               event.stopPropagation()
-                              toggleSaved(stay)
+                              routeMutation.mutate(stay)
                             }}
                           >
-                            {changing ? '처리 중...' : saved ? '저장 취소' : '+ 내 장소에 저장'}
+                            {changing ? '처리 중...' : included ? '경로에서 제거' : '+ 경로에 추가'}
                           </button>
                         </div>
                       </article>
@@ -265,7 +262,12 @@ export function ItineraryAccommodations({ day }: Props) {
               <>
                 {(detailQuery.data?.imageUrl ?? selectedStay.imageUrl)
                   ? <img src={detailQuery.data?.imageUrl ?? selectedStay.imageUrl!} alt="" />
-                  : <div className="nearby-placeholder"><strong>숙박</strong><small>제공 이미지 없음</small></div>}
+                  : (
+                    <div className="stay-skeleton detail" role="img" aria-label="숙소 이미지 준비 중">
+                      <span className="stay-skeleton-building" />
+                      <span className="stay-skeleton-ground" />
+                    </div>
+                  )}
                 <div className="nearby-detail-content">
                   <span className="eyebrow">ACCOMMODATION</span>
                   <h2 id="stay-detail-title">{detailQuery.data?.name ?? selectedStay.name}</h2>
@@ -298,14 +300,14 @@ export function ItineraryAccommodations({ day }: Props) {
                       </a>
                     )}
                     <button
-                      className={`stay-save-button ${selectedSavedPlace ? 'saved' : ''}`}
+                      className={`stay-save-button ${selectedInRoute ? 'saved' : ''}`}
                       type="button"
-                      disabled={mutationPending}
-                      onClick={() => toggleSaved(selectedStay)}
+                      disabled={routeMutation.isPending}
+                      onClick={() => routeMutation.mutate(selectedStay)}
                     >
-                      {mutationPending
+                      {routeMutation.isPending
                         ? '처리 중...'
-                        : selectedSavedPlace ? '내 장소에서 삭제' : '+ 내 장소에 저장'}
+                        : selectedInRoute ? '경로에서 제거' : '+ 이 DAY 경로에 추가'}
                     </button>
                   </div>
                 </div>
