@@ -410,6 +410,110 @@ h1 {
   white-space: nowrap;
 }
 
+.home-event-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-event-card {
+  display: flex;
+  min-width: 0;
+  padding: 18px;
+  gap: 7px;
+  flex-direction: column;
+  border: 1px solid #dbe1dc;
+  border-radius: 16px;
+  background: #fbfcfa;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+.home-event-card:hover {
+  border-color: #89a798;
+  box-shadow: 0 10px 24px rgba(39, 76, 58, .08);
+  transform: translateY(-2px);
+}
+
+.home-event-card.ending {
+  border-color: #e5c28d;
+  background: #fffaf1;
+}
+
+.home-event-card strong,
+.home-event-card small,
+.home-event-card > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-event-card small,
+.home-event-card > span:last-child {
+  color: #708078;
+}
+
+.event-status-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  align-items: center;
+  border-radius: 999px;
+  background: #e8f0eb;
+  color: #315f49;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.event-status-badge.ending,
+.home-event-card.ending .event-status-badge,
+.place-event-period.ending .event-status-badge {
+  background: #fff0d7;
+  color: #915b15;
+}
+
+.event-status-badge.ended,
+.place-event-period.ended .event-status-badge {
+  background: #f2e6e3;
+  color: #9a4939;
+}
+
+.event-status-badge.upcoming,
+.place-event-period.upcoming .event-status-badge {
+  background: #e8edf5;
+  color: #405f89;
+}
+
+.place-event-period {
+  padding: 18px 20px;
+  border: 1px solid #cddbd3;
+  border-radius: 16px;
+  background: #f2f7f4;
+}
+
+.place-event-period > div {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.place-event-period h2,
+.place-event-period p {
+  margin: 0;
+}
+
+.place-event-period.ending {
+  border-color: #ead2a9;
+  background: #fffaf1;
+}
+
+.place-event-period.ended {
+  border-color: #e2c8c2;
+  background: #fbf3f1;
+}
+
 .home-dashboard-empty {
   display: flex;
   min-height: 110px;
@@ -3287,6 +3391,10 @@ h1 {
 }
 
 @media (max-width: 900px) {
+  .home-event-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .itinerary-festival-grid {
     grid-template-columns: 1fr;
   }
@@ -3294,5 +3402,11 @@ h1 {
   .itinerary-festivals > header {
     align-items: start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-event-grid {
+    grid-template-columns: 1fr;
   }
 }

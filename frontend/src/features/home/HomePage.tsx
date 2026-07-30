@@ -10,6 +10,7 @@ import { getSavedPlaces } from '../saved/savedApi'
 import { useAuthStore } from '../../stores/authStore'
 import type { TransportType } from '../itinerary/types'
 import { PlaceImage } from '../../components/PlaceImage'
+import { eventPeriodState } from '../saved/eventPeriod'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -77,6 +78,15 @@ export function HomePage() {
     .filter((itinerary) => itinerary.endDate >= today)
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
     .slice(0, 3)
+  const upcomingEvents = (savedPlacesQuery.data ?? [])
+    .map((place) => ({ place, state: eventPeriodState(place, today) }))
+    .filter(({ state }) => state && state.tone !== 'ended')
+    .sort((a, b) => (
+      (a.place.eventEndDate ?? a.place.eventStartDate ?? '').localeCompare(
+        b.place.eventEndDate ?? b.place.eventStartDate ?? '',
+      )
+    ))
+    .slice(0, 4)
 
   return (
     <main className="shell">
@@ -177,6 +187,32 @@ export function HomePage() {
               </div>
             )}
           </section>
+
+          {upcomingEvents.length > 0 && (
+            <section className="home-dashboard-section home-event-section">
+              <header>
+                <div>
+                  <span>EVENT ALERT</span>
+                  <h3>저장한 행사 일정</h3>
+                </div>
+                <Link to="/saved">행사 장소 보기</Link>
+              </header>
+              <div className="home-event-grid">
+                {upcomingEvents.map(({ place, state }) => (
+                  <Link
+                    className={`home-event-card ${state!.tone}`}
+                    to={`/saved/places/${place.savedPlaceId}`}
+                    key={place.savedPlaceId}
+                  >
+                    <span className="event-status-badge">{state!.label}</span>
+                    <strong>{place.name}</strong>
+                    <small>{state!.period}</small>
+                    <span>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="home-dashboard-section">
             <header>

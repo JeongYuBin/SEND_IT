@@ -78,7 +78,11 @@ export function ItineraryFestivals({ itinerary }: Props) {
       if (savedPlace && routeSavedPlaceIds.has(savedPlace.savedPlaceId)) {
         return removeItineraryItem(itinerary.id, savedPlace.savedPlaceId)
       }
-      if (!savedPlace) {
+      const isNewSavedPlace = !savedPlace
+      const needsEventPeriod = savedPlace
+        && ((!savedPlace.eventStartDate && festival.startDate)
+          || (!savedPlace.eventEndDate && festival.endDate))
+      if (!savedPlace || needsEventPeriod) {
         savedPlace = await createSavedPlace({
           name: festival.name,
           category: '행사',
@@ -88,12 +92,16 @@ export function ItineraryFestivals({ itinerary }: Props) {
           imageUrl: festival.imageUrl ?? undefined,
           tourismContentId: festival.contentId,
           tourismContentTypeId: '15',
+          eventStartDate: festival.startDate ?? undefined,
+          eventEndDate: festival.endDate ?? undefined,
         })
-        queryClient.setQueryData(
-          ['saved-places'],
-          (current: Awaited<ReturnType<typeof getSavedPlaces>> | undefined) =>
-            current ? [savedPlace!, ...current] : [savedPlace!],
-        )
+        if (isNewSavedPlace) {
+          queryClient.setQueryData(
+            ['saved-places'],
+            (current: Awaited<ReturnType<typeof getSavedPlaces>> | undefined) =>
+              current ? [savedPlace!, ...current] : [savedPlace!],
+          )
+        }
       }
       return addItineraryItem(itinerary.id, savedPlace.savedPlaceId, visitDate)
     },

@@ -46,6 +46,7 @@ public class SavedPlaceService {
                         request.name(), request.category(), request.address(),
                         request.roadAddress(), request.latitude(), request.longitude(),
                         description, imageUrl)));
+        place.updateEventPeriod(request.eventStartDate(), request.eventEndDate());
         tourismDetail.ifPresent(detail -> place.enrichTourismDetails(
                 detail.contentId(), detail.contentTypeId(), detail.description(),
                 detail.imageUrl(), detail.phone(), detail.homepageUrl(),
@@ -133,6 +134,7 @@ public class SavedPlaceService {
                 p.getDescription(), p.getPrimaryImageUrl(), p.getPhone(), p.getHomepageUrl(),
                 p.getTourismContentId(), p.getTourismContentTypeId(),
                 p.getOperatingHours(), p.getRestDays(), p.getParkingInfo(),
+                p.getEventStartDate(), p.getEventEndDate(),
                 c==null?null:c.getId(),
                 c==null?null:c.getName(), saved.getMemo(), saved.getVisitStatus(),
                 saved.getPriority(), saved.getSavedAt(),

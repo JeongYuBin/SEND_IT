@@ -2,6 +2,7 @@ package com.sendit.place;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -42,6 +43,10 @@ public class Place {
     private String restDays;
     @Column(name = "parking_info", columnDefinition = "text")
     private String parkingInfo;
+    @Column(name = "event_start_date")
+    private LocalDate eventStartDate;
+    @Column(name = "event_end_date")
+    private LocalDate eventEndDate;
     @Column(name = "tourism_sync_attempted_at")
     private Instant tourismSyncAttemptedAt;
     @CreationTimestamp @Column(name = "created_at", nullable = false, updatable = false)
@@ -85,6 +90,8 @@ public class Place {
     public String getOperatingHours() { return operatingHours; }
     public String getRestDays() { return restDays; }
     public String getParkingInfo() { return parkingInfo; }
+    public LocalDate getEventStartDate() { return eventStartDate; }
+    public LocalDate getEventEndDate() { return eventEndDate; }
     public Instant getTourismSyncAttemptedAt() { return tourismSyncAttemptedAt; }
 
     public void enrichTourismDetails(
@@ -107,6 +114,11 @@ public class Place {
 
     public void markTourismSyncAttempted() {
         tourismSyncAttemptedAt = Instant.now();
+    }
+
+    public void updateEventPeriod(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null) eventStartDate = startDate;
+        if (endDate != null) eventEndDate = endDate;
     }
 
     private String firstNonBlank(String preferred, String fallback) {

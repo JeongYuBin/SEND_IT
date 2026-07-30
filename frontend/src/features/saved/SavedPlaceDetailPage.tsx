@@ -14,6 +14,7 @@ import {
 } from './savedApi'
 import type { NearbyTourismPlace, VisitStatus } from './types'
 import { KakaoMap } from '../../components/KakaoMap'
+import { eventPeriodState } from './eventPeriod'
 
 const statusLabels: Record<VisitStatus, string> = {
   WANT_TO_VISIT: '가고 싶어요',
@@ -121,6 +122,7 @@ export function SavedPlaceDetailPage() {
   }
 
   const place = placeQuery.data
+  const eventState = eventPeriodState(place)
   const backUrl = place.collectionId ? `/saved/collections/${place.collectionId}` : '/saved'
   const storedOperatingInfo = place.operatingHours !== null || place.restDays !== null
   const savedPlaceNames = new Set(
@@ -184,6 +186,19 @@ export function SavedPlaceDetailPage() {
           </div>
           <h1>{place.name}</h1>
           <p className="place-detail-address">{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
+
+          {eventState && (
+            <section className={`place-event-period ${eventState.tone}`}>
+              <div>
+                <span className="event-status-badge">{eventState.label}</span>
+                <h2>행사 기간</h2>
+              </div>
+              <strong>{eventState.period}</strong>
+              {eventState.tone === 'ended' && (
+                <p>행사가 종료되었습니다. 방문 전에 상시 운영 장소인지 확인해 주세요.</p>
+              )}
+            </section>
+          )}
 
           <section>
             <h2>장소 설명</h2>

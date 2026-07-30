@@ -26,6 +26,8 @@ export type SavedPlace = {
   operatingHours: string | null
   restDays: string | null
   parkingInfo: string | null
+  eventStartDate: string | null
+  eventEndDate: string | null
   collectionId: number | null
   collectionName: string | null
   memo: string | null
@@ -50,6 +52,8 @@ export type CreateSavedPlace = {
   longitude?: number
   tourismContentId?: string
   tourismContentTypeId?: string
+  eventStartDate?: string
+  eventEndDate?: string
 }
 
 export type NearbyTourismPlace = {

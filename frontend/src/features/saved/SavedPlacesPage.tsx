@@ -9,11 +9,12 @@ import {
   getSavedPlaces,
   updateSavedPlace,
 } from './savedApi'
-import type { VisitStatus } from './types'
+import type { SavedPlace, VisitStatus } from './types'
 import { SavedPlacesMap } from './SavedPlacesMap'
 import { getItineraries } from '../itinerary/itineraryApi'
 import type { TransportType } from '../itinerary/types'
 import { PlaceImage } from '../../components/PlaceImage'
+import { eventPeriodState } from './eventPeriod'
 
 const statusLabels: Record<VisitStatus, string> = {
   WANT_TO_VISIT: '가고 싶어요',
@@ -25,6 +26,16 @@ const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
   PUBLIC_TRANSIT: '대중교통',
   CAR: '자동차',
+}
+
+function SavedEventBadge({ place }: { place: SavedPlace }) {
+  const state = eventPeriodState(place)
+  if (!state) return null
+  return (
+    <span className={`event-status-badge ${state.tone}`} title={state.period}>
+      {state.label}
+    </span>
+  )
 }
 
 export function SavedPlacesPage() {
@@ -400,6 +411,7 @@ export function SavedPlacesPage() {
                     <span>컬렉션 없음</span>
                   )}
                 </div>
+                <SavedEventBadge place={place} />
                 <h2>{place.name}</h2>
                 <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
                 {place.memo && <p className="place-memo">{place.memo}</p>}
