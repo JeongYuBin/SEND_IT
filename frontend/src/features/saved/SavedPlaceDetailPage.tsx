@@ -200,52 +200,52 @@ export function SavedPlaceDetailPage() {
               && <p>관광공사에 등록된 이용시간과 휴무일 정보가 없습니다.</p>
             )}
           </section>
-          {place.tourismContentId && (
+          {petInfoQuery.data && (
             <section className="pet-travel-info">
               <div className="pet-travel-heading">
-                <span aria-hidden="true">PET</span>
+                <span className="pet-paw-icon" aria-hidden="true">
+                  <svg viewBox="0 0 48 48">
+                    <ellipse cx="13" cy="15" rx="5" ry="7" />
+                    <ellipse cx="24" cy="10" rx="5" ry="7" />
+                    <ellipse cx="35" cy="15" rx="5" ry="7" />
+                    <ellipse cx="39" cy="26" rx="4.5" ry="6" />
+                    <path d="M24 19c-8 0-14 7-14 14 0 5 4 8 9 6 3-1 7-1 10 0 5 2 9-1 9-6 0-7-6-14-14-14Z" />
+                  </svg>
+                </span>
                 <div>
                   <h2>반려동물 동반 정보</h2>
                   <p>한국관광공사 반려동물 동반여행 데이터</p>
                 </div>
               </div>
-              {petInfoQuery.isLoading && <p>반려동물 동반 조건을 확인하고 있습니다.</p>}
-              {petInfoQuery.isError && (
-                <p>관광공사에 등록된 반려동물 동반 정보가 없습니다.</p>
-              )}
-              {petInfoQuery.data && (
-                <>
-                  <div className="pet-companion-status">
-                    {petInfoQuery.data.companionType ?? '동반 조건 확인 필요'}
-                  </div>
-                  <dl>
-                    {petInfoQuery.data.allowedPets && (
-                      <div><dt>동반 가능 동물</dt><dd>{petInfoQuery.data.allowedPets}</dd></div>
-                    )}
-                    {petInfoQuery.data.requiredItems && (
-                      <div><dt>필수 준비물</dt><dd>{petInfoQuery.data.requiredItems}</dd></div>
-                    )}
-                    {petInfoQuery.data.additionalRules && (
-                      <div><dt>이용 규칙</dt><dd>{petInfoQuery.data.additionalRules}</dd></div>
-                    )}
-                    {petInfoQuery.data.facilities && (
-                      <div><dt>이용 가능 시설</dt><dd>{petInfoQuery.data.facilities}</dd></div>
-                    )}
-                    {petInfoQuery.data.providedItems && (
-                      <div><dt>비치 품목</dt><dd>{petInfoQuery.data.providedItems}</dd></div>
-                    )}
-                    {petInfoQuery.data.rentalItems && (
-                      <div><dt>대여 품목</dt><dd>{petInfoQuery.data.rentalItems}</dd></div>
-                    )}
-                    {petInfoQuery.data.purchasableItems && (
-                      <div><dt>구매 가능 품목</dt><dd>{petInfoQuery.data.purchasableItems}</dd></div>
-                    )}
-                    {petInfoQuery.data.safetyInformation && (
-                      <div><dt>안전 안내</dt><dd>{petInfoQuery.data.safetyInformation}</dd></div>
-                    )}
-                  </dl>
-                </>
-              )}
+              <div className="pet-companion-status">
+                {petInfoQuery.data.companionType ?? '동반 조건 확인 필요'}
+              </div>
+              <dl>
+                {petInfoQuery.data.allowedPets && (
+                  <div><dt>동반 가능 동물</dt><dd>{petInfoQuery.data.allowedPets}</dd></div>
+                )}
+                {petInfoQuery.data.requiredItems && (
+                  <div><dt>필수 준비물</dt><dd>{petInfoQuery.data.requiredItems}</dd></div>
+                )}
+                {petInfoQuery.data.additionalRules && (
+                  <div><dt>이용 규칙</dt><dd>{petInfoQuery.data.additionalRules}</dd></div>
+                )}
+                {petInfoQuery.data.facilities && (
+                  <div><dt>이용 가능 시설</dt><dd>{petInfoQuery.data.facilities}</dd></div>
+                )}
+                {petInfoQuery.data.providedItems && (
+                  <div><dt>비치 품목</dt><dd>{petInfoQuery.data.providedItems}</dd></div>
+                )}
+                {petInfoQuery.data.rentalItems && (
+                  <div><dt>대여 품목</dt><dd>{petInfoQuery.data.rentalItems}</dd></div>
+                )}
+                {petInfoQuery.data.purchasableItems && (
+                  <div><dt>구매 가능 품목</dt><dd>{petInfoQuery.data.purchasableItems}</dd></div>
+                )}
+                {petInfoQuery.data.safetyInformation && (
+                  <div><dt>안전 안내</dt><dd>{petInfoQuery.data.safetyInformation}</dd></div>
+                )}
+              </dl>
             </section>
           )}
           {place.memo && (
