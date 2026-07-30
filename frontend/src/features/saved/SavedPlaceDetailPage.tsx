@@ -26,6 +26,7 @@ export function SavedPlaceDetailPage() {
   const savedPlaceId = Number(savedPlaceIdParam)
   const queryClient = useQueryClient()
   const [selectedNearby, setSelectedNearby] = useState<NearbyTourismPlace | null>(null)
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
   const placeQuery = useQuery({
     queryKey: ['saved-place', savedPlaceId],
     queryFn: () => getSavedPlace(savedPlaceId),
@@ -138,8 +139,15 @@ export function SavedPlaceDetailPage() {
       </nav>
       <article className="place-detail">
         <div className="place-detail-visual">
-          {place.imageUrl
-            ? <img src={place.imageUrl} alt={place.name} />
+          {place.imageUrl && place.imageUrl !== failedImageUrl
+            ? (
+              <img
+                src={place.imageUrl}
+                alt={place.name}
+                referrerPolicy="no-referrer"
+                onError={() => setFailedImageUrl(place.imageUrl)}
+              />
+            )
             : (
               <div
                 className="place-image-skeleton place-detail-image-skeleton"
