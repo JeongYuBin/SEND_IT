@@ -115,4 +115,37 @@ class TourApiClientTest {
 
         assertThat(disabledClient.enrich(fallback)).isSameAs(fallback);
     }
+
+    @Test
+    void parsesPetTravelInformation() throws Exception {
+        String response = """
+                {
+                  "response": {
+                    "header": {"resultCode": "0000"},
+                    "body": {
+                      "items": {
+                        "item": [{
+                          "contentid": "2930334",
+                          "acmpyTypeCd": "일부구역 동반가능",
+                          "acmpyPsblCpam": "동물 등록을 완료한 전 견종",
+                          "acmpyNeedMtr": "목줄 착용",
+                          "etcAcmpyInfo": "입·퇴장 시 목줄 착용 필수",
+                          "relaPosesFclty": "반려견 놀이터, 공중화장실",
+                          "relaAcdntRiskMtr": "CCTV 7개"
+                        }]
+                      }
+                    }
+                  }
+                }
+                """;
+
+        TourApiClient.PetTravelInfo info = client.parsePetInfo(response).orElseThrow();
+
+        assertThat(info.contentId()).isEqualTo("2930334");
+        assertThat(info.companionType()).isEqualTo("일부구역 동반가능");
+        assertThat(info.allowedPets()).contains("전 견종");
+        assertThat(info.requiredItems()).isEqualTo("목줄 착용");
+        assertThat(info.facilities()).contains("반려견 놀이터");
+        assertThat(info.safetyInformation()).isEqualTo("CCTV 7개");
+    }
 }

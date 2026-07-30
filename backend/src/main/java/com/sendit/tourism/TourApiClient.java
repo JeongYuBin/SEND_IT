@@ -332,6 +332,41 @@ public class TourApiClient {
         }
     }
 
+    public Optional<PetTravelInfo> petInfo(String contentId) {
+        if (serviceKey.isBlank() || contentId == null || contentId.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            return parsePetInfo(get("/detailPetTour2", Map.of(
+                    "contentId", contentId,
+                    "numOfRows", "1",
+                    "pageNo", "1"
+            )));
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    Optional<PetTravelInfo> parsePetInfo(String responseBody) throws Exception {
+        JsonNode item = firstItem(responseBody);
+        if (item.isMissingNode() || item.isNull() || item.isEmpty()) {
+            return Optional.empty();
+        }
+        PetTravelInfo info = new PetTravelInfo(
+                text(item, "contentid"),
+                cleanOverview(text(item, "acmpyTypeCd")),
+                cleanOverview(text(item, "acmpyPsblCpam")),
+                cleanOverview(text(item, "acmpyNeedMtr")),
+                cleanOverview(text(item, "etcAcmpyInfo")),
+                cleanOverview(text(item, "relaPosesFclty")),
+                cleanOverview(text(item, "relaFrnshPrdlst")),
+                cleanOverview(text(item, "relaRntlPrdlst")),
+                cleanOverview(text(item, "relaPurcPrdlst")),
+                cleanOverview(text(item, "relaAcdntRiskMtr"))
+        );
+        return info.hasInformation() ? Optional.of(info) : Optional.empty();
+    }
+
     private String get(String path, Map<String, String> parameters) throws Exception {
         StringBuilder query = new StringBuilder()
                 .append("serviceKey=").append(encode(serviceKey))
@@ -656,6 +691,30 @@ public class TourApiClient {
             String restDays,
             String parkingInfo
     ) {}
+    public record PetTravelInfo(
+            String contentId,
+            String companionType,
+            String allowedPets,
+            String requiredItems,
+            String additionalRules,
+            String facilities,
+            String providedItems,
+            String rentalItems,
+            String purchasableItems,
+            String safetyInformation
+    ) {
+        boolean hasInformation() {
+            return companionType != null
+                    || allowedPets != null
+                    || requiredItems != null
+                    || additionalRules != null
+                    || facilities != null
+                    || providedItems != null
+                    || rentalItems != null
+                    || purchasableItems != null
+                    || safetyInformation != null;
+        }
+    }
     private record OperatingInfoCacheEntry(
             Optional<OperatingInfo> info,
             Instant expiresAt

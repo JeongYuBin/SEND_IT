@@ -79,4 +79,13 @@ public class TourismController {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "관광 상세정보를 찾을 수 없습니다."));
     }
+
+    @GetMapping("/places/{contentId}/pet-info")
+    TourApiClient.PetTravelInfo petInfo(
+            @org.springframework.web.bind.annotation.PathVariable String contentId
+    ) {
+        return tourApiClient.petInfo(contentId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "등록된 반려동물 동반 정보가 없습니다."));
+    }
 }

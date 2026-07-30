@@ -8,6 +8,7 @@ import {
   getSavedPlace,
   getSavedPlaces,
   getTourismOperatingInfo,
+  getTourismPetInfo,
   getTourismPlaceDetail,
   updateSavedPlace,
 } from './savedApi'
@@ -44,6 +45,12 @@ export function SavedPlaceDetailPage() {
     ),
     enabled: Boolean(placeQuery.data?.name)
       && placeQuery.data?.tourismContentId === null,
+  })
+  const petInfoQuery = useQuery({
+    queryKey: ['tourism-pet-info', placeQuery.data?.tourismContentId],
+    queryFn: () => getTourismPetInfo(placeQuery.data!.tourismContentId!),
+    enabled: Boolean(placeQuery.data?.tourismContentId),
+    retry: false,
   })
   const nearbyQuery = useQuery({
     queryKey: ['tourism-nearby', placeQuery.data?.latitude, placeQuery.data?.longitude, 10000],
@@ -193,6 +200,54 @@ export function SavedPlaceDetailPage() {
               && <p>관광공사에 등록된 이용시간과 휴무일 정보가 없습니다.</p>
             )}
           </section>
+          {place.tourismContentId && (
+            <section className="pet-travel-info">
+              <div className="pet-travel-heading">
+                <span aria-hidden="true">PET</span>
+                <div>
+                  <h2>반려동물 동반 정보</h2>
+                  <p>한국관광공사 반려동물 동반여행 데이터</p>
+                </div>
+              </div>
+              {petInfoQuery.isLoading && <p>반려동물 동반 조건을 확인하고 있습니다.</p>}
+              {petInfoQuery.isError && (
+                <p>관광공사에 등록된 반려동물 동반 정보가 없습니다.</p>
+              )}
+              {petInfoQuery.data && (
+                <>
+                  <div className="pet-companion-status">
+                    {petInfoQuery.data.companionType ?? '동반 조건 확인 필요'}
+                  </div>
+                  <dl>
+                    {petInfoQuery.data.allowedPets && (
+                      <div><dt>동반 가능 동물</dt><dd>{petInfoQuery.data.allowedPets}</dd></div>
+                    )}
+                    {petInfoQuery.data.requiredItems && (
+                      <div><dt>필수 준비물</dt><dd>{petInfoQuery.data.requiredItems}</dd></div>
+                    )}
+                    {petInfoQuery.data.additionalRules && (
+                      <div><dt>이용 규칙</dt><dd>{petInfoQuery.data.additionalRules}</dd></div>
+                    )}
+                    {petInfoQuery.data.facilities && (
+                      <div><dt>이용 가능 시설</dt><dd>{petInfoQuery.data.facilities}</dd></div>
+                    )}
+                    {petInfoQuery.data.providedItems && (
+                      <div><dt>비치 품목</dt><dd>{petInfoQuery.data.providedItems}</dd></div>
+                    )}
+                    {petInfoQuery.data.rentalItems && (
+                      <div><dt>대여 품목</dt><dd>{petInfoQuery.data.rentalItems}</dd></div>
+                    )}
+                    {petInfoQuery.data.purchasableItems && (
+                      <div><dt>구매 가능 품목</dt><dd>{petInfoQuery.data.purchasableItems}</dd></div>
+                    )}
+                    {petInfoQuery.data.safetyInformation && (
+                      <div><dt>안전 안내</dt><dd>{petInfoQuery.data.safetyInformation}</dd></div>
+                    )}
+                  </dl>
+                </>
+              )}
+            </section>
+          )}
           {place.memo && (
             <section>
               <h2>내 메모</h2>

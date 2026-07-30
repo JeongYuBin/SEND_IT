@@ -2666,6 +2666,88 @@ h1 {
   font-size: .84rem;
 }
 
+.pet-travel-info {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #c9ddd2;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(107, 161, 137, .18), transparent 8rem),
+    #f4f8f5;
+}
+
+.pet-travel-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.pet-travel-heading > span {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 14px;
+  color: white;
+  background: #176b52;
+  font-size: .75rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.pet-travel-heading h2 {
+  margin: 0;
+}
+
+.pet-travel-heading p {
+  margin: 4px 0 0;
+  color: #64766f;
+  font-size: .82rem;
+}
+
+.pet-travel-info > p {
+  margin: 0;
+  color: #64766f;
+}
+
+.pet-companion-status {
+  width: fit-content;
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: #176b52;
+  background: #dceee6;
+  font-size: .84rem;
+  font-weight: 850;
+}
+
+.pet-travel-info dl {
+  display: grid;
+  margin: 0;
+  gap: 10px;
+}
+
+.pet-travel-info dl > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #d9e6df;
+}
+
+.pet-travel-info dt {
+  color: #52645d;
+  font-size: .83rem;
+  font-weight: 800;
+}
+
+.pet-travel-info dd {
+  margin: 0;
+  color: #29483d;
+  line-height: 1.55;
+}
+
 .day-empty {
   padding: 24px;
   border-radius: 12px;

@@ -3,6 +3,7 @@ import type {
   Collection,
   CreateSavedPlace,
   NearbyTourismPlace,
+  PetTravelInfo,
   SavedPlace,
   TourismOperatingInfo,
   TourismPlaceDetail,
@@ -68,6 +69,10 @@ export async function getTourismPlaceDetail(contentId: string, contentTypeId: st
   return (await http.get<TourismPlaceDetail>(`/tourism/places/${contentId}`, {
     params: { contentTypeId },
   })).data
+}
+
+export async function getTourismPetInfo(contentId: string) {
+  return (await http.get<PetTravelInfo>(`/tourism/places/${contentId}/pet-info`)).data
 }
 
 export async function getTourismFestivals(

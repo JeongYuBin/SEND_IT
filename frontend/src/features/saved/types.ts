@@ -87,6 +87,19 @@ export type TourismPlaceDetail = {
   parkingInfo: string | null
 }
 
+export type PetTravelInfo = {
+  contentId: string
+  companionType: string | null
+  allowedPets: string | null
+  requiredItems: string | null
+  additionalRules: string | null
+  facilities: string | null
+  providedItems: string | null
+  rentalItems: string | null
+  purchasableItems: string | null
+  safetyInformation: string | null
+}
+
 export type TourismFestival = {
   contentId: string
   name: string
