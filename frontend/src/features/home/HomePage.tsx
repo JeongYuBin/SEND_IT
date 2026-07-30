@@ -199,13 +199,13 @@ export function HomePage() {
                       ? <img src={place.imageUrl} alt="" />
                       : (
                         <span
-                          className="home-place-skeleton"
+                          className="place-image-skeleton home-place-skeleton"
                           role="img"
                           aria-label="장소 이미지 준비 중"
                         >
-                          <i className="home-place-skeleton-sun" />
-                          <i className="home-place-skeleton-mountain" />
-                          <i className="home-place-skeleton-ground" />
+                          <i className="place-image-skeleton-sun" />
+                          <i className="place-image-skeleton-mountain" />
+                          <i className="place-image-skeleton-ground" />
                         </span>
                       )}
                     <span>

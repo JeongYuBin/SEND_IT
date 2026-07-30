@@ -364,7 +364,17 @@ export function SavedPlacesPage() {
               }}
             >
               <div className="place-image">
-                {place.imageUrl ? <img src={place.imageUrl} alt="" /> : <span>{place.name.slice(0, 1)}</span>}
+                {place.imageUrl ? <img src={place.imageUrl} alt="" /> : (
+                  <span
+                    className="place-image-skeleton saved-place-image-skeleton"
+                    role="img"
+                    aria-label="장소 이미지 준비 중"
+                  >
+                    <i className="place-image-skeleton-sun" />
+                    <i className="place-image-skeleton-mountain" />
+                    <i className="place-image-skeleton-ground" />
+                  </span>
+                )}
               </div>
               <div className="place-content">
                 <div className="place-meta">
