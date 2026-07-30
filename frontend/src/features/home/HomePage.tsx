@@ -197,7 +197,17 @@ export function HomePage() {
                   >
                     {place.imageUrl
                       ? <img src={place.imageUrl} alt="" />
-                      : <span className="home-place-placeholder">{place.name.slice(0, 1)}</span>}
+                      : (
+                        <span
+                          className="home-place-skeleton"
+                          role="img"
+                          aria-label="장소 이미지 준비 중"
+                        >
+                          <i className="home-place-skeleton-sun" />
+                          <i className="home-place-skeleton-mountain" />
+                          <i className="home-place-skeleton-ground" />
+                        </span>
+                      )}
                     <span>
                       <small>{place.category ?? '장소'}</small>
                       <strong>{place.name}</strong>
