@@ -1308,7 +1308,8 @@ h1 {
 }
 
 .nearby-detail-dialog > img,
-.nearby-detail-dialog > .nearby-placeholder {
+.nearby-detail-dialog > .nearby-placeholder,
+.nearby-detail-dialog > .festival-detail-skeleton {
   width: 100%;
   height: 300px;
   object-fit: cover;
@@ -3116,21 +3117,41 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface);
+  cursor: pointer;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+
+.itinerary-festival-grid article:hover,
+.itinerary-festival-grid article:focus-visible {
+  outline: none;
+  border-color: #82a498;
+  box-shadow: 0 14px 30px rgb(35 79 62 / 13%);
+  transform: translateY(-2px);
 }
 
 .itinerary-festival-grid img,
-.festival-placeholder {
+.festival-image-skeleton {
   width: 100%;
   height: 150px;
   object-fit: cover;
 }
 
-.festival-placeholder {
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-weight: 700;
-  background: var(--green);
+.festival-image-skeleton .place-image-skeleton-sun,
+.festival-detail-skeleton .place-image-skeleton-sun {
+  width: 24px;
+  height: 24px;
+}
+
+.festival-image-skeleton .place-image-skeleton-mountain,
+.festival-detail-skeleton .place-image-skeleton-mountain {
+  width: 70%;
+  height: 65%;
+  bottom: 14%;
+}
+
+.festival-image-skeleton .place-image-skeleton-ground,
+.festival-detail-skeleton .place-image-skeleton-ground {
+  height: 24%;
 }
 
 .itinerary-festival-grid article > div:last-child {
@@ -3145,6 +3166,94 @@ h1 {
 .itinerary-festival-grid span,
 .itinerary-festival-grid small {
   color: var(--muted);
+}
+
+.festival-detail-button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 9px 12px;
+  border: 1px solid #315f4d;
+  border-radius: 999px;
+  color: #315f4d;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.festival-detail-button:hover {
+  color: #fff;
+  background: #315f4d;
+}
+
+.festival-period {
+  width: fit-content;
+  margin-top: 14px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: #176b52;
+  background: #dceee6;
+  font-size: .85rem;
+  font-weight: 800;
+}
+
+.festival-day-actions {
+  display: grid;
+  margin-top: 24px;
+  gap: 10px;
+}
+
+.festival-day-actions > strong {
+  font-size: .9rem;
+}
+
+.festival-day-actions > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 9px;
+}
+
+.festival-day-actions button,
+.festival-route-remove {
+  padding: 11px 14px;
+  border: 1px solid #315f4d;
+  border-radius: 12px;
+  color: #315f4d;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.festival-day-actions button:hover,
+.festival-route-remove:hover {
+  color: #fff;
+  background: #315f4d;
+}
+
+.festival-day-actions button:disabled,
+.festival-route-remove:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+.festival-day-actions small {
+  display: block;
+  margin-top: 3px;
+  color: inherit;
+  font-size: .72rem;
+  font-weight: 500;
+}
+
+.festival-route-remove {
+  width: 100%;
+  margin-top: 24px;
+  color: #9a3f31;
+  border-color: #d6a89f;
+}
+
+.festival-route-remove:hover {
+  color: #fff;
+  border-color: #9a3f31;
+  background: #9a3f31;
 }
 
 @media (max-width: 900px) {
