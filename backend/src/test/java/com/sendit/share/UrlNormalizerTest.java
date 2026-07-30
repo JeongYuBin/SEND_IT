@@ -18,6 +18,17 @@ class UrlNormalizerTest {
     }
 
     @Test
+    void convertsNaverBlogPostToPostViewUrl() {
+        String result = normalizer.normalize(
+                "https://blog.naver.com/silver3358/224296787264"
+        );
+
+        assertThat(result).isEqualTo(
+                "https://blog.naver.com/PostView.naver?blogId=silver3358&logNo=224296787264"
+        );
+    }
+
+    @Test
     void rejectsNonHttpUrl() {
         assertThatThrownBy(() -> normalizer.normalize("javascript:alert(1)"))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -29,4 +40,3 @@ class UrlNormalizerTest {
                 .isEqualTo(SourceType.YOUTUBE);
     }
 }
-

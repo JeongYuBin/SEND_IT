@@ -5,6 +5,8 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,6 +15,8 @@ public class UrlNormalizer {
     private static final Set<String> TRACKING_PARAMETERS = Set.of(
             "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "fbclid"
     );
+    private static final Pattern NAVER_BLOG_POST_PATH =
+            Pattern.compile("^/([A-Za-z0-9_-]+)/([0-9]+)$");
 
     public String normalize(String rawUrl) {
         try {
@@ -26,6 +30,13 @@ public class UrlNormalizer {
             String path = uri.getPath();
             if (path != null && path.length() > 1 && path.endsWith("/")) {
                 path = path.substring(0, path.length() - 1);
+            }
+            if ("blog.naver.com".equalsIgnoreCase(uri.getHost())) {
+                Matcher post = NAVER_BLOG_POST_PATH.matcher(path == null ? "" : path);
+                if (post.matches()) {
+                    path = "/PostView.naver";
+                    query = "blogId=" + post.group(1) + "&logNo=" + post.group(2);
+                }
             }
 
             return new URI(
@@ -73,4 +84,3 @@ public class UrlNormalizer {
         return normalized.isBlank() ? null : normalized;
     }
 }
-

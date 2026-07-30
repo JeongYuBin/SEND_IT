@@ -75,4 +75,28 @@ class PageMetadataParserTest {
 
         assertThat(result.placeName()).isEqualTo("월래순교자관");
     }
+    @Test
+    void extractsPlaceFromNaverBlogMapBlock() {
+        String html = """
+                <meta property="og:title" content="[강릉 맛집] 건도리횟집">
+                <meta property="og:description" content="강릉 여행 중 방문한 횟집">
+                <meta property="og:image" content="https://example.com/store.jpg">
+                <a data-linktype="map"
+                   data-linkdata='{"name":"건도리횟집","address":"강원특별자치도 강릉시 창해로 427 건도리횟집","latitude":"37.799404","longitude":"128.913725"}'>
+                </a>
+                """;
+
+        PageMetadata result = parser.parse(
+                html,
+                "https://blog.naver.com/PostView.naver?blogId=silver3358&logNo=224296787264"
+        );
+
+        assertThat(result.title()).isEqualTo("[강릉 맛집] 건도리횟집");
+        assertThat(result.placeName()).isEqualTo("건도리횟집");
+        assertThat(result.category()).isEqualTo("음식점");
+        assertThat(result.address()).isEqualTo("강원특별자치도 강릉시 창해로 427 건도리횟집");
+        assertThat(result.latitude()).isEqualTo(37.799404);
+        assertThat(result.longitude()).isEqualTo(128.913725);
+        assertThat(result.imageUrl()).isEqualTo("https://example.com/store.jpg");
+    }
 }

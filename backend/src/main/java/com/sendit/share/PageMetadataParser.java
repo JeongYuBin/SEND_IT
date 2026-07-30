@@ -19,11 +19,14 @@ public class PageMetadataParser {
 
     public PageMetadata parse(String html, String baseUrl) {
         Document document = Jsoup.parse(html, baseUrl);
-        PlaceCandidate place = structuredPlace(document);
         String title = firstNonBlank(
                 content(document, "meta[property=og:title]"),
                 content(document, "meta[name=twitter:title]"),
                 document.title()
+        );
+        PlaceCandidate place = firstPlace(
+                naverMapPlace(document, baseUrl, title),
+                structuredPlace(document)
         );
         String description = firstNonBlank(
                 content(document, "meta[property=og:description]"),
@@ -53,6 +56,52 @@ public class PageMetadataParser {
                 place.latitude(),
                 place.longitude()
         );
+    }
+
+    private PlaceCandidate naverMapPlace(Document document, String baseUrl, String title) {
+        try {
+            if (!"blog.naver.com".equalsIgnoreCase(URI.create(baseUrl).getHost())) {
+                return PlaceCandidate.empty();
+            }
+            for (var element : document.select("[data-linktype=map][data-linkdata]")) {
+                JsonNode map = objectMapper.readTree(element.attr("data-linkdata"));
+                String name = text(map, "name");
+                String address = text(map, "address");
+                if (name != null || address != null) {
+                    return new PlaceCandidate(
+                            name,
+                            naverCategory(title, name),
+                            address,
+                            number(map, "latitude"),
+                            number(map, "longitude")
+                    );
+                }
+            }
+        } catch (Exception ignored) {
+            // 네이버 지도 블록 형식이 달라지면 다른 메타데이터 추출 방식으로 계속 분석한다.
+        }
+        return PlaceCandidate.empty();
+    }
+
+    private PlaceCandidate firstPlace(PlaceCandidate... candidates) {
+        for (PlaceCandidate candidate : candidates) {
+            if (candidate.name() != null || candidate.address() != null) {
+                return candidate;
+            }
+        }
+        return PlaceCandidate.empty();
+    }
+
+    private String naverCategory(String title, String placeName) {
+        String value = ((title == null ? "" : title) + " "
+                + (placeName == null ? "" : placeName)).toLowerCase();
+        if (value.matches(".*(맛집|음식점|식당|횟집|카페|베이커리|빵집).*")) {
+            return value.contains("카페") ? "카페" : "음식점";
+        }
+        if (value.matches(".*(숙소|호텔|모텔|펜션|리조트|게스트하우스|호스텔).*")) {
+            return "숙박";
+        }
+        return null;
     }
 
     private PlaceCandidate structuredPlace(Document document) {
