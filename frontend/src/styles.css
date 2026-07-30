@@ -175,6 +175,225 @@ h1 {
   font-weight: 500;
 }
 
+.home-dashboard {
+  display: grid;
+  width: min(100%, 1100px);
+  margin: 90px auto 40px;
+  gap: 22px;
+}
+
+.home-dashboard-heading {
+  display: flex;
+  margin-bottom: 8px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.home-dashboard-heading .eyebrow {
+  margin-bottom: 10px;
+}
+
+.home-dashboard-heading h2 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  letter-spacing: -.045em;
+}
+
+.home-dashboard-heading > a,
+.home-dashboard-section > header > a {
+  color: #176b52;
+  font-weight: 800;
+}
+
+.home-dashboard-section {
+  padding: 26px;
+  border: 1px solid #d7ddd8;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 20px 48px rgba(30, 77, 60, .07);
+}
+
+.home-dashboard-section > header {
+  display: flex;
+  margin-bottom: 18px;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.home-dashboard-section > header span {
+  color: #176b52;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.home-dashboard-section > header h3 {
+  margin: 5px 0 0;
+  font-size: 1.5rem;
+}
+
+.home-trip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-trip-card {
+  position: relative;
+  display: grid;
+  min-height: 150px;
+  padding: 20px;
+  align-content: end;
+  border: 1px solid #d7ddd8;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(114, 170, 146, .2), transparent 7rem),
+    white;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+
+.home-trip-card:hover,
+.home-place-card:hover {
+  border-color: #82a498;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(30, 77, 60, .1);
+}
+
+.home-trip-card > span,
+.home-trip-card small {
+  color: #64766f;
+}
+
+.home-trip-card strong {
+  margin: 8px 0 5px;
+  font-size: 1.15rem;
+}
+
+.home-trip-card b {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #176b52;
+  background: #dceee6;
+  font-size: .72rem;
+}
+
+.home-place-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-place-card {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 1px solid #d7ddd8;
+  border-radius: 16px;
+  background: white;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+
+.home-place-card img,
+.home-place-placeholder {
+  width: 90px;
+  height: 78px;
+  border-radius: 11px;
+  object-fit: cover;
+}
+
+.home-place-placeholder {
+  display: grid;
+  place-items: center;
+  color: #176b52;
+  background: #dceee6;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.home-place-card > span,
+.home-place-card strong,
+.home-place-card small,
+.home-place-card span span {
+  display: block;
+  min-width: 0;
+}
+
+.home-place-card small {
+  color: #176b52;
+  font-weight: 750;
+}
+
+.home-place-card strong {
+  overflow: hidden;
+  margin: 5px 0;
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-place-card span span {
+  overflow: hidden;
+  color: #64766f;
+  font-size: .84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-dashboard-empty {
+  display: flex;
+  min-height: 110px;
+  padding: 24px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 14px;
+  color: #64766f;
+  background: #f3f6f4;
+}
+
+.home-dashboard-empty a {
+  color: #176b52;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .home-trip-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-place-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .home-dashboard {
+    margin-top: 64px;
+  }
+
+  .home-dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .home-dashboard-section {
+    padding: 18px;
+  }
+
+  .home-dashboard-section > header {
+    align-items: flex-start;
+  }
+}
+
 .auth-shell {
   min-height: 100vh;
   padding: 32px;

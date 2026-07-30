@@ -1,16 +1,35 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import type { ApiError } from '../auth/types'
 import { createShare } from '../share/shareApi'
+import { getItineraries } from '../itinerary/itineraryApi'
+import { getSavedPlaces } from '../saved/savedApi'
 import { useAuthStore } from '../../stores/authStore'
+import type { TransportType } from '../itinerary/types'
+
+const transportLabels: Record<TransportType, string> = {
+  WALKING: '도보',
+  PUBLIC_TRANSIT: '대중교통',
+  CAR: '자동차',
+}
 
 export function HomePage() {
   const { accessToken, refreshToken, user, clearSession } = useAuthStore()
   const navigate = useNavigate()
   const [url, setUrl] = useState('')
+  const savedPlacesQuery = useQuery({
+    queryKey: ['saved-places'],
+    queryFn: getSavedPlaces,
+    enabled: Boolean(accessToken),
+  })
+  const itinerariesQuery = useQuery({
+    queryKey: ['itineraries'],
+    queryFn: getItineraries,
+    enabled: Boolean(accessToken),
+  })
   const shareMutation = useMutation({
     mutationFn: createShare,
     onError: (error) => {
@@ -49,6 +68,14 @@ export function HomePage() {
   }
 
   const shareError = (shareMutation.error as AxiosError<ApiError> | null)?.response?.data
+  const today = new Date().toLocaleDateString('en-CA')
+  const recentPlaces = [...(savedPlacesQuery.data ?? [])]
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+    .slice(0, 4)
+  const upcomingTrips = [...(itinerariesQuery.data ?? [])]
+    .filter((itinerary) => itinerary.endDate >= today)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    .slice(0, 3)
 
   return (
     <main className="shell">
@@ -107,6 +134,87 @@ export function HomePage() {
           )}
         </form>
       </section>
+      {accessToken && (
+        <section className="home-dashboard" aria-label="내 여행 대시보드">
+          <div className="home-dashboard-heading">
+            <div>
+              <span className="eyebrow">MY TRAVEL</span>
+              <h2>{user?.nickname}님의 여행 준비</h2>
+            </div>
+            <Link to="/itineraries">전체 여행 계획 보기</Link>
+          </div>
+
+          <section className="home-dashboard-section">
+            <header>
+              <div>
+                <span>UPCOMING</span>
+                <h3>다가오는 여행</h3>
+              </div>
+              <Link to="/itineraries">계획 관리</Link>
+            </header>
+            {itinerariesQuery.isLoading ? (
+              <div className="home-dashboard-empty">여행 계획을 불러오고 있습니다.</div>
+            ) : upcomingTrips.length > 0 ? (
+              <div className="home-trip-grid">
+                {upcomingTrips.map((itinerary) => (
+                  <Link className="home-trip-card" to={`/itineraries/${itinerary.id}`} key={itinerary.id}>
+                    <span>{itinerary.startDate === itinerary.endDate
+                      ? itinerary.startDate
+                      : `${itinerary.startDate} – ${itinerary.endDate}`}</span>
+                    <strong>{itinerary.title}</strong>
+                    <small>
+                      {transportLabels[itinerary.transportType]} · {itinerary.items.length}개 장소
+                    </small>
+                    <b>{itinerary.startDate <= today ? '여행 중' : '예정'}</b>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="home-dashboard-empty">
+                <span>다가오는 여행 계획이 없습니다.</span>
+                <Link to="/itineraries">새 여행 계획 만들기</Link>
+              </div>
+            )}
+          </section>
+
+          <section className="home-dashboard-section">
+            <header>
+              <div>
+                <span>RECENT PLACES</span>
+                <h3>최근 저장한 장소</h3>
+              </div>
+              <Link to="/saved">전체 장소 보기</Link>
+            </header>
+            {savedPlacesQuery.isLoading ? (
+              <div className="home-dashboard-empty">저장한 장소를 불러오고 있습니다.</div>
+            ) : recentPlaces.length > 0 ? (
+              <div className="home-place-grid">
+                {recentPlaces.map((place) => (
+                  <Link
+                    className="home-place-card"
+                    to={`/saved/places/${place.savedPlaceId}`}
+                    key={place.savedPlaceId}
+                  >
+                    {place.imageUrl
+                      ? <img src={place.imageUrl} alt="" />
+                      : <span className="home-place-placeholder">{place.name.slice(0, 1)}</span>}
+                    <span>
+                      <small>{place.category ?? '장소'}</small>
+                      <strong>{place.name}</strong>
+                      <span>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="home-dashboard-empty">
+                <span>아직 저장한 장소가 없습니다.</span>
+                <a href="#content-url">URL로 첫 장소 저장하기</a>
+              </div>
+            )}
+          </section>
+        </section>
+      )}
     </main>
   )
 }
