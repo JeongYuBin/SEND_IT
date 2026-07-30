@@ -9,6 +9,7 @@ import {
 import { addItineraryItem, removeItineraryItem } from './itineraryApi'
 import type { TourismAccommodation } from '../saved/types'
 import type { Itinerary, ItineraryDay } from './types'
+import { PlaceImage } from '../../components/PlaceImage'
 
 type Props = {
   itinerary: Itinerary
@@ -179,7 +180,13 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
                         onClick={() => setSelectedStay(stay)}
                       >
                         {stay.imageUrl
-                          ? <img src={stay.imageUrl} alt="" />
+                          ? (
+                            <PlaceImage
+                              src={stay.imageUrl}
+                              alt={`${stay.name} 대표 이미지`}
+                              className="stay-placeholder"
+                            />
+                          )
                           : (
                             <div className="stay-skeleton" role="img" aria-label="숙소 이미지 준비 중">
                               <span className="stay-skeleton-building" />
@@ -261,7 +268,13 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
             {!detailQuery.isLoading && (
               <>
                 {(detailQuery.data?.imageUrl ?? selectedStay.imageUrl)
-                  ? <img src={detailQuery.data?.imageUrl ?? selectedStay.imageUrl!} alt="" />
+                  ? (
+                    <PlaceImage
+                      src={detailQuery.data?.imageUrl ?? selectedStay.imageUrl}
+                      alt={`${selectedStay.name} 대표 이미지`}
+                      className="stay-placeholder"
+                    />
+                  )
                   : (
                     <div className="stay-skeleton detail" role="img" aria-label="숙소 이미지 준비 중">
                       <span className="stay-skeleton-building" />

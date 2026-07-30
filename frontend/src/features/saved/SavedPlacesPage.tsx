@@ -13,6 +13,7 @@ import type { VisitStatus } from './types'
 import { SavedPlacesMap } from './SavedPlacesMap'
 import { getItineraries } from '../itinerary/itineraryApi'
 import type { TransportType } from '../itinerary/types'
+import { PlaceImage } from '../../components/PlaceImage'
 
 const statusLabels: Record<VisitStatus, string> = {
   WANT_TO_VISIT: '가고 싶어요',
@@ -364,7 +365,13 @@ export function SavedPlacesPage() {
               }}
             >
               <div className="place-image">
-                {place.imageUrl ? <img src={place.imageUrl} alt="" /> : (
+                {place.imageUrl ? (
+                  <PlaceImage
+                    src={place.imageUrl}
+                    alt={`${place.name} 대표 이미지`}
+                    className="saved-place-image-skeleton"
+                  />
+                ) : (
                   <span
                     className="place-image-skeleton saved-place-image-skeleton"
                     role="img"

@@ -19,6 +19,7 @@ import { ItineraryFestivals } from './ItineraryFestivals'
 import { ItineraryAccommodations } from './ItineraryAccommodations'
 import { PlaceScheduleEditor } from './PlaceScheduleEditor'
 import { TransitRouteGuide } from './TransitRouteGuide'
+import { PlaceImage } from '../../components/PlaceImage'
 import type {
   ItineraryStatus,
   TransportType,
@@ -440,9 +441,11 @@ export function ItineraryDetailPage() {
                           )}
                           <div className="timeline-card-shell">
                             <Link to={`/saved/places/${item.savedPlaceId}`}>
-                              {item.imageUrl
-                                ? <img src={item.imageUrl} alt="" />
-                                : <div className="timeline-placeholder">{item.name.slice(0, 1)}</div>}
+                              <PlaceImage
+                                src={item.imageUrl}
+                                alt={`${item.name} 대표 이미지`}
+                                className="timeline-placeholder"
+                              />
                               <span>
                                 <small>{time(item.arrivalTime)}–{time(item.departureTime)} · 체류 {item.stayMinutes}분</small>
                                 <strong>{item.name}</strong>
@@ -568,9 +571,11 @@ export function ItineraryDetailPage() {
                             visitDate: addingToDate,
                           })}
                         >
-                          {place.imageUrl
-                            ? <img src={place.imageUrl} alt="" />
-                            : <span className="place-picker-placeholder">{place.name.slice(0, 1)}</span>}
+                          <PlaceImage
+                            src={place.imageUrl}
+                            alt={`${place.name} 대표 이미지`}
+                            className="place-picker-placeholder"
+                          />
                           <span>
                             <strong>{place.name}</strong>
                             <small>{place.roadAddress ?? place.address ?? place.category ?? '장소 정보 없음'}</small>

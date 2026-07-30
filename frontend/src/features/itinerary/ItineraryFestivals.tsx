@@ -9,6 +9,7 @@ import {
 import { addItineraryItem, removeItineraryItem } from './itineraryApi'
 import type { TourismFestival } from '../saved/types'
 import type { Itinerary } from './types'
+import { PlaceImage } from '../../components/PlaceImage'
 
 type Props = {
   itinerary: Itinerary
@@ -137,7 +138,13 @@ export function ItineraryFestivals({ itinerary }: Props) {
               }}
             >
               {festival.imageUrl
-                ? <img src={festival.imageUrl} alt="" />
+                ? (
+                  <PlaceImage
+                    src={festival.imageUrl}
+                    alt={`${festival.name} 대표 이미지`}
+                    className="festival-image-skeleton"
+                  />
+                )
                 : (
                   <div
                     className="place-image-skeleton festival-image-skeleton"
@@ -202,7 +209,13 @@ export function ItineraryFestivals({ itinerary }: Props) {
             {!detailQuery.isLoading && (
               <>
                 {(detailQuery.data?.imageUrl ?? selectedFestival.imageUrl)
-                  ? <img src={detailQuery.data?.imageUrl ?? selectedFestival.imageUrl!} alt="" />
+                  ? (
+                    <PlaceImage
+                      src={detailQuery.data?.imageUrl ?? selectedFestival.imageUrl}
+                      alt={`${selectedFestival.name} 대표 이미지`}
+                      className="festival-detail-skeleton"
+                    />
+                  )
                   : (
                     <div
                       className="place-image-skeleton festival-detail-skeleton"

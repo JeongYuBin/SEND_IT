@@ -9,6 +9,7 @@ import { getItineraries } from '../itinerary/itineraryApi'
 import { getSavedPlaces } from '../saved/savedApi'
 import { useAuthStore } from '../../stores/authStore'
 import type { TransportType } from '../itinerary/types'
+import { PlaceImage } from '../../components/PlaceImage'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -196,7 +197,13 @@ export function HomePage() {
                     key={place.savedPlaceId}
                   >
                     {place.imageUrl
-                      ? <img src={place.imageUrl} alt="" />
+                      ? (
+                        <PlaceImage
+                          src={place.imageUrl}
+                          alt={`${place.name} 대표 이미지`}
+                          className="home-place-skeleton"
+                        />
+                      )
                       : (
                         <span
                           className="place-image-skeleton home-place-skeleton"
