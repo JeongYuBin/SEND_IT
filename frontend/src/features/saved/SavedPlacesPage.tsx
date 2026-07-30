@@ -186,7 +186,7 @@ export function SavedPlacesPage() {
           </p>
         </div>
         <div className="saved-header-actions">
-          <Link className="secondary-button" to="/itineraries">여행 계획 만들기</Link>
+          <Link className="secondary-button" to="/itineraries/new">여행 계획 만들기</Link>
           <button className="primary-button" onClick={() => setShowForm((value) => !value)}>
             {showForm ? '닫기' : '+ 장소 추가'}
           </button>
@@ -210,7 +210,7 @@ export function SavedPlacesPage() {
         {!itinerariesQuery.isLoading && (itinerariesQuery.data?.length ?? 0) === 0 && (
           <div className="saved-itinerary-empty">
             <span>아직 만든 여행 계획이 없습니다.</span>
-            <Link to="/itineraries">첫 여행 계획 만들기</Link>
+            <Link to="/itineraries/new">첫 여행 계획 만들기</Link>
           </div>
         )}
         <div className="saved-itinerary-cards">

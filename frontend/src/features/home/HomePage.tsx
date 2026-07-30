@@ -161,7 +161,7 @@ export function HomePage() {
                 <span>UPCOMING</span>
                 <h3>다가오는 여행</h3>
               </div>
-              <Link to="/itineraries">계획 관리</Link>
+              <Link to="/itineraries/new">계획 추가</Link>
             </header>
             {itinerariesQuery.isLoading ? (
               <div className="home-dashboard-empty">여행 계획을 불러오고 있습니다.</div>
@@ -183,7 +183,7 @@ export function HomePage() {
             ) : (
               <div className="home-dashboard-empty">
                 <span>다가오는 여행 계획이 없습니다.</span>
-                <Link to="/itineraries">새 여행 계획 만들기</Link>
+                <Link to="/itineraries/new">새 여행 계획 만들기</Link>
               </div>
             )}
           </section>

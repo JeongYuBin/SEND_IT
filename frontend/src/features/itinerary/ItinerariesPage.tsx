@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
 import { getSavedPlaces } from '../saved/savedApi'
-import { createItinerary, getItineraries } from './itineraryApi'
+import { createItinerary } from './itineraryApi'
 import type { TransportType } from './types'
 
 const transportLabels: Record<TransportType, string> = {
@@ -34,7 +34,6 @@ export function ItinerariesPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
-  const itinerariesQuery = useQuery({ queryKey: ['itineraries'], queryFn: getItineraries })
   const placesById = useMemo(
     () => new Map((placesQuery.data ?? []).map((place) => [place.savedPlaceId, place])),
     [placesQuery.data],
@@ -85,7 +84,7 @@ export function ItinerariesPage() {
         <p>저장한 장소를 고르고 기본 일정을 정해 보세요. 장소는 선택한 순서대로 계획에 담깁니다.</p>
       </header>
 
-      <div className="itinerary-layout">
+      <div className="itinerary-layout itinerary-create-layout">
         <form className="itinerary-form" onSubmit={handleSubmit}>
           <h2>기본 일정</h2>
           <label>
@@ -168,20 +167,6 @@ export function ItinerariesPage() {
           </button>
         </form>
 
-        <aside className="itinerary-list">
-          <h2>내 여행 계획</h2>
-          {itinerariesQuery.isLoading && <p>계획을 불러오고 있습니다.</p>}
-          {!itinerariesQuery.isLoading && (itinerariesQuery.data?.length ?? 0) === 0 && (
-            <p className="itinerary-empty">아직 만든 계획이 없습니다.</p>
-          )}
-          {itinerariesQuery.data?.map((itinerary) => (
-            <Link className="itinerary-list-card" key={itinerary.id} to={`/itineraries/${itinerary.id}`}>
-              <span>{itinerary.startDate} — {itinerary.endDate}</span>
-              <strong>{itinerary.title}</strong>
-              <small>{transportLabels[itinerary.transportType]} · 장소 {itinerary.items.length}개</small>
-            </Link>
-          ))}
-        </aside>
       </div>
     </main>
   )

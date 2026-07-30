@@ -3,6 +3,7 @@ import { AuthPage } from './features/auth/AuthPage'
 import { HomePage } from './features/home/HomePage'
 import { ItinerariesPage } from './features/itinerary/ItinerariesPage'
 import { ItineraryDetailPage } from './features/itinerary/ItineraryDetailPage'
+import { ItineraryListPage } from './features/itinerary/ItineraryListPage'
 import { SavedPlacesPage } from './features/saved/SavedPlacesPage'
 import { SavedPlaceDetailPage } from './features/saved/SavedPlaceDetailPage'
 import { ShareResultPage } from './features/share/ShareResultPage'
@@ -26,6 +27,10 @@ export function App() {
       />
       <Route
         path="/itineraries"
+        element={<ProtectedRoute><ItineraryListPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/itineraries/new"
         element={<ProtectedRoute><ItinerariesPage /></ProtectedRoute>}
       />
       <Route
