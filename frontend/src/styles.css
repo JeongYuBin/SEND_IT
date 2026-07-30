@@ -1028,11 +1028,32 @@ h1 {
 }
 
 .place-detail-visual img,
-.place-detail-visual .preview-placeholder {
+.place-detail-visual .preview-placeholder,
+.place-detail-image-skeleton {
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 22px;
   object-fit: cover;
+}
+
+.place-detail-image-skeleton .place-image-skeleton-sun {
+  top: 9%;
+  right: 9%;
+  width: 9%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.place-detail-image-skeleton .place-image-skeleton-mountain {
+  right: -3%;
+  bottom: 10%;
+  width: 72%;
+  height: 57%;
+  border-radius: 16px 0 0;
+}
+
+.place-detail-image-skeleton .place-image-skeleton-ground {
+  height: 14%;
 }
 
 .place-detail-location {

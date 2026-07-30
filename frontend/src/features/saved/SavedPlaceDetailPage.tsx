@@ -140,7 +140,17 @@ export function SavedPlaceDetailPage() {
         <div className="place-detail-visual">
           {place.imageUrl
             ? <img src={place.imageUrl} alt={place.name} />
-            : <div className="preview-placeholder">{place.name.slice(0, 1)}</div>}
+            : (
+              <div
+                className="place-image-skeleton place-detail-image-skeleton"
+                role="img"
+                aria-label="등록된 장소 이미지 없음"
+              >
+                <i className="place-image-skeleton-sun" />
+                <i className="place-image-skeleton-mountain" />
+                <i className="place-image-skeleton-ground" />
+              </div>
+            )}
           {place.latitude !== null && place.longitude !== null && (
             <section className="place-detail-location">
               <div>
