@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getItineraries } from './itineraryApi'
@@ -15,11 +16,46 @@ const statusLabels: Record<ItineraryStatus, string> = {
   COMPLETED: '여행 완료',
 }
 
+type TripFilter = 'ALL' | 'UPCOMING' | 'ONGOING' | 'PAST'
+
+const filterLabels: Record<TripFilter, string> = {
+  ALL: '전체',
+  UPCOMING: '예정',
+  ONGOING: '여행 중',
+  PAST: '지난 여행',
+}
+
+function tripPhase(startDate: string, endDate: string, today: string): Exclude<TripFilter, 'ALL'> {
+  if (endDate < today) return 'PAST'
+  if (startDate <= today) return 'ONGOING'
+  return 'UPCOMING'
+}
+
 export function ItineraryListPage() {
+  const [filter, setFilter] = useState<TripFilter>('ALL')
   const itinerariesQuery = useQuery({
     queryKey: ['itineraries'],
     queryFn: getItineraries,
   })
+  const today = new Date().toLocaleDateString('en-CA')
+  const itineraries = [...(itinerariesQuery.data ?? [])]
+    .sort((left, right) => {
+      const leftPast = left.endDate < today
+      const rightPast = right.endDate < today
+      if (leftPast !== rightPast) return leftPast ? 1 : -1
+      return leftPast
+        ? right.startDate.localeCompare(left.startDate)
+        : left.startDate.localeCompare(right.startDate)
+    })
+  const counts = itineraries.reduce<Record<TripFilter, number>>((result, itinerary) => {
+    result.ALL += 1
+    result[tripPhase(itinerary.startDate, itinerary.endDate, today)] += 1
+    return result
+  }, { ALL: 0, UPCOMING: 0, ONGOING: 0, PAST: 0 })
+  const visibleItineraries = filter === 'ALL'
+    ? itineraries
+    : itineraries.filter((itinerary) =>
+      tripPhase(itinerary.startDate, itinerary.endDate, today) === filter)
 
   return (
     <main className="itinerary-shell">
@@ -51,10 +87,34 @@ export function ItineraryListPage() {
             <Link className="primary-button" to="/itineraries/new">첫 계획 만들기</Link>
           </div>
         )}
+        {(itinerariesQuery.data?.length ?? 0) > 0 && (
+          <div className="itinerary-list-filters" aria-label="여행 계획 상태 필터">
+            {(Object.keys(filterLabels) as TripFilter[]).map((value) => (
+              <button
+                type="button"
+                className={filter === value ? 'active' : ''}
+                aria-pressed={filter === value}
+                onClick={() => setFilter(value)}
+                key={value}
+              >
+                {filterLabels[value]} <span>{counts[value]}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {!itinerariesQuery.isLoading
+          && itineraries.length > 0
+          && visibleItineraries.length === 0 && (
+          <div className="empty-state itinerary-filter-empty">
+            {filterLabels[filter]}에 해당하는 여행 계획이 없습니다.
+          </div>
+        )}
         <div className="itinerary-saved-grid">
-          {itinerariesQuery.data?.map((itinerary) => (
+          {visibleItineraries.map((itinerary) => {
+            const phase = tripPhase(itinerary.startDate, itinerary.endDate, today)
+            return (
             <Link
-              className="itinerary-saved-card"
+              className={`itinerary-saved-card ${phase.toLowerCase()}`}
               key={itinerary.id}
               to={`/itineraries/${itinerary.id}`}
             >
@@ -62,15 +122,17 @@ export function ItineraryListPage() {
                 <span>{itinerary.startDate === itinerary.endDate
                   ? itinerary.startDate
                   : `${itinerary.startDate} – ${itinerary.endDate}`}</span>
-                <b>{statusLabels[itinerary.status]}</b>
+                <b>{filterLabels[phase]}</b>
               </div>
               <strong>{itinerary.title}</strong>
               <small>
                 {transportLabels[itinerary.transportType]} · 장소 {itinerary.items.length}개
+                {' · '}{statusLabels[itinerary.status]}
               </small>
               <span className="itinerary-card-action">계획 열기 →</span>
             </Link>
-          ))}
+            )
+          })}
         </div>
       </section>
     </main>

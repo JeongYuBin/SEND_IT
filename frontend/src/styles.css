@@ -2493,6 +2493,51 @@ h1 {
   margin-top: 42px;
 }
 
+.itinerary-list-filters {
+  display: flex;
+  margin-bottom: 24px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.itinerary-list-filters button {
+  display: inline-flex;
+  min-height: 44px;
+  padding: 9px 15px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #ccd7d1;
+  border-radius: 999px;
+  background: #fff;
+  color: #486158;
+  font-weight: 750;
+}
+
+.itinerary-list-filters button span {
+  display: grid;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  place-items: center;
+  border-radius: 999px;
+  background: #edf2ef;
+  font-size: .74rem;
+}
+
+.itinerary-list-filters button.active {
+  border-color: #315f49;
+  background: #315f49;
+  color: #fff;
+}
+
+.itinerary-list-filters button.active span {
+  background: rgb(255 255 255 / 18%);
+}
+
+.itinerary-filter-empty {
+  margin-bottom: 20px;
+}
+
 .itinerary-saved-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2533,6 +2578,20 @@ h1 {
   color: #315f49;
   background: #e8f0eb;
   font-size: .75rem;
+}
+
+.itinerary-saved-card.ongoing > div b {
+  color: #8a4b12;
+  background: #fff0d8;
+}
+
+.itinerary-saved-card.past {
+  background: rgb(246 247 246 / 78%);
+}
+
+.itinerary-saved-card.past > div b {
+  color: #69716d;
+  background: #e9ecea;
 }
 
 .itinerary-saved-card > strong {
