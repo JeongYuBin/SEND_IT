@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createSavedPlace,
@@ -19,6 +20,15 @@ function dateRange(startDate: string | null, endDate: string | null) {
   if (!startDate && !endDate) return '행사 기간 정보 없음'
   if (startDate === endDate || !endDate) return startDate
   return `${startDate ?? endDate} – ${endDate}`
+}
+
+function mutationErrorMessage(error: unknown) {
+  if (!axios.isAxiosError<{ message?: string; error?: string }>(error)) {
+    return '행사의 경로 상태를 변경하지 못했습니다. 다시 시도해 주세요.'
+  }
+  return error.response?.data?.message
+    ?? error.response?.data?.error
+    ?? '행사의 경로 상태를 변경하지 못했습니다. 다시 시도해 주세요.'
 }
 
 export function ItineraryFestivals({ itinerary }: Props) {
@@ -111,6 +121,10 @@ export function ItineraryFestivals({ itinerary }: Props) {
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
     },
   })
+  const resetRouteMutation = routeMutation.reset
+  useEffect(() => {
+    resetRouteMutation()
+  }, [resetRouteMutation, selectedFestival?.contentId])
 
   if (coordinates.length === 0) return null
 
@@ -183,9 +197,6 @@ export function ItineraryFestivals({ itinerary }: Props) {
             </article>
           ))}
         </div>
-      )}
-      {routeMutation.isError && (
-        <div className="form-error">행사의 경로 상태를 변경하지 못했습니다. 다시 시도해 주세요.</div>
       )}
       {selectedFestival && (
         <div
@@ -265,6 +276,11 @@ export function ItineraryFestivals({ itinerary }: Props) {
                   {detailQuery.isError && (
                     <p className="field-error">일부 상세정보를 불러오지 못해 기본정보만 표시합니다.</p>
                   )}
+                  {routeMutation.isError && (
+                    <p className="form-error" role="alert">
+                      {mutationErrorMessage(routeMutation.error)}
+                    </p>
+                  )}
                   {(() => {
                     const savedPlace = savedByContentId.get(selectedFestival.contentId)
                     const included = savedPlace
@@ -285,17 +301,29 @@ export function ItineraryFestivals({ itinerary }: Props) {
                         </button>
                       )
                     }
+                    const availableDays = itinerary.days.filter((day) =>
+                      (!selectedFestival.startDate
+                        || day.date >= selectedFestival.startDate)
+                      && (!selectedFestival.endDate
+                        || day.date <= selectedFestival.endDate))
+                    if (availableDays.length === 0) {
+                      return (
+                        <div className="festival-day-unavailable" role="status">
+                          <strong>이 여행 일정에 추가할 수 없습니다.</strong>
+                          <span>
+                            행사 기간 {dateRange(
+                              selectedFestival.startDate,
+                              selectedFestival.endDate,
+                            )}과 여행 날짜가 겹치지 않습니다.
+                          </span>
+                        </div>
+                      )
+                    }
                     return (
                       <div className="festival-day-actions">
-                        <strong>추가할 날짜 선택</strong>
+                        <strong>행사 기간에 방문 가능한 날짜</strong>
                         <div>
-                          {itinerary.days
-                            .filter((day) =>
-                              (!selectedFestival.startDate
-                                || day.date >= selectedFestival.startDate)
-                              && (!selectedFestival.endDate
-                                || day.date <= selectedFestival.endDate))
-                            .map((day) => (
+                          {availableDays.map((day) => (
                             <button
                               type="button"
                               key={day.date}
