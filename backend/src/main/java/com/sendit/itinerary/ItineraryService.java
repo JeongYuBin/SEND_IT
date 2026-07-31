@@ -7,6 +7,7 @@ import com.sendit.place.UserSavedPlace;
 import com.sendit.place.UserSavedPlaceRepository;
 import com.sendit.place.VisitStatus;
 import com.sendit.user.UserRepository;
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +131,7 @@ public class ItineraryService {
                 .findByIdAndUserEmail(request.savedPlaceId(), email)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "저장 장소를 찾을 수 없습니다."));
+        validateEventDate(savedPlace.getPlace(), request.visitDate());
         int nextSequence = itinerary.getItems().stream()
                 .mapToInt(ItineraryItem::getSequence)
                 .max()
@@ -138,6 +140,19 @@ public class ItineraryService {
         savedPlace.update(null, VisitStatus.PLANNED, null, savedPlace.getCollection());
         itinerary.markGenerated();
         return response(itinerary);
+    }
+
+    private void validateEventDate(Place place, LocalDate visitDate) {
+        if (place.getEventStartDate() != null
+                && visitDate.isBefore(place.getEventStartDate())) {
+            throw new IllegalArgumentException(
+                    "행사 시작일(" + place.getEventStartDate() + ") 이후의 날짜를 선택해 주세요.");
+        }
+        if (place.getEventEndDate() != null
+                && visitDate.isAfter(place.getEventEndDate())) {
+            throw new IllegalArgumentException(
+                    "행사 종료일(" + place.getEventEndDate() + ") 이전의 날짜를 선택해 주세요.");
+        }
     }
 
     public ItineraryDtos.Response removeItem(

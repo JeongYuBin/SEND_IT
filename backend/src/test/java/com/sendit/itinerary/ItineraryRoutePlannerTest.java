@@ -163,6 +163,41 @@ class ItineraryRoutePlannerTest {
         assertThat(secondDayStop.arrivalTime()).isEqualTo(LocalTime.of(10, 0));
     }
 
+    @Test
+    void warnsWhenVisitDateIsBeforeEventStarts() {
+        ItineraryItem event = item(1, 37.5, 127.0);
+        when(event.getSavedPlace().getPlace().getEventStartDate())
+                .thenReturn(LocalDate.of(2026, 8, 3));
+        Itinerary itinerary = itinerary(event, LocalDate.of(2026, 8, 1));
+
+        var stop = planner.plan(itinerary).getFirst().stops().getFirst();
+
+        assertThat(stop.visitWarning()).contains("행사 시작 전", "2026-08-03");
+    }
+
+    @Test
+    void warnsWhenVisitDateIsAfterEventEnds() {
+        ItineraryItem event = item(1, 37.5, 127.0);
+        when(event.getSavedPlace().getPlace().getEventEndDate())
+                .thenReturn(LocalDate.of(2026, 7, 31));
+        Itinerary itinerary = itinerary(event, LocalDate.of(2026, 8, 1));
+
+        var stop = planner.plan(itinerary).getFirst().stops().getFirst();
+
+        assertThat(stop.visitWarning()).contains("종료된 행사", "2026-07-31");
+    }
+
+    private Itinerary itinerary(ItineraryItem item, LocalDate date) {
+        Itinerary itinerary = mock(Itinerary.class);
+        when(itinerary.getItems()).thenReturn(List.of(item));
+        when(itinerary.getStartDate()).thenReturn(date);
+        when(itinerary.getEndDate()).thenReturn(date);
+        when(itinerary.getDailyStartTime()).thenReturn(LocalTime.of(10, 0));
+        when(itinerary.getDailyEndTime()).thenReturn(LocalTime.of(18, 0));
+        when(itinerary.getTransportType()).thenReturn(TransportType.WALKING);
+        return itinerary;
+    }
+
     private ItineraryItem item(int sequence, Double latitude, Double longitude) {
         Place place = mock(Place.class);
         when(place.getName()).thenReturn("테스트 장소 " + sequence);

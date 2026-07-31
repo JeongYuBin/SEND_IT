@@ -110,6 +110,7 @@ public class ItineraryRoutePlanner {
                                 itinerary.getStartDate().plusDays(dayIndex),
                                 arrivalTime,
                                 departureTime,
+                                place,
                                 operatingInfo)
                 ));
                 currentTime = departureTime;
@@ -234,8 +235,17 @@ public class ItineraryRoutePlanner {
             LocalDate date,
             LocalTime arrivalTime,
             LocalTime departureTime,
+            Place place,
             TourApiClient.OperatingInfo info
     ) {
+        if (place.getEventStartDate() != null && date.isBefore(place.getEventStartDate())) {
+            return "행사 시작 전입니다. 행사 시작일은 "
+                    + place.getEventStartDate() + "입니다.";
+        }
+        if (place.getEventEndDate() != null && date.isAfter(place.getEventEndDate())) {
+            return "종료된 행사입니다. 행사 종료일은 "
+                    + place.getEventEndDate() + "입니다.";
+        }
         if (info == null) return null;
         if (isRestDay(date, info.restDays())) {
             return "방문 예정일이 관광공사에 등록된 쉬는 날과 겹칠 수 있습니다.";
