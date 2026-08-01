@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SEND IT">
+  <rect width="512" height="512" rx="112" fill="#176b52"/>
+  <path d="M111 274 390 123l-91 277-55-102-133-24Z" fill="#f5f3ec"/>
+  <path d="m244 298 146-175-91 277-55-102Z" fill="#cbe7d7"/>
+  <circle cx="154" cy="153" r="28" fill="#f5f3ec" opacity=".9"/>
+</svg>

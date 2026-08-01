@@ -1,0 +1,21 @@
+{
+  "name": "SEND IT - 여행 장소와 일정",
+  "short_name": "SEND IT",
+  "description": "발견한 여행지를 저장하고 실제 여행 일정으로 연결하세요.",
+  "lang": "ko-KR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f3ec",
+  "theme_color": "#176b52",
+  "categories": ["travel", "navigation", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/sendit-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
