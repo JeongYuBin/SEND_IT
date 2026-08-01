@@ -7,6 +7,7 @@ type AuthState = {
   refreshToken: string | null
   user: AuthUser | null
   setSession: (session: TokenResponse) => void
+  updateUser: (user: AuthUser) => void
   clearSession: () => void
 }
 
@@ -22,6 +23,7 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: session.refreshToken,
           user: session.user,
         }),
+      updateUser: (user) => set({ user }),
       clearSession: () =>
         set({
           accessToken: null,
@@ -34,4 +36,3 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 )
-

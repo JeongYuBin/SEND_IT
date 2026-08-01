@@ -80,7 +80,14 @@ export function ShareResultPage() {
 
   return (
     <main className="result-shell">
-      <nav className="top-nav"><Link className="brand-link" to="/">SEND IT</Link><Link to="/saved">저장한 장소</Link></nav>
+      <nav className="top-nav">
+        <Link className="brand-link" to="/">SEND IT</Link>
+        <div>
+          <Link to="/saved">저장한 장소</Link>
+          <Link to="/profile">내 정보</Link>
+          <Link to="/settings">설정</Link>
+        </div>
+      </nav>
       <section className="result-layout">
         <div className="result-preview">
           <span className="eyebrow">ANALYSIS RESULT</span>

@@ -159,7 +159,11 @@ export function SavedPlacesPage() {
     <main className="saved-shell">
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
-        <Link to="/">URL 저장하기</Link>
+        <div>
+          <Link to="/">URL 저장하기</Link>
+          <Link to="/profile">내 정보</Link>
+          <Link to="/settings">설정</Link>
+        </div>
       </nav>
 
       <header className="saved-header">

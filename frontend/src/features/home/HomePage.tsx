@@ -97,6 +97,8 @@ export function HomePage() {
             <>
               <span>{user?.nickname}님</span>
               <Link to="/saved">저장한 장소</Link>
+              <Link to="/profile">내 정보</Link>
+              <Link to="/settings">설정</Link>
               <button className="text-button" type="button" onClick={handleLogout}>로그아웃</button>
             </>
           ) : (

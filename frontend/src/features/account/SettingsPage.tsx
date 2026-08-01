@@ -22,7 +22,11 @@ export function SettingsPage() {
     <main className="account-shell">
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
-        <Link to="/profile">내 정보</Link>
+        <div>
+          <Link to="/itineraries">여행 계획</Link>
+          <Link to="/saved">저장한 장소</Link>
+          <Link to="/profile">내 정보</Link>
+        </div>
       </nav>
       <header className="account-header">
         <span className="eyebrow">SETTINGS</span>

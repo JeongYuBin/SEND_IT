@@ -130,7 +130,11 @@ export function SavedPlaceDetailPage() {
     <main className="place-detail-shell">
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
-        <Link to={backUrl}>← 저장한 장소</Link>
+        <div>
+          <Link to={backUrl}>← 저장한 장소</Link>
+          <Link to="/profile">내 정보</Link>
+          <Link to="/settings">설정</Link>
+        </div>
       </nav>
       <article className="place-detail">
         <div className="place-detail-visual">

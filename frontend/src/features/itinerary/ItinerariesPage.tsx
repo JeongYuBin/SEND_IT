@@ -74,6 +74,8 @@ export function ItinerariesPage() {
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
           <Link to="/saved">저장한 장소</Link>
+          <Link to="/profile">내 정보</Link>
+          <Link to="/settings">설정</Link>
           <Link to="/">URL 저장하기</Link>
         </div>
       </nav>
