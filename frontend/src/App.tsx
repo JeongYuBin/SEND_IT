@@ -8,6 +8,9 @@ import { SavedPlacesPage } from './features/saved/SavedPlacesPage'
 import { SavedPlaceDetailPage } from './features/saved/SavedPlaceDetailPage'
 import { ShareResultPage } from './features/share/ShareResultPage'
 import { useAuthStore } from './stores/authStore'
+import { MobileBottomNavigation } from './components/MobileBottomNavigation'
+import { ProfilePage } from './features/account/ProfilePage'
+import { SettingsPage } from './features/account/SettingsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => Boolean(state.accessToken))
@@ -16,7 +19,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export function App() {
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
@@ -57,7 +61,11 @@ export function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+      <MobileBottomNavigation />
+    </>
   )
 }
