@@ -10,6 +10,7 @@ public class ContentAnalysisWorker {
     private final AnalysisJobService analysisJobService;
     private final SafePageFetcher safePageFetcher;
     private final PageMetadataParser pageMetadataParser;
+    private final PlatformMetadataAnalyzer platformMetadataAnalyzer;
     private final VisitKoreaMetadataClient visitKoreaMetadataClient;
     private final TourApiClient tourApiClient;
 
@@ -17,12 +18,14 @@ public class ContentAnalysisWorker {
             AnalysisJobService analysisJobService,
             SafePageFetcher safePageFetcher,
             PageMetadataParser pageMetadataParser,
+            PlatformMetadataAnalyzer platformMetadataAnalyzer,
             VisitKoreaMetadataClient visitKoreaMetadataClient,
             TourApiClient tourApiClient
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
         this.pageMetadataParser = pageMetadataParser;
+        this.platformMetadataAnalyzer = platformMetadataAnalyzer;
         this.visitKoreaMetadataClient = visitKoreaMetadataClient;
         this.tourApiClient = tourApiClient;
     }
@@ -31,9 +34,12 @@ public class ContentAnalysisWorker {
     public void processNext() {
         analysisJobService.claimNext().ifPresent(job -> {
             try {
-                var page = safePageFetcher.fetch(job.url());
-                PageMetadata metadata = pageMetadataParser.parse(page.html(), page.finalUrl());
-                metadata = visitKoreaMetadataClient.enrich(page.finalUrl(), metadata);
+                PageMetadata metadata = platformMetadataAnalyzer.analyze(job.url())
+                        .orElseGet(() -> {
+                            var page = safePageFetcher.fetch(job.url());
+                            return pageMetadataParser.parse(page.html(), page.finalUrl());
+                        });
+                metadata = visitKoreaMetadataClient.enrich(job.url(), metadata);
                 metadata = tourApiClient.enrich(metadata);
                 analysisJobService.complete(job.jobId(), metadata);
             } catch (RuntimeException exception) {

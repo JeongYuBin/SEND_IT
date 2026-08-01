@@ -35,6 +35,8 @@ springdoc:
 app:
   kakao:
     rest-api-key: ${KAKAO_REST_API_KEY:}
+  youtube:
+    api-key: ${YOUTUBE_API_KEY:}
   tour-api:
     service-key: ${TOUR_API_SERVICE_KEY:}
     base-url: ${TOUR_API_BASE_URL:https://apis.data.go.kr/B551011/KorService2}
