@@ -12,15 +12,9 @@ import {
   getTourismPlaceDetail,
   updateSavedPlace,
 } from './savedApi'
-import type { NearbyTourismPlace, VisitStatus } from './types'
+import type { NearbyTourismPlace } from './types'
 import { KakaoMap } from '../../components/KakaoMap'
 import { eventPeriodState } from './eventPeriod'
-
-const statusLabels: Record<VisitStatus, string> = {
-  WANT_TO_VISIT: '가고 싶어요',
-  PLANNED: '방문 예정',
-  VISITED: '방문 완료',
-}
 
 export function SavedPlaceDetailPage() {
   const { savedPlaceId: savedPlaceIdParam } = useParams()
@@ -78,7 +72,6 @@ export function SavedPlaceDetailPage() {
   })
   const updateMutation = useMutation({
     mutationFn: (request: {
-      visitStatus?: VisitStatus
       collectionId?: number
       clearCollection?: boolean
     }) => updateSavedPlace(savedPlaceId, request),
@@ -297,19 +290,6 @@ export function SavedPlaceDetailPage() {
                 </dd>
               </div>
             )}
-            <div><dt>방문 상태</dt><dd>
-              <select
-                value={place.visitStatus}
-                disabled={updateMutation.isPending}
-                onChange={(event) => updateMutation.mutate({
-                  visitStatus: event.target.value as VisitStatus,
-                })}
-              >
-                {Object.entries(statusLabels).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-            </dd></div>
             <div><dt>컬렉션</dt><dd>
               <select
                 value={place.collectionId ?? 'none'}

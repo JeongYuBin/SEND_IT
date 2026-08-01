@@ -9,7 +9,6 @@ import type {
   TourismPlaceDetail,
   TourismFestival,
   TourismAccommodation,
-  VisitStatus,
 } from './types'
 
 export async function getSavedPlaces() {
@@ -28,7 +27,6 @@ export async function updateSavedPlace(
   id: number,
   request: {
     memo?: string
-    visitStatus?: VisitStatus
     priority?: number
     collectionId?: number
     clearCollection?: boolean

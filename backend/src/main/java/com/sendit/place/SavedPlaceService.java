@@ -85,8 +85,7 @@ public class SavedPlaceService {
         } else {
             selectedCollection = saved.getCollection();
         }
-        saved.update(request.memo(), request.visitStatus(), request.priority(),
-                selectedCollection);
+        saved.update(request.memo(), request.priority(), selectedCollection);
         return response(saved);
     }
 
@@ -136,8 +135,7 @@ public class SavedPlaceService {
                 p.getOperatingHours(), p.getRestDays(), p.getParkingInfo(),
                 p.getEventStartDate(), p.getEventEndDate(),
                 c==null?null:c.getId(),
-                c==null?null:c.getName(), saved.getMemo(), saved.getVisitStatus(),
-                saved.getPriority(), saved.getSavedAt(),
+                c==null?null:c.getName(), saved.getMemo(), saved.getPriority(), saved.getSavedAt(),
                 share==null?null:share.getOriginalUrl());
     }
 }

@@ -23,8 +23,6 @@ public class UserSavedPlace {
     private Collection collection;
     @Column(length = 1000)
     private String memo;
-    @Enumerated(EnumType.STRING) @Column(name = "visit_status", nullable = false)
-    private VisitStatus visitStatus;
     @Column(nullable = false)
     private int priority;
     @CreationTimestamp @Column(name = "saved_at", nullable = false, updatable = false)
@@ -37,19 +35,16 @@ public class UserSavedPlace {
                           Collection collection, String memo, int priority) {
         this.user = user; this.place = place; this.sharedContent = sharedContent;
         this.collection = collection; this.memo = memo; this.priority = priority;
-        this.visitStatus = VisitStatus.WANT_TO_VISIT;
     }
     public Long getId() { return id; }
     public Place getPlace() { return place; }
     public SharedContent getSharedContent() { return sharedContent; }
     public Collection getCollection() { return collection; }
     public String getMemo() { return memo; }
-    public VisitStatus getVisitStatus() { return visitStatus; }
     public int getPriority() { return priority; }
     public Instant getSavedAt() { return savedAt; }
-    public void update(String memo, VisitStatus status, Integer priority, Collection collection) {
+    public void update(String memo, Integer priority, Collection collection) {
         if (memo != null) this.memo = memo;
-        if (status != null) this.visitStatus = status;
         if (priority != null) this.priority = priority;
         this.collection = collection;
     }

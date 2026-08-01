@@ -5,7 +5,6 @@ import com.sendit.map.KakaoTransitClient;
 import com.sendit.place.Place;
 import com.sendit.place.UserSavedPlace;
 import com.sendit.place.UserSavedPlaceRepository;
-import com.sendit.place.VisitStatus;
 import com.sendit.user.UserRepository;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
@@ -50,7 +49,6 @@ public class ItineraryService {
         for (int index = 0; index < selectedIds.size(); index++) {
             UserSavedPlace savedPlace = placesById.get(selectedIds.get(index));
             itinerary.addPlace(savedPlace, index + 1);
-            savedPlace.update(null, VisitStatus.PLANNED, null, savedPlace.getCollection());
         }
         itinerary.markGenerated();
         return response(itineraries.save(itinerary));
@@ -137,7 +135,6 @@ public class ItineraryService {
                 .max()
                 .orElse(0) + 1;
         itinerary.addPlace(savedPlace, nextSequence, request.visitDate());
-        savedPlace.update(null, VisitStatus.PLANNED, null, savedPlace.getCollection());
         itinerary.markGenerated();
         return response(itinerary);
     }

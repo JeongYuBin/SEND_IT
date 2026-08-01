@@ -26,7 +26,6 @@ public final class SavedPlaceDtos {
     ) {}
     public record UpdateRequest(
             @Size(max=1000) String memo,
-            VisitStatus visitStatus,
             @Min(0) @Max(5) Integer priority,
             Long collectionId,
             Boolean clearCollection
@@ -39,7 +38,7 @@ public final class SavedPlaceDtos {
             String operatingHours, String restDays, String parkingInfo,
             LocalDate eventStartDate, LocalDate eventEndDate,
             Long collectionId, String collectionName,
-            String memo, VisitStatus visitStatus, int priority, Instant savedAt,
+            String memo, int priority, Instant savedAt,
             String originalUrl
     ) {}
 }

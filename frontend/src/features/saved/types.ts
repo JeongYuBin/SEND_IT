@@ -1,5 +1,3 @@
-export type VisitStatus = 'WANT_TO_VISIT' | 'PLANNED' | 'VISITED'
-
 export type Collection = {
   id: number
   name: string
@@ -31,7 +29,6 @@ export type SavedPlace = {
   collectionId: number | null
   collectionName: string | null
   memo: string | null
-  visitStatus: VisitStatus
   priority: number
   savedAt: string
   originalUrl: string | null
