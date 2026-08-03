@@ -11,6 +11,7 @@ public class ContentAnalysisWorker {
     private final SafePageFetcher safePageFetcher;
     private final PageMetadataParser pageMetadataParser;
     private final PlatformMetadataAnalyzer platformMetadataAnalyzer;
+    private final SharedTextMetadataParser sharedTextMetadataParser;
     private final VisitKoreaMetadataClient visitKoreaMetadataClient;
     private final TourApiClient tourApiClient;
 
@@ -19,6 +20,7 @@ public class ContentAnalysisWorker {
             SafePageFetcher safePageFetcher,
             PageMetadataParser pageMetadataParser,
             PlatformMetadataAnalyzer platformMetadataAnalyzer,
+            SharedTextMetadataParser sharedTextMetadataParser,
             VisitKoreaMetadataClient visitKoreaMetadataClient,
             TourApiClient tourApiClient
     ) {
@@ -26,6 +28,7 @@ public class ContentAnalysisWorker {
         this.safePageFetcher = safePageFetcher;
         this.pageMetadataParser = pageMetadataParser;
         this.platformMetadataAnalyzer = platformMetadataAnalyzer;
+        this.sharedTextMetadataParser = sharedTextMetadataParser;
         this.visitKoreaMetadataClient = visitKoreaMetadataClient;
         this.tourApiClient = tourApiClient;
     }
@@ -34,11 +37,19 @@ public class ContentAnalysisWorker {
     public void processNext() {
         analysisJobService.claimNext().ifPresent(job -> {
             try {
-                PageMetadata metadata = platformMetadataAnalyzer.analyze(job.url())
-                        .orElseGet(() -> {
-                            var page = safePageFetcher.fetch(job.url());
-                            return pageMetadataParser.parse(page.html(), page.finalUrl());
-                        });
+                PageMetadata shared = sharedTextMetadataParser.parse(job.sharedText());
+                PageMetadata metadata;
+                try {
+                    metadata = platformMetadataAnalyzer.analyze(job.url())
+                            .orElseGet(() -> {
+                                var page = safePageFetcher.fetch(job.url());
+                                return pageMetadataParser.parse(page.html(), page.finalUrl());
+                            });
+                } catch (RuntimeException fetchFailure) {
+                    if (!sharedTextMetadataParser.hasContent(shared)) throw fetchFailure;
+                    metadata = shared;
+                }
+                metadata = sharedTextMetadataParser.merge(metadata, shared);
                 metadata = visitKoreaMetadataClient.enrich(job.url(), metadata);
                 metadata = tourApiClient.enrich(metadata);
                 analysisJobService.complete(job.jobId(), metadata);

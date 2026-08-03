@@ -34,7 +34,8 @@ public class AnalysisJobService {
         job.start(Instant.now());
         return Optional.of(new ClaimedJob(
                 job.getId(),
-                job.getSharedContent().getNormalizedUrl()
+                job.getSharedContent().getNormalizedUrl(),
+                job.getSharedContent().getSharedText()
         ));
     }
 
@@ -58,6 +59,6 @@ public class AnalysisJobService {
         return error.length() <= 1000 ? error : error.substring(0, 1000);
     }
 
-    public record ClaimedJob(Long jobId, String url) {
+    public record ClaimedJob(Long jobId, String url, String sharedText) {
     }
 }
