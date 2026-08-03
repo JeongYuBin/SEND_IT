@@ -1,7 +1,8 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
+import { getProfile } from '../account/accountApi'
 import { getSavedPlaces } from '../saved/savedApi'
 import { createItinerary } from './itineraryApi'
 import type { TransportType } from './types'
@@ -34,6 +35,7 @@ export function ItinerariesPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
+  const profileQuery = useQuery({ queryKey: ['profile'], queryFn: getProfile })
   const placesById = useMemo(
     () => new Map((placesQuery.data ?? []).map((place) => [place.savedPlaceId, place])),
     [placesQuery.data],
@@ -46,6 +48,12 @@ export function ItinerariesPage() {
       navigate(`/itineraries/${itinerary.id}`)
     },
   })
+
+  useEffect(() => {
+    if (profileQuery.data?.preferredTransport) {
+      setTransportType(profileQuery.data.preferredTransport)
+    }
+  }, [profileQuery.data?.preferredTransport])
 
   const togglePlace = (id: number) => {
     setSelectedIds((current) => current.includes(id)

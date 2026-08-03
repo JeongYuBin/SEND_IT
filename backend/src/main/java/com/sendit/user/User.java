@@ -72,4 +72,17 @@ public class User {
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
+
+    public String getPreferredTransport() {
+        return preferredTransport;
+    }
+
+    public boolean isTravelWithPet() {
+        return travelWithPet;
+    }
+
+    public void updateTravelPreferences(String preferredTransport, boolean travelWithPet) {
+        this.preferredTransport = preferredTransport;
+        this.travelWithPet = travelWithPet;
+    }
 }

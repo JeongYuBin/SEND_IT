@@ -29,4 +29,13 @@ public class UserProfileController {
     ) {
         return service.update(principal.getName(), request);
     }
+
+
+    @PatchMapping("/preferences")
+    UserProfileDtos.Response updatePreferences(
+            Principal principal,
+            @Valid @RequestBody UserProfileDtos.PreferencesUpdateRequest request
+    ) {
+        return service.updatePreferences(principal.getName(), request);
+    }
 }

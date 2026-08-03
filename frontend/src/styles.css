@@ -211,6 +211,117 @@ textarea {
   font-weight: 800;
 }
 
+.preference-form {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+}
+
+.preference-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.preference-heading h2 {
+  margin: 7px 0 0;
+  font-size: 25px;
+}
+
+.preference-heading button,
+.preference-field select {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--green);
+  border-radius: 13px;
+  background: #fff;
+  color: var(--green);
+  font: inherit;
+  font-weight: 700;
+}
+
+.preference-heading button:not(:disabled) {
+  background: var(--green);
+  color: #fff;
+  cursor: pointer;
+}
+
+.preference-field {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.7fr) minmax(280px, 1.5fr) minmax(180px, 0.6fr);
+  align-items: center;
+  gap: 18px;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.preference-field > span,
+.preference-toggle strong {
+  font-weight: 800;
+}
+
+.preference-field small,
+.preference-toggle small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.preference-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.preference-toggle > span {
+  display: grid;
+  gap: 6px;
+}
+
+.preference-toggle input {
+  width: 50px;
+  height: 28px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.form-success {
+  margin: 0;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: #e7f2ec;
+  color: var(--green);
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .preference-form {
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+
+  .preference-heading {
+    align-items: flex-end;
+  }
+
+  .preference-field {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .preference-field select {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
 .shell {
   min-height: 100vh;
   padding: 32px 20px;
