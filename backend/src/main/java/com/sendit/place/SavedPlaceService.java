@@ -63,6 +63,34 @@ public class SavedPlaceService {
                 request.memo(), request.priority() == null ? 0 : request.priority())));
     }
 
+    public void autoSaveAnalyzedShare(Long sharedContentId) {
+        SharedContent share = shares.findById(sharedContentId)
+                .orElseThrow(() -> new ResourceNotFoundException("공유 콘텐츠를 찾을 수 없습니다."));
+        if (share.getExtractedPlaceName() == null || share.getExtractedPlaceName().isBlank()
+                || savedPlaces.existsByUserIdAndSharedContentId(
+                        share.getUser().getId(), sharedContentId)) {
+            return;
+        }
+        create(share.getUser().getEmail(), new SavedPlaceDtos.CreateRequest(
+                share.getExtractedPlaceName(),
+                share.getExtractedCategory(),
+                share.getExtractedAddress(),
+                share.getExtractedAddress(),
+                share.getExtractedLatitude(),
+                share.getExtractedLongitude(),
+                share.getDescription(),
+                share.getThumbnailUrl(),
+                null,
+                null,
+                null,
+                null,
+                sharedContentId,
+                null,
+                null,
+                0
+        ));
+    }
+
     @Transactional(readOnly = true)
     public List<SavedPlaceDtos.Response> list(String email) {
         return savedPlaces.findByUserEmailOrderBySavedAtDesc(email).stream()
