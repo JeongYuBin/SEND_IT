@@ -5,6 +5,7 @@ import com.sendit.share.ShareDtos.ShareAcceptedResponse;
 import com.sendit.share.ShareDtos.ShareDetailResponse;
 import com.sendit.user.User;
 import com.sendit.user.UserRepository;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +57,14 @@ public class ShareService {
     @Transactional(readOnly = true)
     public ShareDetailResponse get(String email, Long shareId) {
         return toDetail(findOwnedContent(email, shareId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ShareDetailResponse> list(String email) {
+        return sharedContentRepository.findAllByUserEmailOrderByCreatedAtDesc(email)
+                .stream()
+                .map(this::toDetail)
+                .toList();
     }
 
     public ShareAcceptedResponse reanalyze(String email, Long shareId) {

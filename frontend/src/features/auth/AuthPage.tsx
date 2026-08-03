@@ -25,12 +25,12 @@ export function AuthPage({ mode }: AuthPageProps) {
       isSignUp ? signUp(request as SignUpRequest) : login(request),
     onSuccess: (session) => {
       setSession(session)
-      navigate('/', { replace: true })
+      navigate(location.state?.returnTo ?? '/', { replace: true })
     },
   })
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />
+    return <Navigate to={location.state?.returnTo ?? '/'} replace />
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -115,7 +115,10 @@ export function AuthPage({ mode }: AuthPageProps) {
 
         <div className="auth-switch">
           {isSignUp ? '이미 계정이 있나요?' : '아직 계정이 없나요?'}
-          <Link to={isSignUp ? '/login' : '/signup'}>
+          <Link
+            to={isSignUp ? '/login' : '/signup'}
+            state={location.state}
+          >
             {isSignUp ? '로그인' : '회원가입'}
           </Link>
         </div>

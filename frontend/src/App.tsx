@@ -11,6 +11,8 @@ import { useAuthStore } from './stores/authStore'
 import { MobileBottomNavigation } from './components/MobileBottomNavigation'
 import { ProfilePage } from './features/account/ProfilePage'
 import { SettingsPage } from './features/account/SettingsPage'
+import { ShareTargetPage } from './features/share/ShareTargetPage'
+import { SharedContentsPage } from './features/share/SharedContentsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => Boolean(state.accessToken))
@@ -24,7 +26,9 @@ export function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
+      <Route path="/share-target" element={<ShareTargetPage />} />
       <Route path="/shares/:shareId" element={<ProtectedRoute><ShareResultPage /></ProtectedRoute>} />
+      <Route path="/shares" element={<ProtectedRoute><SharedContentsPage /></ProtectedRoute>} />
       <Route
         path="/itineraries/:itineraryId"
         element={<ProtectedRoute><ItineraryDetailPage /></ProtectedRoute>}

@@ -83,6 +83,7 @@ export function ShareResultPage() {
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
+          <Link to="/shares">받은 콘텐츠</Link>
           <Link to="/saved">저장한 장소</Link>
           <Link to="/profile">내 정보</Link>
           <Link to="/settings">설정</Link>

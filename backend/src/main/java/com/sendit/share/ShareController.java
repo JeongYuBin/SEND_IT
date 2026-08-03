@@ -5,6 +5,7 @@ import com.sendit.share.ShareDtos.ShareAcceptedResponse;
 import com.sendit.share.ShareDtos.ShareDetailResponse;
 import jakarta.validation.Valid;
 import java.security.Principal;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,10 +39,14 @@ public class ShareController {
         return shareService.get(principal.getName(), shareId);
     }
 
+    @GetMapping
+    List<ShareDetailResponse> list(Principal principal) {
+        return shareService.list(principal.getName());
+    }
+
     @PostMapping("/{shareId}/reanalyze")
     @ResponseStatus(HttpStatus.ACCEPTED)
     ShareAcceptedResponse reanalyze(Principal principal, @PathVariable Long shareId) {
         return shareService.reanalyze(principal.getName(), shareId);
     }
 }
-

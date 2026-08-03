@@ -96,6 +96,7 @@ export function HomePage() {
           {accessToken ? (
             <>
               <span>{user?.nickname}님</span>
+              <Link to="/shares">받은 콘텐츠</Link>
               <Link to="/saved">저장한 장소</Link>
               <Link to="/profile">내 정보</Link>
               <Link to="/settings">설정</Link>
@@ -134,6 +135,7 @@ export function HomePage() {
             </button>
           </div>
           <small id="url-help">Instagram, YouTube, 네이버 블로그와 일반 웹페이지를 지원할 예정입니다.</small>
+          {accessToken && <Link className="shared-content-shortcut" to="/shares">SNS에서 보낸 콘텐츠 보기 →</Link>}
           {shareMutation.isSuccess && (
             <div className="share-feedback success" role="status">
               {shareMutation.data.duplicate ? '이미 저장한 콘텐츠예요.' : '저장했어요! 장소를 분석하고 있습니다.'}
