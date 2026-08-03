@@ -35,4 +35,16 @@ class SharedTextMetadataParserTest {
         assertThat(result.category()).isEqualTo("카페");
         assertThat(result.imageUrl()).isEqualTo("https://example.com/a.jpg");
     }
+
+    @Test
+    void ignoresRegionalFoodTagAndExtractsInstagramBusinessTag() {
+        PageMetadata result = parser.parse("""
+                유행하는 양파쌈 레시피
+                낙지본집 사장님도 인정한 양파쌈
+                #양파쌈 #평택맛집 #낙지본집 #동삭동
+                """);
+
+        assertThat(result.placeName()).isEqualTo("낙지본집");
+        assertThat(result.category()).isEqualTo("음식점");
+    }
 }

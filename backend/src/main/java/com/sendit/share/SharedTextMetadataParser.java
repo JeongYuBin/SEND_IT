@@ -15,7 +15,7 @@ public class SharedTextMetadataParser {
     private static final Pattern PLACE_SUFFIX = Pattern.compile(
             ".*(?:횟집|식당|카페|커피|베이커리|빵집|분식|국수|냉면|갈비|치킨|"
                     + "펜션|호텔|리조트|호스텔|게스트하우스|캠핑장|시장|해변|해수욕장|"
-                    + "공원|박물관|미술관|전시관|수목원|정원|전망대|성당|사찰|궁|역)$");
+                    + "공원|박물관|미술관|전시관|수목원|정원|전망대|성당|사찰|궁|역|집)$");
     private static final Set<String> GENERIC_HASHTAGS = Set.of(
             "맛집", "카페", "여행", "관광", "추천", "데이트", "핫플", "먹방",
             "국내여행", "여행스타그램", "먹스타그램", "카페스타그램", "일상", "릴스",
@@ -68,7 +68,9 @@ public class SharedTextMetadataParser {
         while (matcher.find()) {
             String candidate = matcher.group(1).replace('_', ' ').trim();
             String normalized = candidate.toLowerCase(Locale.KOREAN).replace(" ", "");
-            if (GENERIC_HASHTAGS.contains(normalized)) continue;
+            if (GENERIC_HASHTAGS.contains(normalized)
+                    || normalized.endsWith("맛집")
+                    || normalized.endsWith("여행")) continue;
             if (PLACE_SUFFIX.matcher(normalized).matches()) return candidate;
             if (fallback == null && candidate.length() >= 4 && candidate.length() <= 20) {
                 fallback = candidate;

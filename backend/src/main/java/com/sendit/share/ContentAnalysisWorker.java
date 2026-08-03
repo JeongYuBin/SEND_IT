@@ -49,6 +49,11 @@ public class ContentAnalysisWorker {
                     if (!sharedTextMetadataParser.hasContent(shared)) throw fetchFailure;
                     metadata = shared;
                 }
+                PageMetadata discoveredFromPageText = sharedTextMetadataParser.parse(
+                        String.join("\n",
+                                metadata.title() == null ? "" : metadata.title(),
+                                metadata.description() == null ? "" : metadata.description()));
+                metadata = sharedTextMetadataParser.merge(metadata, discoveredFromPageText);
                 metadata = sharedTextMetadataParser.merge(metadata, shared);
                 metadata = visitKoreaMetadataClient.enrich(job.url(), metadata);
                 metadata = tourApiClient.enrich(metadata);
