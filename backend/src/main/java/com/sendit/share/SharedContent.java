@@ -62,6 +62,15 @@ public class SharedContent {
     @Column(name = "media_size_bytes")
     private Long mediaSizeBytes;
 
+    @Column(name = "media_duration_seconds")
+    private Double mediaDurationSeconds;
+
+    @Column(name = "media_frame_keys", columnDefinition = "text")
+    private String mediaFrameKeys;
+
+    @Column(name = "media_audio_storage_key", length = 255)
+    private String mediaAudioStorageKey;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "analysis_status", nullable = false, length = 30)
     private AnalysisStatus analysisStatus;
@@ -146,6 +155,13 @@ public class SharedContent {
     public String getMediaOriginalFilename() { return mediaOriginalFilename; }
     public String getMediaContentType() { return mediaContentType; }
     public Long getMediaSizeBytes() { return mediaSizeBytes; }
+    public Double getMediaDurationSeconds() { return mediaDurationSeconds; }
+    public int getMediaFrameCount() {
+        return mediaFrameKeys == null || mediaFrameKeys.isBlank()
+                ? 0 : mediaFrameKeys.split("\\n").length;
+    }
+    public boolean hasMediaAudio() { return mediaAudioStorageKey != null; }
+    public boolean hasProcessedMedia() { return getMediaFrameCount() > 0; }
 
     public AnalysisStatus getAnalysisStatus() {
         return analysisStatus;
@@ -178,6 +194,12 @@ public class SharedContent {
 
     public void requireConfirmation() {
         analysisStatus = AnalysisStatus.NEEDS_CONFIRMATION;
+    }
+
+    public void attachMediaProcessingResult(MediaProcessingResult result) {
+        mediaDurationSeconds = result.durationSeconds();
+        mediaFrameKeys = String.join("\n", result.frameStorageKeys());
+        mediaAudioStorageKey = result.audioStorageKey();
     }
 
     public void startAnalysis() {

@@ -116,6 +116,9 @@ public class ShareService {
                 content.getMediaOriginalFilename(),
                 content.getMediaContentType(),
                 content.getMediaSizeBytes(),
+                content.getMediaDurationSeconds(),
+                content.getMediaFrameCount(),
+                content.hasMediaAudio(),
                 content.getCreatedAt()
         );
     }

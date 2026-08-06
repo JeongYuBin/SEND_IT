@@ -18,6 +18,7 @@ public class ContentAnalysisWorker {
     private final KakaoPlaceSearchClient kakaoPlaceSearchClient;
     private final SavedPlaceService savedPlaceService;
     private final AutomaticMediaDownloader automaticMediaDownloader;
+    private final VideoMediaProcessor videoMediaProcessor;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -29,7 +30,8 @@ public class ContentAnalysisWorker {
             TourApiClient tourApiClient,
             KakaoPlaceSearchClient kakaoPlaceSearchClient,
             SavedPlaceService savedPlaceService,
-            AutomaticMediaDownloader automaticMediaDownloader
+            AutomaticMediaDownloader automaticMediaDownloader,
+            VideoMediaProcessor videoMediaProcessor
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -41,6 +43,7 @@ public class ContentAnalysisWorker {
         this.kakaoPlaceSearchClient = kakaoPlaceSearchClient;
         this.savedPlaceService = savedPlaceService;
         this.automaticMediaDownloader = automaticMediaDownloader;
+        this.videoMediaProcessor = videoMediaProcessor;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -69,14 +72,24 @@ public class ContentAnalysisWorker {
                 metadata = kakaoPlaceSearchClient.enrich(metadata);
                 metadata = tourApiClient.enrich(metadata);
                 boolean needsConfirmation = metadata.placeName() == null || metadata.placeName().isBlank();
+                String mediaStorageKey = job.mediaStorageKey();
                 if (needsConfirmation
-                        && job.mediaStorageKey() == null
+                        && mediaStorageKey == null
                         && automaticMediaDownloader.supports(job.url())) {
                     try {
                         StoredMedia media = automaticMediaDownloader.download(job.url());
                         analysisJobService.attachMedia(job.jobId(), media);
+                        mediaStorageKey = media.storageKey();
                     } catch (RuntimeException ignored) {
                         // 캡션 분석 결과는 유지하고 영상 확보 실패는 재분석 화면에서 다시 시도한다.
+                    }
+                }
+                if (needsConfirmation && mediaStorageKey != null && !job.mediaProcessed()) {
+                    try {
+                        MediaProcessingResult processingResult = videoMediaProcessor.process(mediaStorageKey);
+                        analysisJobService.attachMediaProcessingResult(job.jobId(), processingResult);
+                    } catch (RuntimeException ignored) {
+                        // 영상 원본은 유지하고 프레임·음원 추출은 재분석에서 다시 시도한다.
                     }
                 }
                 analysisJobService.complete(job.jobId(), metadata, needsConfirmation);

@@ -37,7 +37,8 @@ public class AnalysisJobService {
                 job.getSharedContent().getId(),
                 job.getSharedContent().getNormalizedUrl(),
                 job.getSharedContent().getSharedText(),
-                job.getSharedContent().getMediaStorageKey()
+                job.getSharedContent().getMediaStorageKey(),
+                job.getSharedContent().hasProcessedMedia()
         ));
     }
 
@@ -54,6 +55,13 @@ public class AnalysisJobService {
         AnalysisJob job = analysisJobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
         job.getSharedContent().attachMedia(media);
+    }
+
+    @Transactional
+    public void attachMediaProcessingResult(Long jobId, MediaProcessingResult result) {
+        AnalysisJob job = analysisJobRepository.findById(jobId)
+                .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
+        job.getSharedContent().attachMediaProcessingResult(result);
     }
 
     @Transactional
@@ -74,7 +82,8 @@ public class AnalysisJobService {
             Long sharedContentId,
             String url,
             String sharedText,
-            String mediaStorageKey
+            String mediaStorageKey,
+            boolean mediaProcessed
     ) {
     }
 }

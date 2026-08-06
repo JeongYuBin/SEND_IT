@@ -42,6 +42,9 @@ app:
     max-bytes: ${MEDIA_MAX_BYTES:104857600}
     downloader-executable: ${MEDIA_DOWNLOADER_EXECUTABLE:yt-dlp}
     download-timeout-seconds: ${MEDIA_DOWNLOAD_TIMEOUT_SECONDS:180}
+    ffmpeg-executable: ${FFMPEG_EXECUTABLE:ffmpeg}
+    ffprobe-executable: ${FFPROBE_EXECUTABLE:ffprobe}
+    processing-timeout-seconds: ${MEDIA_PROCESSING_TIMEOUT_SECONDS:120}
   kakao:
     rest-api-key: ${KAKAO_REST_API_KEY:}
   youtube:

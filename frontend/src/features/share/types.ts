@@ -30,5 +30,8 @@ export type ShareDetail = {
   mediaOriginalFilename: string | null
   mediaContentType: string | null
   mediaSizeBytes: number | null
+  mediaDurationSeconds: number | null
+  mediaFrameCount: number
+  mediaAudioAvailable: boolean
   createdAt: string
 }
