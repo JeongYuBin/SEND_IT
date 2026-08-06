@@ -50,6 +50,18 @@ public class SharedContent {
     @Column(name = "thumbnail_url", length = 2048)
     private String thumbnailUrl;
 
+    @Column(name = "media_storage_key", length = 255)
+    private String mediaStorageKey;
+
+    @Column(name = "media_original_filename", length = 500)
+    private String mediaOriginalFilename;
+
+    @Column(name = "media_content_type", length = 100)
+    private String mediaContentType;
+
+    @Column(name = "media_size_bytes")
+    private Long mediaSizeBytes;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "analysis_status", nullable = false, length = 30)
     private AnalysisStatus analysisStatus;
@@ -130,6 +142,11 @@ public class SharedContent {
         return thumbnailUrl;
     }
 
+    public String getMediaStorageKey() { return mediaStorageKey; }
+    public String getMediaOriginalFilename() { return mediaOriginalFilename; }
+    public String getMediaContentType() { return mediaContentType; }
+    public Long getMediaSizeBytes() { return mediaSizeBytes; }
+
     public AnalysisStatus getAnalysisStatus() {
         return analysisStatus;
     }
@@ -149,6 +166,16 @@ public class SharedContent {
 
     public void queueForAnalysis() {
         analysisStatus = AnalysisStatus.PENDING;
+        analysisError = null;
+    }
+
+    public void attachMedia(StoredMedia media) {
+        mediaStorageKey = media.storageKey();
+        mediaOriginalFilename = media.originalFilename();
+        mediaContentType = media.contentType();
+        mediaSizeBytes = media.sizeBytes();
+        title = media.originalFilename();
+        analysisStatus = AnalysisStatus.NEEDS_CONFIRMATION;
         analysisError = null;
     }
 

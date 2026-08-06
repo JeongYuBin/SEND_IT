@@ -39,6 +39,9 @@ public final class ShareDtos {
             String extractedAddress,
             Double extractedLatitude,
             Double extractedLongitude,
+            String mediaOriginalFilename,
+            String mediaContentType,
+            Long mediaSizeBytes,
             Instant createdAt
     ) {
     }

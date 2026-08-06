@@ -15,7 +15,7 @@ export type ShareAcceptedResponse = {
 export type ShareDetail = {
   shareId: number
   originalUrl: string
-  sourceType: 'INSTAGRAM' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB'
+  sourceType: 'INSTAGRAM' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB' | 'VIDEO'
   sharedText: string | null
   title: string | null
   description: string | null
@@ -27,5 +27,8 @@ export type ShareDetail = {
   extractedAddress: string | null
   extractedLatitude: number | null
   extractedLongitude: number | null
+  mediaOriginalFilename: string | null
+  mediaContentType: string | null
+  mediaSizeBytes: number | null
   createdAt: string
 }

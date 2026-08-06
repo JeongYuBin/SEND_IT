@@ -18,6 +18,10 @@ spring:
       port: ${REDIS_PORT:6379}
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 101MB
 
 server:
   port: ${SERVER_PORT:8080}
@@ -33,6 +37,9 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  media:
+    storage-directory: ${MEDIA_STORAGE_DIRECTORY:./data/uploads}
+    max-bytes: ${MEDIA_MAX_BYTES:104857600}
   kakao:
     rest-api-key: ${KAKAO_REST_API_KEY:}
   youtube:

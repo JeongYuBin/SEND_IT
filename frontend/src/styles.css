@@ -497,6 +497,30 @@ h1 {
   font-size: 18px;
 }
 
+.shared-video-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+}
+
+.shared-video-upload input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.shared-video-upload .primary-button {
+  cursor: pointer;
+}
+
+.shared-video-upload small,
+.shared-contents-header .shared-video-upload-message {
+  color: var(--muted);
+}
+
 .shared-content-list {
   display: grid;
   gap: 14px;
