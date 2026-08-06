@@ -5,6 +5,5 @@ public enum SourceType {
     YOUTUBE,
     NAVER_BLOG,
     MAP,
-    WEB,
-    VIDEO
+    WEB
 }

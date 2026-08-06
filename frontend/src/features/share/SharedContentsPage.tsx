@@ -1,8 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { PlaceImage } from '../../components/PlaceImage'
-import { getShares, uploadSharedVideo } from './shareApi'
+import { getShares } from './shareApi'
 import type { AnalysisStatus } from './types'
 
 const sourceLabels = {
@@ -11,7 +10,6 @@ const sourceLabels = {
   NAVER_BLOG: '네이버 블로그',
   MAP: '지도',
   WEB: '웹페이지',
-  VIDEO: '업로드 영상',
 }
 
 const statusLabels: Record<AnalysisStatus, string> = {
@@ -33,25 +31,7 @@ function formatDate(value: string) {
 }
 
 export function SharedContentsPage() {
-  const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploadMessage, setUploadMessage] = useState<string | null>(null)
   const sharesQuery = useQuery({ queryKey: ['shares'], queryFn: getShares, refetchInterval: 5000 })
-  const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadSharedVideo(file),
-    onSuccess: async () => {
-      setUploadMessage('영상이 등록되었습니다. 다음 분석 단계에서 화면과 음성을 확인합니다.')
-      if (fileInputRef.current) fileInputRef.current.value = ''
-      await queryClient.invalidateQueries({ queryKey: ['shares'] })
-    },
-    onError: () => setUploadMessage('영상을 등록하지 못했습니다. 파일 형식과 용량을 확인해 주세요.'),
-  })
-
-  function handleVideoUpload(file: File | undefined) {
-    if (!file) return
-    setUploadMessage(null)
-    uploadMutation.mutate(file)
-  }
 
   return (
     <main className="shared-contents-shell">
@@ -68,21 +48,6 @@ export function SharedContentsPage() {
         <span className="eyebrow">SHARED CONTENTS</span>
         <h1>받은 콘텐츠</h1>
         <p>SNS에서 SEND IT으로 보낸 게시물과 장소 분석 상태를 확인해 보세요.</p>
-        <div className="shared-video-upload">
-          <label className="primary-button" htmlFor="shared-video-file">
-            {uploadMutation.isPending ? '영상 등록 중…' : '+ 영상 직접 올리기'}
-          </label>
-          <input
-            ref={fileInputRef}
-            id="shared-video-file"
-            type="file"
-            accept="video/mp4,video/quicktime,video/webm"
-            disabled={uploadMutation.isPending}
-            onChange={(event) => handleVideoUpload(event.target.files?.[0])}
-          />
-          <small>MP4·MOV·WebM, 최대 100MB</small>
-        </div>
-        {uploadMessage && <p className="shared-video-upload-message">{uploadMessage}</p>}
       </header>
 
       {sharesQuery.isLoading ? (

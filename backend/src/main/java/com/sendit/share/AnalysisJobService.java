@@ -36,15 +36,24 @@ public class AnalysisJobService {
                 job.getId(),
                 job.getSharedContent().getId(),
                 job.getSharedContent().getNormalizedUrl(),
-                job.getSharedContent().getSharedText()
+                job.getSharedContent().getSharedText(),
+                job.getSharedContent().getMediaStorageKey()
         ));
     }
 
     @Transactional
-    public void complete(Long jobId, PageMetadata metadata) {
+    public void complete(Long jobId, PageMetadata metadata, boolean needsConfirmation) {
         AnalysisJob job = analysisJobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
         job.complete(Instant.now(), metadata);
+        if (needsConfirmation) job.getSharedContent().requireConfirmation();
+    }
+
+    @Transactional
+    public void attachMedia(Long jobId, StoredMedia media) {
+        AnalysisJob job = analysisJobRepository.findById(jobId)
+                .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
+        job.getSharedContent().attachMedia(media);
     }
 
     @Transactional
@@ -60,6 +69,12 @@ public class AnalysisJobService {
         return error.length() <= 1000 ? error : error.substring(0, 1000);
     }
 
-    public record ClaimedJob(Long jobId, Long sharedContentId, String url, String sharedText) {
+    public record ClaimedJob(
+            Long jobId,
+            Long sharedContentId,
+            String url,
+            String sharedText,
+            String mediaStorageKey
+    ) {
     }
 }

@@ -6,10 +6,8 @@ import com.sendit.share.ShareDtos.ShareDetailResponse;
 import com.sendit.user.User;
 import com.sendit.user.UserRepository;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -19,36 +17,17 @@ public class ShareService {
     private final SharedContentRepository sharedContentRepository;
     private final AnalysisJobRepository analysisJobRepository;
     private final UrlNormalizer urlNormalizer;
-    private final MediaStorageService mediaStorageService;
 
     public ShareService(
             UserRepository userRepository,
             SharedContentRepository sharedContentRepository,
             AnalysisJobRepository analysisJobRepository,
-            UrlNormalizer urlNormalizer,
-            MediaStorageService mediaStorageService
+            UrlNormalizer urlNormalizer
     ) {
         this.userRepository = userRepository;
         this.sharedContentRepository = sharedContentRepository;
         this.analysisJobRepository = analysisJobRepository;
         this.urlNormalizer = urlNormalizer;
-        this.mediaStorageService = mediaStorageService;
-    }
-
-    public ShareAcceptedResponse createMedia(String email, MultipartFile file, String sharedText) {
-        User user = findUser(email);
-        StoredMedia media = mediaStorageService.store(file);
-        try {
-            String mediaUrl = "upload://" + UUID.randomUUID();
-            SharedContent content = new SharedContent(
-                    user, mediaUrl, mediaUrl, SourceType.VIDEO, sharedText);
-            content.attachMedia(media);
-            sharedContentRepository.save(content);
-            return accepted(content, false, "영상 파일이 등록되었습니다.");
-        } catch (RuntimeException exception) {
-            mediaStorageService.delete(media.storageKey());
-            throw exception;
-        }
     }
 
     public ShareAcceptedResponse create(String email, CreateShareRequest request) {

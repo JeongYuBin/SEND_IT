@@ -40,6 +40,8 @@ app:
   media:
     storage-directory: ${MEDIA_STORAGE_DIRECTORY:./data/uploads}
     max-bytes: ${MEDIA_MAX_BYTES:104857600}
+    downloader-executable: ${MEDIA_DOWNLOADER_EXECUTABLE:yt-dlp}
+    download-timeout-seconds: ${MEDIA_DOWNLOAD_TIMEOUT_SECONDS:180}
   kakao:
     rest-api-key: ${KAKAO_REST_API_KEY:}
   youtube:

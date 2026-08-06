@@ -15,7 +15,7 @@ export type ShareAcceptedResponse = {
 export type ShareDetail = {
   shareId: number
   originalUrl: string
-  sourceType: 'INSTAGRAM' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB' | 'VIDEO'
+  sourceType: 'INSTAGRAM' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB'
   sharedText: string | null
   title: string | null
   description: string | null

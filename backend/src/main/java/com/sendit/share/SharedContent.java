@@ -174,9 +174,10 @@ public class SharedContent {
         mediaOriginalFilename = media.originalFilename();
         mediaContentType = media.contentType();
         mediaSizeBytes = media.sizeBytes();
-        title = media.originalFilename();
+    }
+
+    public void requireConfirmation() {
         analysisStatus = AnalysisStatus.NEEDS_CONFIRMATION;
-        analysisError = null;
     }
 
     public void startAnalysis() {

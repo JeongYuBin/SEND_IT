@@ -17,6 +17,7 @@ public class ContentAnalysisWorker {
     private final TourApiClient tourApiClient;
     private final KakaoPlaceSearchClient kakaoPlaceSearchClient;
     private final SavedPlaceService savedPlaceService;
+    private final AutomaticMediaDownloader automaticMediaDownloader;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -27,7 +28,8 @@ public class ContentAnalysisWorker {
             VisitKoreaMetadataClient visitKoreaMetadataClient,
             TourApiClient tourApiClient,
             KakaoPlaceSearchClient kakaoPlaceSearchClient,
-            SavedPlaceService savedPlaceService
+            SavedPlaceService savedPlaceService,
+            AutomaticMediaDownloader automaticMediaDownloader
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -38,6 +40,7 @@ public class ContentAnalysisWorker {
         this.tourApiClient = tourApiClient;
         this.kakaoPlaceSearchClient = kakaoPlaceSearchClient;
         this.savedPlaceService = savedPlaceService;
+        this.automaticMediaDownloader = automaticMediaDownloader;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -65,7 +68,18 @@ public class ContentAnalysisWorker {
                 metadata = visitKoreaMetadataClient.enrich(job.url(), metadata);
                 metadata = kakaoPlaceSearchClient.enrich(metadata);
                 metadata = tourApiClient.enrich(metadata);
-                analysisJobService.complete(job.jobId(), metadata);
+                boolean needsConfirmation = metadata.placeName() == null || metadata.placeName().isBlank();
+                if (needsConfirmation
+                        && job.mediaStorageKey() == null
+                        && automaticMediaDownloader.supports(job.url())) {
+                    try {
+                        StoredMedia media = automaticMediaDownloader.download(job.url());
+                        analysisJobService.attachMedia(job.jobId(), media);
+                    } catch (RuntimeException ignored) {
+                        // 캡션 분석 결과는 유지하고 영상 확보 실패는 재분석 화면에서 다시 시도한다.
+                    }
+                }
+                analysisJobService.complete(job.jobId(), metadata, needsConfirmation);
                 try {
                     savedPlaceService.autoSaveAnalyzedShare(job.sharedContentId());
                 } catch (RuntimeException ignored) {
