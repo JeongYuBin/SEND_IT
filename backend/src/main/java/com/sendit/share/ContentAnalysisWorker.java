@@ -19,6 +19,7 @@ public class ContentAnalysisWorker {
     private final SavedPlaceService savedPlaceService;
     private final AutomaticMediaDownloader automaticMediaDownloader;
     private final VideoMediaProcessor videoMediaProcessor;
+    private final FrameOcrExtractor frameOcrExtractor;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -31,7 +32,8 @@ public class ContentAnalysisWorker {
             KakaoPlaceSearchClient kakaoPlaceSearchClient,
             SavedPlaceService savedPlaceService,
             AutomaticMediaDownloader automaticMediaDownloader,
-            VideoMediaProcessor videoMediaProcessor
+            VideoMediaProcessor videoMediaProcessor,
+            FrameOcrExtractor frameOcrExtractor
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -44,6 +46,7 @@ public class ContentAnalysisWorker {
         this.savedPlaceService = savedPlaceService;
         this.automaticMediaDownloader = automaticMediaDownloader;
         this.videoMediaProcessor = videoMediaProcessor;
+        this.frameOcrExtractor = frameOcrExtractor;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -73,6 +76,8 @@ public class ContentAnalysisWorker {
                 metadata = tourApiClient.enrich(metadata);
                 boolean needsConfirmation = metadata.placeName() == null || metadata.placeName().isBlank();
                 String mediaStorageKey = job.mediaStorageKey();
+                java.util.List<String> frameKeys = job.mediaFrameKeys();
+                String ocrText = job.mediaOcrText();
                 if (needsConfirmation
                         && mediaStorageKey == null
                         && automaticMediaDownloader.supports(job.url())) {
@@ -88,8 +93,26 @@ public class ContentAnalysisWorker {
                     try {
                         MediaProcessingResult processingResult = videoMediaProcessor.process(mediaStorageKey);
                         analysisJobService.attachMediaProcessingResult(job.jobId(), processingResult);
+                        frameKeys = processingResult.frameStorageKeys();
                     } catch (RuntimeException ignored) {
                         // 영상 원본은 유지하고 프레임·음원 추출은 재분석에서 다시 시도한다.
+                    }
+                }
+                if (needsConfirmation && !frameKeys.isEmpty()
+                        && (ocrText == null || ocrText.isBlank())) {
+                    try {
+                        ocrText = frameOcrExtractor.extract(frameKeys);
+                        if (ocrText != null && !ocrText.isBlank()) {
+                            analysisJobService.attachMediaOcrText(job.jobId(), ocrText);
+                            PageMetadata fromFrames = sharedTextMetadataParser.parse(ocrText);
+                            metadata = sharedTextMetadataParser.merge(metadata, fromFrames);
+                            metadata = kakaoPlaceSearchClient.enrich(metadata);
+                            metadata = tourApiClient.enrich(metadata);
+                            needsConfirmation = metadata.placeName() == null
+                                    || metadata.placeName().isBlank();
+                        }
+                    } catch (RuntimeException ignored) {
+                        // OCR 실패 시 프레임을 유지하고 재분석에서 다시 시도한다.
                     }
                 }
                 analysisJobService.complete(job.jobId(), metadata, needsConfirmation);

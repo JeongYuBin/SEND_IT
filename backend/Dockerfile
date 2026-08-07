@@ -7,6 +7,8 @@ RUN mvn -B clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 RUN apk add --no-cache ffmpeg nodejs python3 py3-pip \
+        tesseract-ocr tesseract-ocr-data-eng tesseract-ocr-data-kor \
+        tesseract-ocr-data-chi_tra \
     && python3 -m venv /opt/yt-dlp \
     && /opt/yt-dlp/bin/pip install --no-cache-dir yt-dlp==2026.6.9 \
     && addgroup -S sendit && adduser -S sendit -G sendit \

@@ -71,6 +71,9 @@ public class SharedContent {
     @Column(name = "media_audio_storage_key", length = 255)
     private String mediaAudioStorageKey;
 
+    @Column(name = "media_ocr_text", columnDefinition = "text")
+    private String mediaOcrText;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "analysis_status", nullable = false, length = 30)
     private AnalysisStatus analysisStatus;
@@ -162,6 +165,7 @@ public class SharedContent {
     }
     public boolean hasMediaAudio() { return mediaAudioStorageKey != null; }
     public boolean hasProcessedMedia() { return getMediaFrameCount() > 0; }
+    public String getMediaOcrText() { return mediaOcrText; }
 
     public AnalysisStatus getAnalysisStatus() {
         return analysisStatus;
@@ -200,6 +204,15 @@ public class SharedContent {
         mediaDurationSeconds = result.durationSeconds();
         mediaFrameKeys = String.join("\n", result.frameStorageKeys());
         mediaAudioStorageKey = result.audioStorageKey();
+    }
+
+    public void attachMediaOcrText(String ocrText) {
+        mediaOcrText = ocrText;
+    }
+
+    public java.util.List<String> getMediaFrameKeys() {
+        return mediaFrameKeys == null || mediaFrameKeys.isBlank()
+                ? java.util.List.of() : java.util.List.of(mediaFrameKeys.split("\\n"));
     }
 
     public void startAnalysis() {

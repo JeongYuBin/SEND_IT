@@ -38,7 +38,9 @@ public class AnalysisJobService {
                 job.getSharedContent().getNormalizedUrl(),
                 job.getSharedContent().getSharedText(),
                 job.getSharedContent().getMediaStorageKey(),
-                job.getSharedContent().hasProcessedMedia()
+                job.getSharedContent().hasProcessedMedia(),
+                job.getSharedContent().getMediaFrameKeys(),
+                job.getSharedContent().getMediaOcrText()
         ));
     }
 
@@ -65,6 +67,13 @@ public class AnalysisJobService {
     }
 
     @Transactional
+    public void attachMediaOcrText(Long jobId, String ocrText) {
+        AnalysisJob job = analysisJobRepository.findById(jobId)
+                .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
+        job.getSharedContent().attachMediaOcrText(ocrText);
+    }
+
+    @Transactional
     public void retryOrFail(Long jobId, String error) {
         analysisJobRepository.findById(jobId)
                 .ifPresent(job -> job.retryOrFail(Instant.now(), truncate(error), maxRetries));
@@ -83,7 +92,9 @@ public class AnalysisJobService {
             String url,
             String sharedText,
             String mediaStorageKey,
-            boolean mediaProcessed
+            boolean mediaProcessed,
+            java.util.List<String> mediaFrameKeys,
+            String mediaOcrText
     ) {
     }
 }

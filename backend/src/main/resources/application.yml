@@ -45,6 +45,9 @@ app:
     ffmpeg-executable: ${FFMPEG_EXECUTABLE:ffmpeg}
     ffprobe-executable: ${FFPROBE_EXECUTABLE:ffprobe}
     processing-timeout-seconds: ${MEDIA_PROCESSING_TIMEOUT_SECONDS:120}
+    tesseract-executable: ${TESSERACT_EXECUTABLE:tesseract}
+    ocr-timeout-seconds: ${MEDIA_OCR_TIMEOUT_SECONDS:20}
+    ocr-max-text-length: ${MEDIA_OCR_MAX_TEXT_LENGTH:20000}
   kakao:
     rest-api-key: ${KAKAO_REST_API_KEY:}
   youtube:

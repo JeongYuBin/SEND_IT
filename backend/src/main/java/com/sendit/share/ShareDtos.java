@@ -45,6 +45,7 @@ public final class ShareDtos {
             Double mediaDurationSeconds,
             int mediaFrameCount,
             boolean mediaAudioAvailable,
+            String mediaOcrText,
             Instant createdAt
     ) {
     }
