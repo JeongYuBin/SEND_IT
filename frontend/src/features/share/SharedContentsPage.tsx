@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { PlaceImage } from '../../components/PlaceImage'
-import { getShares } from './shareApi'
+import { deleteShare, getShares } from './shareApi'
 import type { AnalysisStatus } from './types'
 
 const sourceLabels = {
@@ -32,7 +32,21 @@ function formatDate(value: string) {
 }
 
 export function SharedContentsPage() {
+  const queryClient = useQueryClient()
   const sharesQuery = useQuery({ queryKey: ['shares'], queryFn: getShares, refetchInterval: 5000 })
+  const deleteMutation = useMutation({
+    mutationFn: deleteShare,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shares'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+  })
+
+  const handleDelete = (shareId: number) => {
+    if (window.confirm('받은 콘텐츠와 분석용 영상 파일을 삭제할까요? 저장한 장소는 유지됩니다.')) {
+      deleteMutation.mutate(shareId)
+    }
+  }
 
   return (
     <main className="shared-contents-shell">
@@ -58,7 +72,8 @@ export function SharedContentsPage() {
       ) : sharesQuery.data?.length ? (
         <section className="shared-content-list" aria-label="받은 콘텐츠 목록">
           {sharesQuery.data.map((share) => (
-            <Link to={`/shares/${share.shareId}`} className="shared-content-card" key={share.shareId}>
+            <article className="shared-content-card-wrap" key={share.shareId}>
+              <Link to={`/shares/${share.shareId}`} className="shared-content-card">
               {share.thumbnailUrl ? (
                 <PlaceImage src={share.thumbnailUrl} alt="" />
               ) : (
@@ -77,7 +92,15 @@ export function SharedContentsPage() {
                   {statusLabels[share.status]}
                 </em>
               </span>
-            </Link>
+              </Link>
+              <button
+                className="shared-content-delete"
+                type="button"
+                disabled={deleteMutation.isPending || ['PENDING', 'ANALYZING'].includes(share.status)}
+                onClick={() => handleDelete(share.shareId)}
+                aria-label="받은 콘텐츠 삭제"
+              >삭제</button>
+            </article>
           ))}
         </section>
       ) : (

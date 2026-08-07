@@ -4206,3 +4206,17 @@ h1 {
   .notification-list button { grid-template-columns: 8px 1fr; }
   .notification-list time { grid-column: 2; }
 }
+.shared-content-card-wrap { position: relative; }
+.shared-content-card-wrap .shared-content-card { height: 100%; }
+.shared-content-delete {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2;
+  border: 1px solid #d8b8ae;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #9a412d;
+}
+.shared-content-delete:disabled { opacity: 0.4; cursor: not-allowed; }

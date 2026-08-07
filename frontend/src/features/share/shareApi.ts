@@ -25,3 +25,7 @@ export async function reanalyzeShare(shareId: number) {
   const response = await http.post<ShareAcceptedResponse>(`/shares/${shareId}/reanalyze`)
   return response.data
 }
+
+export async function deleteShare(shareId: number) {
+  await http.delete(`/shares/${shareId}`)
+}

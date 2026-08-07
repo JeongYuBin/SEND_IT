@@ -5,6 +5,8 @@ import com.sendit.share.ShareDtos.ShareAcceptedResponse;
 import com.sendit.share.ShareDtos.ShareDetailResponse;
 import com.sendit.user.User;
 import com.sendit.user.UserRepository;
+import com.sendit.notification.NotificationService;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,17 +19,23 @@ public class ShareService {
     private final SharedContentRepository sharedContentRepository;
     private final AnalysisJobRepository analysisJobRepository;
     private final UrlNormalizer urlNormalizer;
+    private final MediaStorageCleaner mediaStorageCleaner;
+    private final NotificationService notificationService;
 
     public ShareService(
             UserRepository userRepository,
             SharedContentRepository sharedContentRepository,
             AnalysisJobRepository analysisJobRepository,
-            UrlNormalizer urlNormalizer
+            UrlNormalizer urlNormalizer,
+            MediaStorageCleaner mediaStorageCleaner,
+            NotificationService notificationService
     ) {
         this.userRepository = userRepository;
         this.sharedContentRepository = sharedContentRepository;
         this.analysisJobRepository = analysisJobRepository;
         this.urlNormalizer = urlNormalizer;
+        this.mediaStorageCleaner = mediaStorageCleaner;
+        this.notificationService = notificationService;
     }
 
     public ShareAcceptedResponse create(String email, CreateShareRequest request) {
@@ -72,6 +80,21 @@ public class ShareService {
         content.queueForAnalysis();
         analysisJobRepository.save(new AnalysisJob(content));
         return accepted(content, false, "콘텐츠 재분석을 요청했습니다.");
+    }
+
+    public void delete(String email, Long shareId) {
+        SharedContent content = findOwnedContent(email, shareId);
+        if (content.getAnalysisStatus() == AnalysisStatus.PENDING
+                || content.getAnalysisStatus() == AnalysisStatus.ANALYZING) {
+            throw new IllegalArgumentException("분석 중인 콘텐츠는 완료된 뒤 삭제해 주세요.");
+        }
+        List<String> mediaKeys = new ArrayList<>(content.getMediaFrameKeys());
+        mediaKeys.add(content.getMediaStorageKey());
+        mediaKeys.add(content.getMediaAudioStorageKey());
+        notificationService.deleteForTarget(email, "/shares/" + shareId);
+        sharedContentRepository.delete(content);
+        sharedContentRepository.flush();
+        mediaStorageCleaner.deleteAll(mediaKeys);
     }
 
     private User findUser(String email) {

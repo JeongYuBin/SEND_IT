@@ -64,6 +64,10 @@ public class NotificationService {
                 .forEach(Notification::markRead);
     }
 
+    public void deleteForTarget(String email, String targetUrl) {
+        notifications.deleteByUserEmailAndTargetUrl(email, targetUrl);
+    }
+
     private String displayName(SharedContent share) {
         if (share.getExtractedPlaceName() != null && !share.getExtractedPlaceName().isBlank()) {
             return share.getExtractedPlaceName();
