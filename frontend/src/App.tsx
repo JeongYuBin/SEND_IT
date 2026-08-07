@@ -13,6 +13,8 @@ import { ProfilePage } from './features/account/ProfilePage'
 import { SettingsPage } from './features/account/SettingsPage'
 import { ShareTargetPage } from './features/share/ShareTargetPage'
 import { SharedContentsPage } from './features/share/SharedContentsPage'
+import { NotificationsPage } from './features/notification/NotificationsPage'
+import { NotificationShortcut } from './components/NotificationShortcut'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => Boolean(state.accessToken))
@@ -67,9 +69,11 @@ export function App() {
       />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <MobileBottomNavigation />
+      <NotificationShortcut />
     </>
   )
 }

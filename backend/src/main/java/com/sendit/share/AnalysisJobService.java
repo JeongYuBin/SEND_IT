@@ -1,5 +1,6 @@
 package com.sendit.share;
 
+import com.sendit.notification.NotificationService;
 import java.time.Instant;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
@@ -11,13 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnalysisJobService {
 
     private final AnalysisJobRepository analysisJobRepository;
+    private final NotificationService notificationService;
     private final int maxRetries;
 
     public AnalysisJobService(
             AnalysisJobRepository analysisJobRepository,
+            NotificationService notificationService,
             @Value("${app.analysis.max-retries}") int maxRetries
     ) {
         this.analysisJobRepository = analysisJobRepository;
+        this.notificationService = notificationService;
         this.maxRetries = maxRetries;
     }
 
@@ -52,6 +56,7 @@ public class AnalysisJobService {
                 .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
         job.complete(Instant.now(), metadata);
         if (needsConfirmation) job.getSharedContent().requireConfirmation();
+        notificationService.notifyAnalysisResult(job.getSharedContent());
     }
 
     @Transactional
@@ -84,8 +89,12 @@ public class AnalysisJobService {
 
     @Transactional
     public void retryOrFail(Long jobId, String error) {
-        analysisJobRepository.findById(jobId)
-                .ifPresent(job -> job.retryOrFail(Instant.now(), truncate(error), maxRetries));
+        analysisJobRepository.findById(jobId).ifPresent(job -> {
+            job.retryOrFail(Instant.now(), truncate(error), maxRetries);
+            if (job.getStatus() == JobStatus.FAILED) {
+                notificationService.notifyAnalysisResult(job.getSharedContent());
+            }
+        });
     }
 
     private String truncate(String error) {

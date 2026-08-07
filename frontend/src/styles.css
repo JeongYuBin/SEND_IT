@@ -4155,3 +4155,54 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+.notification-shortcut {
+  position: fixed;
+  z-index: 80;
+  top: 24px;
+  right: 28px;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #cbd8d1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  color: #245943;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 28px rgba(26, 58, 45, 0.12);
+  text-decoration: none;
+  font-size: 25px;
+}
+.notification-shortcut strong {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  border-radius: 11px;
+  background: #b45c43;
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+}
+.notification-page { max-width: 1040px; margin: 0 auto; padding: 28px 32px 120px; }
+.notification-header { display: flex; align-items: end; justify-content: space-between; margin: 80px 0 28px; }
+.notification-header h1 { margin: 8px 0 0; font-size: clamp(42px, 7vw, 72px); }
+.notification-header button { border: 1px solid #aec3b8; background: white; color: #245943; padding: 12px 18px; border-radius: 999px; }
+.notification-list { display: grid; gap: 12px; }
+.notification-list button { width: 100%; border: 1px solid #d8e0dc; border-radius: 18px; background: white; padding: 22px; display: grid; grid-template-columns: 10px 1fr auto; gap: 16px; text-align: left; align-items: center; }
+.notification-list button.unread { background: #f1f7f3; border-color: #b8cfc2; }
+.notification-list i { width: 9px; height: 9px; border-radius: 50%; background: transparent; }
+.notification-list .unread i { background: #39735a; }
+.notification-list span { display: grid; gap: 7px; }
+.notification-list strong { color: #18372a; font-size: 18px; }
+.notification-list small, .notification-list time { color: #687b72; font-size: 14px; }
+.notification-empty { border: 1px dashed #c8d5ce; border-radius: 18px; padding: 64px 24px; text-align: center; color: #687b72; }
+@media (max-width: 720px) {
+  .notification-shortcut { top: 14px; right: 16px; width: 43px; height: 43px; }
+  .notification-page { padding: 20px 18px 110px; }
+  .notification-header { margin-top: 58px; }
+  .notification-list button { grid-template-columns: 8px 1fr; }
+  .notification-list time { grid-column: 2; }
+}
