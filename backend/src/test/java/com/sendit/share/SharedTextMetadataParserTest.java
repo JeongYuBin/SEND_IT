@@ -47,4 +47,30 @@ class SharedTextMetadataParserTest {
         assertThat(result.placeName()).isEqualTo("낙지본집");
         assertThat(result.category()).isEqualTo("음식점");
     }
+
+    @Test
+    void extractsYouTubeRestaurantInfoBeforeGenericHashtag() {
+        String description = """
+                [식당정보] 스시화 서울 송파구 잠실동 207-16 https://naver.me/xf5AjmZ6
+                제 채널에 식당 광고는 단 한 건도 없습니다.
+                #잠실맛집 #가성비이자카야 #가성비맛집
+                """;
+
+        PageMetadata result = parser.parse("고등어 봉초밥이 9천원이요!?\n" + description);
+
+        assertThat(result.placeName()).isEqualTo("스시화");
+        assertThat(result.address()).isEqualTo("서울 송파구 잠실동 207-16");
+        assertThat(result.category()).isEqualTo("음식점");
+    }
+
+    @Test
+    void doesNotAppendSharedTextWhenItAlreadyContainsOriginalDescription() {
+        PageMetadata page = new PageMetadata("영상", "원본 설명", null,
+                null, null, null, null, null);
+        PageMetadata shared = parser.parse("영상 제목\n원본 설명\n#잠실맛집");
+
+        PageMetadata result = parser.merge(page, shared);
+
+        assertThat(result.description()).isEqualTo("원본 설명");
+    }
 }

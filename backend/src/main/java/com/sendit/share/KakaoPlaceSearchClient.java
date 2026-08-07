@@ -88,16 +88,19 @@ public class KakaoPlaceSearchClient {
 
     private List<String> searchQueries(PageMetadata metadata) {
         Set<String> queries = new LinkedHashSet<>();
+        String region = addressRegion(metadata.address());
+        if (region != null) queries.add(metadata.placeName() + " " + region);
         queries.add(metadata.placeName());
         String source = first(metadata.description(), metadata.title());
         if (source == null) return List.copyOf(queries);
         Matcher matcher = HASHTAG.matcher(source);
         while (matcher.find() && queries.size() < 4) {
             String tag = matcher.group(1);
-            String region = tag.endsWith("맛집") ? tag.substring(0, tag.length() - 2) : tag;
-            if (region.length() >= 2 && (tag.endsWith("맛집")
-                    || region.matches(".*(시|군|구|동|읍|면|리)$"))) {
-                queries.add(metadata.placeName() + " " + region);
+            String hashtagRegion = tag.endsWith("맛집")
+                    ? tag.substring(0, tag.length() - 2) : tag;
+            if (hashtagRegion.length() >= 2 && (tag.endsWith("맛집")
+                    || hashtagRegion.matches(".*(시|군|구|동|읍|면|리)$"))) {
+                queries.add(metadata.placeName() + " " + hashtagRegion);
             }
         }
         return List.copyOf(queries);
@@ -110,7 +113,8 @@ public class KakaoPlaceSearchClient {
             String expected = normalize(fallback.placeName());
             JsonNode match = java.util.stream.StreamSupport.stream(documents.spliterator(), false)
                     .map(document -> new ScoredDocument(document,
-                            score(expected, normalize(text(document, "place_name")))))
+                            score(expected, normalize(text(document, "place_name")),
+                                    fallback.address(), candidateAddress(document))))
                     .filter(candidate -> candidate.score() >= 80)
                     .max(Comparator.comparingInt(ScoredDocument::score))
                     .map(ScoredDocument::document)
@@ -132,11 +136,28 @@ public class KakaoPlaceSearchClient {
         }
     }
 
-    private int score(String expected, String candidate) {
-        if (candidate.equals(expected)) return 100;
-        if (!candidate.isBlank()
-                && (candidate.contains(expected) || expected.contains(candidate))) return 80;
-        return 0;
+    private int score(String expected, String candidate,
+                      String expectedAddress, String candidateAddress) {
+        int nameScore;
+        if (candidate.equals(expected)) nameScore = 100;
+        else if (!candidate.isBlank()
+                && (candidate.contains(expected) || expected.contains(candidate))) nameScore = 80;
+        else return 0;
+        String region = addressRegion(expectedAddress);
+        if (region != null && candidateAddress != null
+                && normalize(candidateAddress).contains(normalize(region))) return nameScore + 20;
+        return nameScore;
+    }
+
+    private String candidateAddress(JsonNode document) {
+        return first(text(document, "road_address_name"), text(document, "address_name"));
+    }
+
+    private String addressRegion(String address) {
+        if (address == null || address.isBlank()) return null;
+        String[] tokens = address.trim().split("\\s+");
+        if (tokens.length < 2) return null;
+        return tokens[0] + " " + tokens[1];
     }
 
     private String normalize(String value) {

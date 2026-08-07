@@ -44,4 +44,24 @@ class KakaoPlaceSearchClientTest {
         assertThat(result.latitude()).isEqualTo(37.012340);
         assertThat(result.longitude()).isEqualTo(127.102030);
     }
+
+    @Test
+    void prefersExactPlaceInExpectedAddressRegion() {
+        String response = """
+                {"documents": [
+                  {"place_name":"스시화", "address_name":"서울 강남구 역삼동 1",
+                   "road_address_name":"서울 강남구 테헤란로 1", "x":"127.1", "y":"37.5"},
+                  {"place_name":"스시화", "address_name":"서울 송파구 잠실동 207-16",
+                   "road_address_name":"서울 송파구 백제고분로 187", "x":"127.08", "y":"37.51"}
+                ]}
+                """;
+        PageMetadata fallback = new PageMetadata(
+                "영상", "설명", null, "스시화", "음식점",
+                "서울 송파구 잠실동 207-16", null, null);
+
+        PageMetadata result = client.parse(response, fallback).orElseThrow();
+
+        assertThat(result.address()).isEqualTo("서울 송파구 백제고분로 187");
+        assertThat(result.longitude()).isEqualTo(127.08);
+    }
 }

@@ -10,6 +10,14 @@ import org.springframework.stereotype.Component;
 public class SharedTextMetadataParser {
     private static final Pattern EXPLICIT_PLACE = Pattern.compile(
             "(?im)(?:장소명|상호명?|가게명)\\s*[:：]\\s*([^\\n#|]{2,80})");
+    private static final Pattern LABELED_PLACE_INFO = Pattern.compile(
+            "(?im)^\\s*\\[(?:식당|매장|가게|장소)정보]\\s*([^\\r\\n]+)");
+    private static final Pattern KOREAN_ADDRESS = Pattern.compile(
+            "(?:(?:서울|부산|대구|인천|광주|대전|울산)(?:특별시|광역시)?|"
+                    + "세종(?:특별자치시)?|제주(?:특별자치도)?|"
+                    + "(?:경기|강원|충북|충남|전북|전남|경북|경남)(?:특별자치도|도)?)"
+                    + "\\s+(?:[가-힣]+시\\s+)?[가-힣]+(?:시|군|구)"
+                    + "\\s+[가-힣0-9]+(?:읍|면|동|리|로|길)(?:\\s+\\d+(?:-\\d+)?)?");
     private static final Pattern HASHTAG = Pattern.compile("#([\\p{L}\\p{N}_]{2,50})");
     private static final Pattern URL = Pattern.compile("https?://\\S+", Pattern.CASE_INSENSITIVE);
     private static final Pattern PLACE_SUFFIX = Pattern.compile(
@@ -24,15 +32,18 @@ public class SharedTextMetadataParser {
     public PageMetadata parse(String sharedText) {
         if (sharedText == null || sharedText.isBlank()) return empty();
         String text = sharedText.trim();
-        String placeName = explicitPlace(text);
+        PlaceInfo labeled = labeledPlaceInfo(text);
+        String placeName = labeled == null ? null : labeled.placeName();
+        if (placeName == null) placeName = explicitPlace(text);
         if (placeName == null) placeName = hashtagPlace(text);
+        String address = labeled == null ? address(text) : labeled.address();
         return new PageMetadata(
                 firstReadableLine(text),
                 text,
                 null,
                 placeName,
                 category(placeName, text),
-                null,
+                address,
                 null,
                 null
         );
@@ -60,6 +71,22 @@ public class SharedTextMetadataParser {
     private String explicitPlace(String text) {
         Matcher matcher = EXPLICIT_PLACE.matcher(text);
         return matcher.find() ? cleanCandidate(matcher.group(1)) : null;
+    }
+
+    private PlaceInfo labeledPlaceInfo(String text) {
+        Matcher matcher = LABELED_PLACE_INFO.matcher(text);
+        if (!matcher.find()) return null;
+        String line = URL.matcher(matcher.group(1)).replaceAll(" ")
+                .replaceAll("\\s+", " ").trim();
+        Matcher addressMatcher = KOREAN_ADDRESS.matcher(line);
+        if (!addressMatcher.find()) return new PlaceInfo(cleanCandidate(line), null);
+        String placeName = cleanCandidate(line.substring(0, addressMatcher.start()));
+        return new PlaceInfo(placeName, cleanCandidate(addressMatcher.group()));
+    }
+
+    private String address(String text) {
+        Matcher matcher = KOREAN_ADDRESS.matcher(text);
+        return matcher.find() ? cleanCandidate(matcher.group()) : null;
     }
 
     private String hashtagPlace(String text) {
@@ -112,7 +139,8 @@ public class SharedTextMetadataParser {
 
     private String combine(String primary, String shared) {
         if (primary == null || primary.isBlank()) return shared;
-        if (shared == null || shared.isBlank() || primary.contains(shared)) return primary;
+        if (shared == null || shared.isBlank()
+                || primary.contains(shared) || shared.contains(primary)) return primary;
         return primary + "\n\n공유된 게시물 문구\n" + shared;
     }
 
@@ -126,5 +154,8 @@ public class SharedTextMetadataParser {
 
     private PageMetadata empty() {
         return new PageMetadata(null, null, null, null, null, null, null, null);
+    }
+
+    private record PlaceInfo(String placeName, String address) {
     }
 }
