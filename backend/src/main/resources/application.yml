@@ -48,6 +48,10 @@ app:
     tesseract-executable: ${TESSERACT_EXECUTABLE:tesseract}
     ocr-timeout-seconds: ${MEDIA_OCR_TIMEOUT_SECONDS:20}
     ocr-max-text-length: ${MEDIA_OCR_MAX_TEXT_LENGTH:20000}
+    whisper-executable: ${WHISPER_EXECUTABLE:whisper-cli}
+    whisper-model: ${WHISPER_MODEL:/opt/whisper/models/ggml-base.bin}
+    transcription-timeout-seconds: ${MEDIA_TRANSCRIPTION_TIMEOUT_SECONDS:180}
+    transcription-max-text-length: ${MEDIA_TRANSCRIPTION_MAX_TEXT_LENGTH:30000}
   kakao:
     rest-api-key: ${KAKAO_REST_API_KEY:}
   youtube:

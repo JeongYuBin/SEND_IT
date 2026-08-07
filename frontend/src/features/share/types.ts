@@ -34,5 +34,6 @@ export type ShareDetail = {
   mediaFrameCount: number
   mediaAudioAvailable: boolean
   mediaOcrText: string | null
+  mediaTranscript: string | null
   createdAt: string
 }

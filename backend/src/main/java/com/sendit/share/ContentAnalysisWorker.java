@@ -20,6 +20,7 @@ public class ContentAnalysisWorker {
     private final AutomaticMediaDownloader automaticMediaDownloader;
     private final VideoMediaProcessor videoMediaProcessor;
     private final FrameOcrExtractor frameOcrExtractor;
+    private final AudioTranscriber audioTranscriber;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -33,7 +34,8 @@ public class ContentAnalysisWorker {
             SavedPlaceService savedPlaceService,
             AutomaticMediaDownloader automaticMediaDownloader,
             VideoMediaProcessor videoMediaProcessor,
-            FrameOcrExtractor frameOcrExtractor
+            FrameOcrExtractor frameOcrExtractor,
+            AudioTranscriber audioTranscriber
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -47,6 +49,7 @@ public class ContentAnalysisWorker {
         this.automaticMediaDownloader = automaticMediaDownloader;
         this.videoMediaProcessor = videoMediaProcessor;
         this.frameOcrExtractor = frameOcrExtractor;
+        this.audioTranscriber = audioTranscriber;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -78,6 +81,8 @@ public class ContentAnalysisWorker {
                 String mediaStorageKey = job.mediaStorageKey();
                 java.util.List<String> frameKeys = job.mediaFrameKeys();
                 String ocrText = job.mediaOcrText();
+                String audioStorageKey = job.mediaAudioStorageKey();
+                String transcript = job.mediaTranscript();
                 if (needsConfirmation
                         && mediaStorageKey == null
                         && automaticMediaDownloader.supports(job.url())) {
@@ -94,6 +99,7 @@ public class ContentAnalysisWorker {
                         MediaProcessingResult processingResult = videoMediaProcessor.process(mediaStorageKey);
                         analysisJobService.attachMediaProcessingResult(job.jobId(), processingResult);
                         frameKeys = processingResult.frameStorageKeys();
+                        audioStorageKey = processingResult.audioStorageKey();
                     } catch (RuntimeException ignored) {
                         // 영상 원본은 유지하고 프레임·음원 추출은 재분석에서 다시 시도한다.
                     }
@@ -113,6 +119,23 @@ public class ContentAnalysisWorker {
                         }
                     } catch (RuntimeException ignored) {
                         // OCR 실패 시 프레임을 유지하고 재분석에서 다시 시도한다.
+                    }
+                }
+                if (needsConfirmation && audioStorageKey != null
+                        && (transcript == null || transcript.isBlank())) {
+                    try {
+                        transcript = audioTranscriber.transcribe(audioStorageKey);
+                        if (transcript != null && !transcript.isBlank()) {
+                            analysisJobService.attachMediaTranscript(job.jobId(), transcript);
+                            PageMetadata fromSpeech = sharedTextMetadataParser.parse(transcript);
+                            metadata = sharedTextMetadataParser.merge(metadata, fromSpeech);
+                            metadata = kakaoPlaceSearchClient.enrich(metadata);
+                            metadata = tourApiClient.enrich(metadata);
+                            needsConfirmation = metadata.placeName() == null
+                                    || metadata.placeName().isBlank();
+                        }
+                    } catch (RuntimeException ignored) {
+                        // STT 실패 시 기존 메타데이터와 OCR 결과로 분석을 마무리한다.
                     }
                 }
                 analysisJobService.complete(job.jobId(), metadata, needsConfirmation);

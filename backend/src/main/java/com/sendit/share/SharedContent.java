@@ -74,6 +74,9 @@ public class SharedContent {
     @Column(name = "media_ocr_text", columnDefinition = "text")
     private String mediaOcrText;
 
+    @Column(name = "media_transcript", columnDefinition = "text")
+    private String mediaTranscript;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "analysis_status", nullable = false, length = 30)
     private AnalysisStatus analysisStatus;
@@ -166,6 +169,8 @@ public class SharedContent {
     public boolean hasMediaAudio() { return mediaAudioStorageKey != null; }
     public boolean hasProcessedMedia() { return getMediaFrameCount() > 0; }
     public String getMediaOcrText() { return mediaOcrText; }
+    public String getMediaTranscript() { return mediaTranscript; }
+    public String getMediaAudioStorageKey() { return mediaAudioStorageKey; }
 
     public AnalysisStatus getAnalysisStatus() {
         return analysisStatus;
@@ -208,6 +213,10 @@ public class SharedContent {
 
     public void attachMediaOcrText(String ocrText) {
         mediaOcrText = ocrText;
+    }
+
+    public void attachMediaTranscript(String transcript) {
+        mediaTranscript = transcript;
     }
 
     public java.util.List<String> getMediaFrameKeys() {
