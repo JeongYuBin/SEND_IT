@@ -21,6 +21,7 @@ public class ContentAnalysisWorker {
     private final VideoMediaProcessor videoMediaProcessor;
     private final FrameOcrExtractor frameOcrExtractor;
     private final AudioTranscriber audioTranscriber;
+    private final PlaceVerificationPolicy placeVerificationPolicy;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -35,7 +36,8 @@ public class ContentAnalysisWorker {
             AutomaticMediaDownloader automaticMediaDownloader,
             VideoMediaProcessor videoMediaProcessor,
             FrameOcrExtractor frameOcrExtractor,
-            AudioTranscriber audioTranscriber
+            AudioTranscriber audioTranscriber,
+            PlaceVerificationPolicy placeVerificationPolicy
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -50,6 +52,7 @@ public class ContentAnalysisWorker {
         this.videoMediaProcessor = videoMediaProcessor;
         this.frameOcrExtractor = frameOcrExtractor;
         this.audioTranscriber = audioTranscriber;
+        this.placeVerificationPolicy = placeVerificationPolicy;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -77,7 +80,7 @@ public class ContentAnalysisWorker {
                 metadata = visitKoreaMetadataClient.enrich(job.url(), metadata);
                 metadata = kakaoPlaceSearchClient.enrich(metadata);
                 metadata = tourApiClient.enrich(metadata);
-                boolean needsConfirmation = metadata.placeName() == null || metadata.placeName().isBlank();
+                boolean needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
                 String mediaStorageKey = job.mediaStorageKey();
                 java.util.List<String> frameKeys = job.mediaFrameKeys();
                 String ocrText = job.mediaOcrText();
@@ -114,8 +117,7 @@ public class ContentAnalysisWorker {
                             metadata = sharedTextMetadataParser.merge(metadata, fromFrames);
                             metadata = kakaoPlaceSearchClient.enrich(metadata);
                             metadata = tourApiClient.enrich(metadata);
-                            needsConfirmation = metadata.placeName() == null
-                                    || metadata.placeName().isBlank();
+                            needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
                         }
                     } catch (RuntimeException ignored) {
                         // OCR 실패 시 프레임을 유지하고 재분석에서 다시 시도한다.
@@ -131,8 +133,7 @@ public class ContentAnalysisWorker {
                             metadata = sharedTextMetadataParser.merge(metadata, fromSpeech);
                             metadata = kakaoPlaceSearchClient.enrich(metadata);
                             metadata = tourApiClient.enrich(metadata);
-                            needsConfirmation = metadata.placeName() == null
-                                    || metadata.placeName().isBlank();
+                            needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
                         }
                     } catch (RuntimeException ignored) {
                         // STT 실패 시 기존 메타데이터와 OCR 결과로 분석을 마무리한다.

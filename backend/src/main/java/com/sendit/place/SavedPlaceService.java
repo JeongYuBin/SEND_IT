@@ -5,6 +5,7 @@ import com.sendit.collection.CollectionRepository;
 import com.sendit.collection.ResourceNotFoundException;
 import com.sendit.share.SharedContent;
 import com.sendit.share.SharedContentRepository;
+import com.sendit.share.AnalysisStatus;
 import com.sendit.tourism.TourApiClient;
 import com.sendit.user.UserRepository;
 import java.util.List;
@@ -66,7 +67,8 @@ public class SavedPlaceService {
     public void autoSaveAnalyzedShare(Long sharedContentId) {
         SharedContent share = shares.findById(sharedContentId)
                 .orElseThrow(() -> new ResourceNotFoundException("공유 콘텐츠를 찾을 수 없습니다."));
-        if (share.getExtractedPlaceName() == null || share.getExtractedPlaceName().isBlank()
+        if (share.getAnalysisStatus() != AnalysisStatus.COMPLETED
+                || share.getExtractedPlaceName() == null || share.getExtractedPlaceName().isBlank()
                 || savedPlaces.existsByUserIdAndSharedContentId(
                         share.getUser().getId(), sharedContentId)) {
             return;

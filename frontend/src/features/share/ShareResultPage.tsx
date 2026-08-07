@@ -28,7 +28,7 @@ export function ShareResultPage() {
 
   useEffect(() => {
     const share = shareQuery.data
-    if (!share || initialized.current || share.status !== 'COMPLETED') return
+    if (!share || initialized.current || !new Set(['COMPLETED', 'NEEDS_CONFIRMATION']).has(share.status)) return
     setName(share.extractedPlaceName ?? share.title ?? '')
     setCategory(share.extractedCategory ?? '')
     setAddress(share.extractedAddress ?? '')
@@ -76,7 +76,7 @@ export function ShareResultPage() {
 
   const share = shareQuery.data
   const isProcessing = processingStatuses.has(share.status)
-  const canSave = share.status === 'COMPLETED' || share.status === 'FAILED'
+  const canSave = new Set(['COMPLETED', 'NEEDS_CONFIRMATION', 'FAILED']).has(share.status)
 
   return (
     <main className="result-shell">
@@ -116,6 +116,11 @@ export function ShareResultPage() {
           )}
           {share.status === 'FAILED' && (
             <div className="form-error">자동 분석을 완료하지 못했습니다. 장소 정보를 직접 입력해 저장할 수 있습니다.</div>
+          )}
+          {share.status === 'NEEDS_CONFIRMATION' && (
+            <div className="auto-fill-notice">
+              영상에서 장소 후보를 찾았지만 주소나 좌표를 확인하지 못했습니다. 내용을 확인하고 수정한 뒤 저장해 주세요.
+            </div>
           )}
           {canSave && (
             <form className="result-form" onSubmit={handleSave}>
