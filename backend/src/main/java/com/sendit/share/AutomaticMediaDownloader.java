@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 public class AutomaticMediaDownloader {
     private static final Set<String> SUPPORTED_HOSTS = Set.of(
             "instagram.com", "www.instagram.com",
+            "tiktok.com", "www.tiktok.com", "m.tiktok.com",
+            "vm.tiktok.com", "vt.tiktok.com",
             "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"
     );
 

@@ -38,5 +38,8 @@ class UrlNormalizerTest {
     void detectsKnownSourceFromHost() {
         assertThat(normalizer.detectSource("https://youtu.be/example"))
                 .isEqualTo(SourceType.YOUTUBE);
+        assertThat(normalizer.detectSource(
+                "https://www.tiktok.com/@creator/video/6718335390845095173"))
+                .isEqualTo(SourceType.TIKTOK);
     }
 }

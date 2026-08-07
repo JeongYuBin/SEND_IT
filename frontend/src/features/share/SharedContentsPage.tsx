@@ -6,6 +6,7 @@ import type { AnalysisStatus } from './types'
 
 const sourceLabels = {
   INSTAGRAM: 'Instagram',
+  TIKTOK: 'TikTok',
   YOUTUBE: 'YouTube',
   NAVER_BLOG: '네이버 블로그',
   MAP: '지도',

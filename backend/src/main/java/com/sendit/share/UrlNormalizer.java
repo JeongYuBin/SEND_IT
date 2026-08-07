@@ -58,6 +58,9 @@ public class UrlNormalizer {
         if (host.contains("instagram.com")) {
             return SourceType.INSTAGRAM;
         }
+        if (host.equals("tiktok.com") || host.endsWith(".tiktok.com")) {
+            return SourceType.TIKTOK;
+        }
         if (host.contains("youtube.com") || host.equals("youtu.be")) {
             return SourceType.YOUTUBE;
         }
