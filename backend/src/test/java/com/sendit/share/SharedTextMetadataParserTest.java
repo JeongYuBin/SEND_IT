@@ -73,4 +73,53 @@ class SharedTextMetadataParserTest {
 
         assertThat(result.description()).isEqualTo("원본 설명");
     }
+
+    @Test
+    void extractsInstagramStyleExplicitPlaceAndRoadAddress() {
+        PageMetadata result = parser.parse("""
+                오늘 꼭 가볼 곳 저장해 두세요 ✨
+                매장명: 바다정원
+                위치: 강원특별자치도 강릉시 창해로 427
+                #강릉맛집 #가성비카페
+                """);
+
+        assertThat(result.placeName()).isEqualTo("바다정원");
+        assertThat(result.address()).isEqualTo("강원특별자치도 강릉시 창해로 427");
+    }
+
+    @Test
+    void extractsTikTokStyleLodgingInfoBeforeHashtags() {
+        PageMetadata result = parser.parse("""
+                [숙소정보] 오션스테이 부산 해운대구 달맞이길 30
+                #부산여행 #감성숙소 #오션뷰숙소
+                """);
+
+        assertThat(result.placeName()).isEqualTo("오션스테이");
+        assertThat(result.address()).isEqualTo("부산 해운대구 달맞이길 30");
+        assertThat(result.category()).isEqualTo("숙박");
+    }
+
+    @Test
+    void extractsBlogStyleBusinessNameAndLotAddress() {
+        PageMetadata result = parser.parse("""
+                제주 여행에서 발견한 식당
+                업체명 - 돌담식탁
+                지번주소 - 제주특별자치도 제주시 애월읍 123-4
+                #애월맛집 #가성비맛집
+                """);
+
+        assertThat(result.placeName()).isEqualTo("돌담식탁");
+        assertThat(result.address()).isEqualTo("제주특별자치도 제주시 애월읍 123-4");
+        assertThat(result.category()).isEqualTo("음식점");
+    }
+
+    @Test
+    void doesNotUsePromotionalHashtagAsPlaceName() {
+        PageMetadata result = parser.parse("""
+                여기 분위기 정말 좋아요
+                #잠실맛집 #가성비이자카야 #데이트추천 #내돈내산
+                """);
+
+        assertThat(result.placeName()).isNull();
+    }
 }

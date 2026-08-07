@@ -9,21 +9,29 @@ import org.springframework.stereotype.Component;
 @Component
 public class SharedTextMetadataParser {
     private static final Pattern EXPLICIT_PLACE = Pattern.compile(
-            "(?im)(?:장소명|상호명?|가게명)\\s*[:：]\\s*([^\\n#|]{2,80})");
+            "(?im)(?:장소명|상호명?|가게명|매장명|업체명|식당명|숙소명)"
+                    + "\\s*[:：-]\\s*([^\\n#|]{2,80})");
+    private static final Pattern EXPLICIT_ADDRESS = Pattern.compile(
+            "(?im)(?:도로명\\s*주소|지번\\s*주소|주소|위치)"
+                    + "\\s*[:：-]\\s*([^\\r\\n#|]{5,150})");
     private static final Pattern LABELED_PLACE_INFO = Pattern.compile(
-            "(?im)^\\s*\\[(?:식당|매장|가게|장소)정보]\\s*([^\\r\\n]+)");
+            "(?im)^\\s*\\[(?:식당|음식점|카페|매장|가게|장소|숙소|관광지)정보]"
+                    + "\\s*([^\\r\\n]+)");
     private static final Pattern KOREAN_ADDRESS = Pattern.compile(
             "(?:(?:서울|부산|대구|인천|광주|대전|울산)(?:특별시|광역시)?|"
                     + "세종(?:특별자치시)?|제주(?:특별자치도)?|"
                     + "(?:경기|강원|충북|충남|전북|전남|경북|경남)(?:특별자치도|도)?)"
-                    + "\\s+(?:[가-힣]+시\\s+)?[가-힣]+(?:시|군|구)"
-                    + "\\s+[가-힣0-9]+(?:읍|면|동|리|로|길)(?:\\s+\\d+(?:-\\d+)?)?");
+                    + "\\s+(?:[가-힣]+(?:시|군|구)\\s+)?"
+                    + "[가-힣0-9]+(?:읍|면|동|리|로|길)(?:\\s+\\d+(?:-\\d+)?)?");
     private static final Pattern HASHTAG = Pattern.compile("#([\\p{L}\\p{N}_]{2,50})");
     private static final Pattern URL = Pattern.compile("https?://\\S+", Pattern.CASE_INSENSITIVE);
     private static final Pattern PLACE_SUFFIX = Pattern.compile(
             ".*(?:횟집|식당|카페|커피|베이커리|빵집|분식|국수|냉면|갈비|치킨|"
                     + "펜션|호텔|리조트|호스텔|게스트하우스|캠핑장|시장|해변|해수욕장|"
                     + "공원|박물관|미술관|전시관|수목원|정원|전망대|성당|사찰|궁|역|집)$");
+    private static final Pattern PROMOTIONAL_HASHTAG = Pattern.compile(
+            ".*(?:가성비|감성|오션뷰|뷰맛집|핫플|데이트|추천|존맛|먹방|필수코스|"
+                    + "내돈내산|분위기|웨이팅|신상|숨은맛집|로컬맛집).*");
     private static final Set<String> GENERIC_HASHTAGS = Set.of(
             "맛집", "카페", "여행", "관광", "추천", "데이트", "핫플", "먹방",
             "국내여행", "여행스타그램", "먹스타그램", "카페스타그램", "일상", "릴스",
@@ -36,7 +44,9 @@ public class SharedTextMetadataParser {
         String placeName = labeled == null ? null : labeled.placeName();
         if (placeName == null) placeName = explicitPlace(text);
         if (placeName == null) placeName = hashtagPlace(text);
-        String address = labeled == null ? address(text) : labeled.address();
+        String address = explicitAddress(text);
+        if (address == null && labeled != null) address = labeled.address();
+        if (address == null) address = address(text);
         return new PageMetadata(
                 firstReadableLine(text),
                 text,
@@ -73,6 +83,15 @@ public class SharedTextMetadataParser {
         return matcher.find() ? cleanCandidate(matcher.group(1)) : null;
     }
 
+    private String explicitAddress(String text) {
+        Matcher matcher = EXPLICIT_ADDRESS.matcher(text);
+        if (!matcher.find()) return null;
+        String candidate = URL.matcher(matcher.group(1)).replaceAll(" ").trim();
+        Matcher addressMatcher = KOREAN_ADDRESS.matcher(candidate);
+        return addressMatcher.find()
+                ? cleanCandidate(addressMatcher.group()) : cleanCandidate(candidate);
+    }
+
     private PlaceInfo labeledPlaceInfo(String text) {
         Matcher matcher = LABELED_PLACE_INFO.matcher(text);
         if (!matcher.find()) return null;
@@ -97,7 +116,8 @@ public class SharedTextMetadataParser {
             String normalized = candidate.toLowerCase(Locale.KOREAN).replace(" ", "");
             if (GENERIC_HASHTAGS.contains(normalized)
                     || normalized.endsWith("맛집")
-                    || normalized.endsWith("여행")) continue;
+                    || normalized.endsWith("여행")
+                    || PROMOTIONAL_HASHTAG.matcher(normalized).matches()) continue;
             if (PLACE_SUFFIX.matcher(normalized).matches()) return candidate;
             if (fallback == null && candidate.length() >= 4 && candidate.length() <= 20) {
                 fallback = candidate;
