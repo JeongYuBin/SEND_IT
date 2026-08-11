@@ -597,3 +597,385 @@ dd {
     border-radius: 18px;
   }
 }
+
+/* Account, authentication and captured-content surfaces */
+.auth-shell {
+  display: grid;
+  min-height: 100svh;
+  padding: 28px;
+  align-content: start;
+  background: #f5f5f7;
+}
+
+.auth-shell > .brand-link {
+  width: min(100%, 460px);
+  margin: 0 auto;
+}
+
+.auth-card {
+  width: min(100%, 460px);
+  margin: clamp(52px, 10vh, 108px) auto 40px;
+  padding: clamp(28px, 5vw, 44px);
+}
+
+.auth-card h1 {
+  margin: 10px 0 12px;
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+}
+
+.auth-card > p {
+  margin-bottom: 30px;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.auth-form {
+  gap: 18px;
+}
+
+.auth-form label,
+.profile-edit-form label,
+.settings-list label,
+.result-form label {
+  color: #424245;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.auth-switch {
+  margin-top: 24px;
+  color: #6e6e73;
+  font-size: 0.9rem;
+}
+
+.auth-switch a,
+.shared-content-shortcut,
+.home-dashboard a,
+.saved-section-heading > a {
+  color: #0066cc;
+}
+
+.account-header {
+  margin-top: clamp(68px, 9vw, 108px);
+}
+
+.account-header h1 {
+  margin: 8px 0;
+}
+
+.profile-card {
+  margin-top: 28px;
+  padding: 24px;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, #4ca2ff, #0071e3);
+  font-size: 1.55rem;
+  font-weight: 650;
+}
+
+.profile-summary button,
+.profile-edit-form button,
+.settings-list .settings-action,
+.settings-list .account-delete-toggle {
+  min-height: 40px;
+  border-color: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  color: #0066cc;
+  background: #fff;
+  font-weight: 600;
+}
+
+.profile-stats {
+  gap: 12px;
+}
+
+.profile-stats a {
+  min-height: 112px;
+  padding: 20px;
+}
+
+.profile-stats strong {
+  font-size: 1.7rem;
+  font-weight: 650;
+}
+
+.profile-edit-form {
+  padding: 22px;
+}
+
+.settings-list {
+  margin-top: 28px;
+  overflow: hidden;
+}
+
+.settings-list div {
+  min-height: 62px;
+  padding: 18px 20px;
+  border-bottom-color: rgba(0, 0, 0, 0.075);
+}
+
+.settings-list button {
+  color: #d70015;
+  font-weight: 600;
+}
+
+.share-target-card {
+  width: min(100%, 440px);
+  padding: clamp(28px, 5vw, 42px);
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+.share-target-card h1 {
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+}
+
+.shared-contents-header {
+  padding-top: clamp(72px, 10vw, 112px);
+}
+
+.shared-content-list {
+  gap: 12px;
+}
+
+.shared-content-card {
+  min-height: 138px;
+  overflow: hidden;
+}
+
+.shared-content-card:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.shared-content-copy > strong {
+  font-size: 1.05rem;
+}
+
+.analysis-badge {
+  border-radius: 999px;
+  color: #0066cc;
+  background: #eaf4ff;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.analysis-badge.failed {
+  color: #b42318;
+  background: #fff0f0;
+}
+
+.analysis-badge.analyzing {
+  color: #765500;
+  background: #fff7df;
+}
+
+.shared-content-delete,
+.shared-content-more {
+  min-height: 40px;
+  border-color: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  color: #424245;
+  background: #fff;
+  font-weight: 560;
+}
+
+.notification-page {
+  width: min(100%, 980px);
+}
+
+.notification-header {
+  margin-top: clamp(64px, 9vw, 96px);
+}
+
+.notification-header button {
+  min-height: 40px;
+  border-color: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  color: #0066cc;
+  font-weight: 560;
+}
+
+.notification-list button {
+  padding: 18px 20px;
+  grid-template-columns: 8px 1fr auto;
+  gap: 14px;
+}
+
+.notification-list button.unread {
+  border-color: rgba(0, 113, 227, 0.16);
+  background: #f4f9ff;
+}
+
+.notification-list .unread i {
+  background: #0071e3;
+}
+
+.notification-list strong {
+  font-size: 1rem;
+}
+
+/* Saved places and place detail */
+.saved-header {
+  padding-top: clamp(72px, 10vw, 112px);
+}
+
+.saved-header h1 {
+  margin: 8px 0 10px;
+}
+
+.saved-itinerary-overview {
+  margin-top: 30px;
+}
+
+.saved-recommendation-tip {
+  border: 0;
+  border-radius: 12px;
+  color: #424245;
+  background: #eaf4ff;
+}
+
+.collection-bar,
+.place-filters {
+  border-color: rgba(0, 0, 0, 0.09);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.place-filters {
+  padding: 16px;
+}
+
+.place-filters label {
+  color: #6e6e73;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.place-grid {
+  gap: 18px;
+}
+
+.place-card {
+  overflow: hidden;
+}
+
+.place-image {
+  border-radius: 0;
+}
+
+.place-content {
+  padding: 20px;
+}
+
+.place-content h2 {
+  margin: 10px 0 8px;
+  font-size: 1.45rem;
+  font-weight: 650;
+}
+
+.place-meta,
+.place-content p {
+  color: #6e6e73;
+}
+
+.place-collection-control select,
+.place-actions select {
+  min-height: 42px;
+  border-color: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.place-detail {
+  padding-top: clamp(68px, 9vw, 102px);
+  gap: 24px;
+}
+
+.place-detail-visual,
+.place-detail-content,
+.place-detail-location {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.place-detail-content {
+  padding: clamp(24px, 4vw, 38px);
+}
+
+.place-detail-content h1 {
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.06em;
+}
+
+.place-operating-info,
+.place-detail-content section,
+.place-source-section {
+  border-color: rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+}
+
+.kakao-map-link,
+.nearby-save-button,
+.stay-save-button {
+  border-color: #0071e3;
+  border-radius: 11px;
+  color: #0071e3;
+  background: #fff;
+}
+
+.kakao-map-link:hover,
+.nearby-save-button:hover:not(:disabled),
+.stay-save-button:hover:not(:disabled) {
+  color: #fff;
+  background: #0071e3;
+}
+
+.nearby-tourism-heading h2,
+.itinerary-accommodations > header h2,
+.itinerary-festivals > header h2 {
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  font-weight: 680;
+}
+
+.nearby-tourism-grid {
+  gap: 14px;
+}
+
+.nearby-detail-backdrop {
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.nearby-detail-dialog {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 22px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 760px) {
+  .auth-shell { padding: 20px 18px; }
+  .auth-card { margin-top: 40px; padding: 26px 22px; }
+  .account-header { margin-top: 46px; }
+  .profile-card { align-items: flex-start; }
+  .profile-stats { grid-template-columns: 1fr 1fr; }
+  .shared-contents-header, .saved-header { padding-top: 48px; }
+  .place-grid { gap: 14px; }
+  .place-content { padding: 17px; }
+  .place-detail { padding-top: 46px; }
+  .place-detail-content { padding: 22px 18px; }
+  .notification-page { padding-inline: 0; }
+}
