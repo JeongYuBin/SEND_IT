@@ -376,6 +376,47 @@ h1 {
   background: #f9ece9;
 }
 
+.settings-list .account-delete-toggle {
+  border-top: 1px solid #e5e9e6;
+}
+
+.settings-list .account-delete-form {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  background: #fff8f6;
+}
+
+.settings-list .account-delete-form p {
+  margin: 0;
+  color: #765f59;
+}
+
+.settings-list .account-delete-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-list .account-delete-form input {
+  padding: 13px 14px;
+  border: 1px solid #d9c7c2;
+  border-radius: 10px;
+}
+
+.settings-list .account-delete-form > div {
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+}
+
+.settings-list .account-delete-form button {
+  width: auto;
+  padding: 11px 15px;
+  border: 1px solid #d9c7c2;
+  border-radius: 9px;
+}
+
 .share-target-shell {
   min-height: 100vh;
   display: grid;

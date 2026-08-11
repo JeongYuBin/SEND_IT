@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuthStore } from '../../stores/authStore'
-import { exportAccountData } from './accountApi'
+import { deleteAccount, exportAccountData } from './accountApi'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -10,6 +10,10 @@ export function SettingsPage() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -18,6 +22,21 @@ export function SettingsPage() {
     } finally {
       clearSession()
       navigate('/', { replace: true })
+    }
+  }
+
+  const handleDeleteAccount = async (event: FormEvent) => {
+    event.preventDefault()
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      await deleteAccount(deletePassword)
+      clearSession()
+      navigate('/', { replace: true })
+    } catch {
+      setDeleteError('계정을 삭제하지 못했습니다. 현재 비밀번호를 확인해 주세요.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -71,6 +90,32 @@ export function SettingsPage() {
         <button type="button" onClick={handleLogout} disabled={loggingOut}>
           {loggingOut ? '로그아웃 중...' : '로그아웃'}
         </button>
+        <button className="account-delete-toggle" type="button" onClick={() => setShowDelete((value) => !value)}>
+          계정 삭제
+        </button>
+        {showDelete && (
+          <form className="account-delete-form" onSubmit={handleDeleteAccount}>
+            <strong>계정과 모든 데이터를 영구 삭제합니다.</strong>
+            <p>저장 장소, 여행 계획, 원본 콘텐츠와 분석 파일은 복구할 수 없습니다.</p>
+            <label>
+              <span>현재 비밀번호</span>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(event) => setDeletePassword(event.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </label>
+            {deleteError && <p className="settings-error">{deleteError}</p>}
+            <div>
+              <button type="button" onClick={() => setShowDelete(false)}>취소</button>
+              <button type="submit" disabled={deleting || !deletePassword}>
+                {deleting ? '삭제 중...' : '계정 영구 삭제'}
+              </button>
+            </div>
+          </form>
+        )}
       </section>
     </main>
   )

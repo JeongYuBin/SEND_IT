@@ -14,4 +14,9 @@ public final class UserProfileDtos {
 
     public record Response(Long id, String email, String nickname) {
     }
+
+    public record DeleteRequest(
+            @NotBlank @Size(max = 100) String password
+    ) {
+    }
 }
