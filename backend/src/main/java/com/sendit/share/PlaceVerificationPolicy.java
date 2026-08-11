@@ -4,10 +4,28 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PlaceVerificationPolicy {
+    private static final double KOREA_MIN_LATITUDE = 32.0;
+    private static final double KOREA_MAX_LATITUDE = 39.5;
+    private static final double KOREA_MIN_LONGITUDE = 123.0;
+    private static final double KOREA_MAX_LONGITUDE = 132.0;
+
     public boolean isVerified(PageMetadata metadata) {
         if (metadata == null || isBlank(metadata.placeName())) return false;
-        boolean hasCoordinates = metadata.latitude() != null && metadata.longitude() != null;
-        return hasCoordinates || !isBlank(metadata.address());
+        if (!hasValidKoreanCoordinates(metadata.latitude(), metadata.longitude())) return false;
+        return isPlausiblePlaceName(metadata.placeName());
+    }
+
+    private boolean hasValidKoreanCoordinates(Double latitude, Double longitude) {
+        return latitude != null && longitude != null
+                && Double.isFinite(latitude) && Double.isFinite(longitude)
+                && latitude >= KOREA_MIN_LATITUDE && latitude <= KOREA_MAX_LATITUDE
+                && longitude >= KOREA_MIN_LONGITUDE && longitude <= KOREA_MAX_LONGITUDE;
+    }
+
+    private boolean isPlausiblePlaceName(String value) {
+        String normalized = value.replaceAll("\\s+", " ").trim();
+        if (normalized.length() < 2 || normalized.length() > 80) return false;
+        return !normalized.matches("(?i).*(https?://|www\\.|#\\S+).*");
     }
 
     private boolean isBlank(String value) {

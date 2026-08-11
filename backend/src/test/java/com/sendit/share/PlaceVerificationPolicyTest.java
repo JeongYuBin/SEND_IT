@@ -8,11 +8,12 @@ class PlaceVerificationPolicyTest {
     private final PlaceVerificationPolicy policy = new PlaceVerificationPolicy();
 
     @Test
-    void requiresAddressOrCoordinatesInAdditionToPlaceName() {
-        assertThat(policy.isVerified(metadata("해변카페", null, null, null))).isFalse();
-        assertThat(policy.isVerified(metadata("해변카페", "강원 속초시 해오름로 1", null, null)))
-                .isTrue();
-        assertThat(policy.isVerified(metadata("해변카페", null, 38.1, 128.6))).isTrue();
+    void requiresValidKoreanCoordinatesInAdditionToPlaceName() {
+        assertThat(policy.isVerified(metadata("테스트 카페", null, null, null))).isFalse();
+        assertThat(policy.isVerified(metadata(
+                "테스트 카페", "강원특별자치도 속초시 해오름로 1", null, null)))
+                .isFalse();
+        assertThat(policy.isVerified(metadata("테스트 카페", null, 38.1, 128.6))).isTrue();
     }
 
     @Test
@@ -20,7 +21,17 @@ class PlaceVerificationPolicyTest {
         assertThat(policy.isVerified(metadata(null, null, 38.1, 128.6))).isFalse();
     }
 
-    private PageMetadata metadata(String name, String address, Double latitude, Double longitude) {
+    @Test
+    void rejectsInvalidCoordinatesAndUrlLikeNames() {
+        assertThat(policy.isVerified(metadata("테스트 카페", null, 91.0, 128.6))).isFalse();
+        assertThat(policy.isVerified(metadata("테스트 카페", null, 37.5, 10.0))).isFalse();
+        assertThat(policy.isVerified(metadata(
+                "https://example.com/place", null, 37.5, 127.0))).isFalse();
+    }
+
+    private PageMetadata metadata(
+            String name, String address, Double latitude, Double longitude
+    ) {
         return new PageMetadata(null, null, null, name, null, address, latitude, longitude);
     }
 }

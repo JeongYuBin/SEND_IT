@@ -119,7 +119,7 @@ export function ShareResultPage() {
           )}
           {share.status === 'NEEDS_CONFIRMATION' && (
             <div className="auto-fill-notice">
-              영상에서 장소 후보를 찾았지만 주소나 좌표를 확인하지 못했습니다. 내용을 확인하고 수정한 뒤 저장해 주세요.
+              장소 후보를 찾았지만 지도 검색으로 정확한 위치를 확인하지 못했습니다. 내용을 확인하고 수정한 뒤 저장해 주세요.
             </div>
           )}
           {canSave && (
