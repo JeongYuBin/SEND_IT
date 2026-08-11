@@ -16,6 +16,20 @@ import type { NearbyTourismPlace } from './types'
 import { KakaoMap } from '../../components/KakaoMap'
 import { eventPeriodState } from './eventPeriod'
 
+function kakaoMapUrl(place: {
+  name: string
+  address: string | null
+  roadAddress: string | null
+  latitude: number | null
+  longitude: number | null
+}) {
+  if (place.latitude !== null && place.longitude !== null) {
+    return `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.latitude},${place.longitude}`
+  }
+  const query = [place.name, place.roadAddress ?? place.address].filter(Boolean).join(' ')
+  return `https://map.kakao.com/link/search/${encodeURIComponent(query)}`
+}
+
 export function SavedPlaceDetailPage() {
   const { savedPlaceId: savedPlaceIdParam } = useParams()
   const savedPlaceId = Number(savedPlaceIdParam)
@@ -183,6 +197,22 @@ export function SavedPlaceDetailPage() {
           </div>
           <h1>{place.name}</h1>
           <p className="place-detail-address">{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
+          <div className="place-map-actions">
+            <a
+              className="kakao-map-link"
+              href={kakaoMapUrl(place)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${place.name} 카카오맵에서 보기`}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2.75a7 7 0 0 0-7 7c0 5.1 6.07 10.72 6.33 10.96a1 1 0 0 0 1.34 0C12.93 20.47 19 14.85 19 9.75a7 7 0 0 0-7-7Zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+              </svg>
+              <span>카카오맵에서 보기</span>
+              <span className="external-arrow" aria-hidden="true">↗</span>
+            </a>
+            <p>카카오맵에서 위치를 확인하고 즐겨찾기에 추가할 수 있습니다.</p>
+          </div>
 
           {eventState && (
             <section className={`place-event-period ${eventState.tone}`}>

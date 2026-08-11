@@ -1782,6 +1782,58 @@ h1 {
   line-height: 1.7;
 }
 
+.place-map-actions {
+  display: flex;
+  margin-top: 18px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.place-map-actions p {
+  margin: 0;
+  color: #718078;
+  font-size: .78rem;
+}
+
+.kakao-map-link {
+  display: inline-flex;
+  min-height: 46px;
+  padding: 0 18px;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #eadb37;
+  border-radius: 12px;
+  background: #fee500;
+  color: #241f20;
+  font-weight: 850;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgb(69 61 0 / 10%);
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.kakao-map-link:hover {
+  transform: translateY(-1px);
+  background: #ffeb32;
+  box-shadow: 0 11px 24px rgb(69 61 0 / 16%);
+}
+
+.kakao-map-link:focus-visible {
+  outline: 3px solid rgb(47 107 82 / 28%);
+  outline-offset: 3px;
+}
+
+.kakao-map-link svg {
+  width: 20px;
+  height: 20px;
+  fill: currentcolor;
+}
+
+.kakao-map-link .external-arrow {
+  margin-left: 3px;
+  font-size: .9rem;
+}
+
 .place-detail-content section {
   margin-top: 28px;
 }
