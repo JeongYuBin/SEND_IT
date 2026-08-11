@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuthStore } from '../../stores/authStore'
 import { deleteAccount, exportAccountData, updatePassword } from './accountApi'
+import { usePwaInstall } from '../../lib/usePwaInstall'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -20,6 +21,7 @@ export function SettingsPage() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
+  const { canInstall, installed, install } = usePwaInstall()
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -107,6 +109,14 @@ export function SettingsPage() {
           <span>데이터 저장</span>
           <strong>내 계정에 저장</strong>
         </div>
+        <button className="settings-action" type="button" onClick={install} disabled={!canInstall || installed}>
+          <span>{installed ? 'SEND IT 앱 설치됨' : 'SEND IT 앱 설치'}</span>
+          <small>{installed
+            ? '홈 화면과 SNS 공유 메뉴에서 바로 사용할 수 있습니다.'
+            : canInstall
+              ? '홈 화면에 설치하고 SNS 공유 메뉴에서 바로 보내세요.'
+              : '브라우저 메뉴의 홈 화면에 추가를 이용할 수 있습니다.'}</small>
+        </button>
         <button className="settings-action" type="button" onClick={handleExport} disabled={exporting}>
           <span>내 데이터 내려받기</span>
           <small>{exporting ? '백업 파일 생성 중...' : '장소·계획·원본 콘텐츠를 JSON으로 백업'}</small>

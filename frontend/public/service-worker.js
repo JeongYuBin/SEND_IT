@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sendit-shell-v2'
+const CACHE_NAME = 'sendit-shell-v3'
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/sendit-icon.svg']
 
 self.addEventListener('install', (event) => {

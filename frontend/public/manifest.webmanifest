@@ -1,6 +1,7 @@
 {
   "name": "SEND IT - 여행 장소와 일정",
   "short_name": "SEND IT",
+  "id": "/",
   "description": "발견한 여행지를 저장하고 실제 여행 일정으로 연결하세요.",
   "lang": "ko-KR",
   "start_url": "/",
@@ -10,6 +11,24 @@
   "background_color": "#f5f3ec",
   "theme_color": "#176b52",
   "categories": ["travel", "navigation", "lifestyle"],
+  "launch_handler": { "client_mode": "navigate-existing" },
+  "shortcuts": [
+    {
+      "name": "URL 저장하기",
+      "short_name": "URL 저장",
+      "url": "/"
+    },
+    {
+      "name": "저장한 장소",
+      "short_name": "내 장소",
+      "url": "/saved"
+    },
+    {
+      "name": "여행 계획",
+      "short_name": "여행 계획",
+      "url": "/itineraries"
+    }
+  ],
   "share_target": {
     "action": "/share-target",
     "method": "GET",

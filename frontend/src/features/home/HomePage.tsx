@@ -134,7 +134,7 @@ export function HomePage() {
               {shareMutation.isPending ? '접수 중...' : '장소 찾기'}
             </button>
           </div>
-          <small id="url-help">Instagram, YouTube, 네이버 블로그와 일반 웹페이지를 지원할 예정입니다.</small>
+          <small id="url-help">Instagram, YouTube, TikTok, 네이버 블로그와 일반 웹페이지를 지원합니다.</small>
           {accessToken && <Link className="shared-content-shortcut" to="/shares">SNS에서 보낸 콘텐츠 보기 →</Link>}
           {shareMutation.isSuccess && (
             <div className="share-feedback success" role="status">
