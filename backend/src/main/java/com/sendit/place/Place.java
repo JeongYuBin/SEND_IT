@@ -27,6 +27,10 @@ public class Place {
     private String phone;
     @Column(name = "homepage_url", length = 2048)
     private String homepageUrl;
+    @Column(name = "kakao_place_id", length = 50)
+    private String kakaoPlaceId;
+    @Column(name = "kakao_place_url", length = 2048)
+    private String kakaoPlaceUrl;
     @Column(columnDefinition = "text")
     private String description;
     @Column(name = "primary_image_url", length = 2048)
@@ -85,6 +89,8 @@ public class Place {
     public String getPrimaryImageUrl() { return primaryImageUrl; }
     public String getPhone() { return phone; }
     public String getHomepageUrl() { return homepageUrl; }
+    public String getKakaoPlaceId() { return kakaoPlaceId; }
+    public String getKakaoPlaceUrl() { return kakaoPlaceUrl; }
     public String getTourismContentId() { return tourismContentId; }
     public String getTourismContentTypeId() { return tourismContentTypeId; }
     public String getOperatingHours() { return operatingHours; }
@@ -119,6 +125,27 @@ public class Place {
     public void updateEventPeriod(LocalDate startDate, LocalDate endDate) {
         if (startDate != null) eventStartDate = startDate;
         if (endDate != null) eventEndDate = endDate;
+    }
+
+    public void mergeExternalDetails(
+            String incomingCategory, String incomingAddress, String incomingRoadAddress,
+            Double incomingLatitude, Double incomingLongitude, String incomingDescription,
+            String incomingImageUrl, String incomingPhone, String incomingKakaoPlaceId,
+            String incomingKakaoPlaceUrl
+    ) {
+        category = firstNonBlank(incomingCategory, category);
+        address = firstNonBlank(incomingAddress, address);
+        roadAddress = firstNonBlank(incomingRoadAddress, roadAddress);
+        description = firstNonBlank(incomingDescription, description);
+        primaryImageUrl = firstNonBlank(incomingImageUrl, primaryImageUrl);
+        phone = firstNonBlank(incomingPhone, phone);
+        kakaoPlaceId = firstNonBlank(incomingKakaoPlaceId, kakaoPlaceId);
+        kakaoPlaceUrl = firstNonBlank(incomingKakaoPlaceUrl, kakaoPlaceUrl);
+        if (incomingLatitude != null && incomingLongitude != null) {
+            latitude = incomingLatitude;
+            longitude = incomingLongitude;
+        }
+        if (incomingKakaoPlaceId != null && !incomingKakaoPlaceId.isBlank()) dataSource = "KAKAO";
     }
 
     private String firstNonBlank(String preferred, String fallback) {

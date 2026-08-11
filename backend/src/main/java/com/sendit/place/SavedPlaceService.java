@@ -41,22 +41,29 @@ public class SavedPlaceService {
                 .orElse(request.description());
         String imageUrl = tourismDetail.map(TourApiClient.TourismPlaceDetail::imageUrl)
                 .orElse(request.imageUrl());
-        Place place = places.findFirstByNormalizedNameAndLatitudeAndLongitude(
-                        normalizedName, request.latitude(), request.longitude())
+        Place place = duplicatePlace(normalizedName, request)
                 .orElseGet(() -> places.save(new Place(
                         request.name(), request.category(), request.address(),
                         request.roadAddress(), request.latitude(), request.longitude(),
                         description, imageUrl)));
+        place.mergeExternalDetails(
+                request.category(), request.address(), request.roadAddress(),
+                request.latitude(), request.longitude(), description, imageUrl,
+                request.phone(), request.kakaoPlaceId(), request.kakaoPlaceUrl());
         place.updateEventPeriod(request.eventStartDate(), request.eventEndDate());
         tourismDetail.ifPresent(detail -> place.enrichTourismDetails(
                 detail.contentId(), detail.contentTypeId(), detail.description(),
                 detail.imageUrl(), detail.phone(), detail.homepageUrl(),
                 detail.operatingHours(), detail.restDays(), detail.parkingInfo()));
+        Collection collection = collection(email, request.collectionId());
         var existingSaved = savedPlaces.findByUserIdAndPlaceId(user.getId(), place.getId());
         if (existingSaved.isPresent()) {
-            return response(existingSaved.get());
+            UserSavedPlace saved = existingSaved.get();
+            saved.update(
+                    request.memo(), request.priority(),
+                    request.collectionId() == null ? saved.getCollection() : collection);
+            return response(saved);
         }
-        Collection collection = collection(email, request.collectionId());
         SharedContent share = request.sharedContentId() == null ? null
                 : shares.findByIdAndUserEmail(request.sharedContentId(), email)
                 .orElseThrow(() -> new ResourceNotFoundException("공유 콘텐츠를 찾을 수 없습니다."));
@@ -89,7 +96,10 @@ public class SavedPlaceService {
                 sharedContentId,
                 null,
                 null,
-                0
+                0,
+                null,
+                null,
+                null
         ));
     }
 
@@ -166,6 +176,36 @@ public class SavedPlaceService {
                 p.getEventStartDate(), p.getEventEndDate(),
                 c==null?null:c.getId(),
                 c==null?null:c.getName(), saved.getMemo(), saved.getPriority(), saved.getSavedAt(),
-                share==null?null:share.getOriginalUrl());
+                share==null?null:share.getOriginalUrl(), p.getKakaoPlaceId(), p.getKakaoPlaceUrl());
+    }
+
+    private java.util.Optional<Place> duplicatePlace(
+            String normalizedName, SavedPlaceDtos.CreateRequest request
+    ) {
+        if (request.kakaoPlaceId() != null && !request.kakaoPlaceId().isBlank()) {
+            var byKakao = places.findFirstByKakaoPlaceId(request.kakaoPlaceId());
+            if (byKakao.isPresent()) return byKakao;
+        }
+        if (request.tourismContentId() != null && !request.tourismContentId().isBlank()) {
+            var byTourism = places.findFirstByTourismContentId(request.tourismContentId());
+            if (byTourism.isPresent()) return byTourism;
+        }
+        if (request.latitude() != null && request.longitude() != null) {
+            var nearby = places.findNearbyDuplicate(
+                    normalizedName, request.latitude(), request.longitude());
+            if (nearby.isPresent()) return nearby;
+        }
+        if (request.roadAddress() != null && !request.roadAddress().isBlank()) {
+            var byRoadAddress = places.findFirstByNormalizedNameAndRoadAddress(
+                    normalizedName, request.roadAddress());
+            if (byRoadAddress.isPresent()) return byRoadAddress;
+        }
+        if (request.address() != null && !request.address().isBlank()) {
+            var byAddress = places.findFirstByNormalizedNameAndAddress(
+                    normalizedName, request.address());
+            if (byAddress.isPresent()) return byAddress;
+        }
+        return places.findFirstByNormalizedNameAndLatitudeAndLongitude(
+                normalizedName, request.latitude(), request.longitude());
     }
 }

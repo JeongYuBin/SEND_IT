@@ -22,7 +22,10 @@ public final class SavedPlaceDtos {
             Long sharedContentId,
             Long collectionId,
             @Size(max=1000) String memo,
-            @Min(0) @Max(5) Integer priority
+            @Min(0) @Max(5) Integer priority,
+            @Size(max=50) String kakaoPlaceId,
+            @Size(max=50) String phone,
+            @Size(max=2048) String kakaoPlaceUrl
     ) {}
     public record UpdateRequest(
             @Size(max=1000) String memo,
@@ -39,6 +42,6 @@ public final class SavedPlaceDtos {
             LocalDate eventStartDate, LocalDate eventEndDate,
             Long collectionId, String collectionName,
             String memo, int priority, Instant savedAt,
-            String originalUrl
+            String originalUrl, String kakaoPlaceId, String kakaoPlaceUrl
     ) {}
 }
