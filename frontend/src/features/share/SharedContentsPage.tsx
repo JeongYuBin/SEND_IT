@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { PlaceImage } from '../../components/PlaceImage'
-import { deleteShare, getShares } from './shareApi'
+import { deleteShare, getSharesPage } from './shareApi'
 import type { AnalysisStatus } from './types'
 
 const sourceLabels = {
@@ -33,7 +33,15 @@ function formatDate(value: string) {
 
 export function SharedContentsPage() {
   const queryClient = useQueryClient()
-  const sharesQuery = useQuery({ queryKey: ['shares'], queryFn: getShares, refetchInterval: 5000 })
+  const sharesQuery = useInfiniteQuery({
+    queryKey: ['shares', 'page'],
+    queryFn: ({ pageParam }) => getSharesPage(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.last ? undefined : lastPage.page + 1,
+    refetchInterval: 5000,
+  })
+  const shares = sharesQuery.data?.pages.flatMap((page) => page.content) ?? []
+  const totalElements = sharesQuery.data?.pages[0]?.totalElements ?? 0
   const deleteMutation = useMutation({
     mutationFn: deleteShare,
     onSuccess: () => {
@@ -69,9 +77,11 @@ export function SharedContentsPage() {
         <div className="shared-contents-state">받은 콘텐츠를 불러오고 있습니다.</div>
       ) : sharesQuery.isError ? (
         <div className="shared-contents-state error">받은 콘텐츠를 불러오지 못했습니다.</div>
-      ) : sharesQuery.data?.length ? (
+      ) : shares.length ? (
+        <>
+        <div className="shared-content-count">전체 {totalElements}개</div>
         <section className="shared-content-list" aria-label="받은 콘텐츠 목록">
-          {sharesQuery.data.map((share) => (
+          {shares.map((share) => (
             <article className="shared-content-card-wrap" key={share.shareId}>
               <Link to={`/shares/${share.shareId}`} className="shared-content-card">
               {share.thumbnailUrl ? (
@@ -103,6 +113,17 @@ export function SharedContentsPage() {
             </article>
           ))}
         </section>
+        {sharesQuery.hasNextPage && (
+          <button
+            className="shared-content-more"
+            type="button"
+            disabled={sharesQuery.isFetchingNextPage}
+            onClick={() => sharesQuery.fetchNextPage()}
+          >
+            {sharesQuery.isFetchingNextPage ? '불러오는 중...' : '더 보기'}
+          </button>
+        )}
+        </>
       ) : (
         <div className="shared-contents-state">
           <strong>아직 받은 콘텐츠가 없습니다.</strong>

@@ -3,6 +3,7 @@ package com.sendit.share;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.util.List;
 
 public final class ShareDtos {
 
@@ -48,6 +49,16 @@ public final class ShareDtos {
             String mediaOcrText,
             String mediaTranscript,
             Instant createdAt
+    ) {
+    }
+
+    public record SharePageResponse(
+            List<ShareDetailResponse> content,
+            int page,
+            int size,
+            long totalElements,
+            int totalPages,
+            boolean last
     ) {
     }
 }

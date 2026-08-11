@@ -1,5 +1,5 @@
 import { http } from '../../api/http'
-import type { ShareAcceptedResponse, ShareDetail } from './types'
+import type { ShareAcceptedResponse, ShareDetail, SharePage } from './types'
 
 export type CreateShareInput = {
   url: string
@@ -19,6 +19,10 @@ export async function getShare(shareId: number) {
 
 export async function getShares() {
   return (await http.get<ShareDetail[]>('/shares')).data
+}
+
+export async function getSharesPage(page = 0, size = 12) {
+  return (await http.get<SharePage>('/shares/page', { params: { page, size } })).data
 }
 
 export async function reanalyzeShare(shareId: number) {

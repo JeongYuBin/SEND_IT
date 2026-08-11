@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1/shares")
@@ -43,6 +44,15 @@ public class ShareController {
     @GetMapping
     List<ShareDetailResponse> list(Principal principal) {
         return shareService.list(principal.getName());
+    }
+
+    @GetMapping("/page")
+    ShareDtos.SharePageResponse page(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        return shareService.page(principal.getName(), page, size);
     }
 
     @PostMapping("/{shareId}/reanalyze")

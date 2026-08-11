@@ -37,3 +37,12 @@ export type ShareDetail = {
   mediaTranscript: string | null
   createdAt: string
 }
+
+export type SharePage = {
+  content: ShareDetail[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}

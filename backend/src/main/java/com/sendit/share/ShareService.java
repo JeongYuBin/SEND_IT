@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 @Transactional
@@ -73,6 +75,19 @@ public class ShareService {
                 .stream()
                 .map(this::toDetail)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ShareDtos.SharePageResponse page(String email, int page, int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(size, 50));
+        var result = sharedContentRepository.findByUserEmail(
+                email,
+                PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return new ShareDtos.SharePageResponse(
+                result.getContent().stream().map(this::toDetail).toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(),
+                result.getTotalPages(), result.isLast());
     }
 
     public ShareAcceptedResponse reanalyze(String email, Long shareId) {
