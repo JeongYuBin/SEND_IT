@@ -925,6 +925,227 @@ dd {
   .result-preview h1 { font-size: 2.3rem; }
 }
 
+/* Mobile product shell — keep this final so legacy responsive rules cannot win. */
+@media (max-width: 760px) {
+  body {
+    background: #f5f5f7;
+  }
+
+  .notification-page,
+  .shared-contents-shell,
+  .share-target-shell {
+    min-height: 100svh;
+    padding: 18px 18px calc(104px + env(safe-area-inset-bottom));
+    background: #f5f5f7;
+  }
+
+  .notification-page > .top-nav,
+  .shared-contents-shell > .top-nav {
+    display: none;
+  }
+
+  .notification-shortcut {
+    z-index: 110;
+    top: max(12px, env(safe-area-inset-top));
+    right: 16px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .notification-header {
+    margin: calc(30px + env(safe-area-inset-top)) 0 22px;
+    padding-right: 0;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .notification-header h1 {
+    margin-top: 5px;
+    font-size: 2.45rem;
+    line-height: 1.05;
+  }
+
+  .notification-header .eyebrow {
+    display: block;
+    overflow: hidden;
+    width: 0;
+    height: 0;
+  }
+
+  .notification-actions {
+    width: 100%;
+    padding-right: 0;
+    gap: 8px;
+  }
+
+  .notification-actions button {
+    min-height: 42px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+  }
+
+  .notification-list {
+    gap: 10px;
+  }
+
+  .notification-list button {
+    min-height: 122px;
+    padding: 18px;
+    grid-template-columns: 7px minmax(0, 1fr);
+    border-radius: 16px;
+    gap: 12px;
+  }
+
+  .notification-list time {
+    grid-column: 2;
+    font-size: 0.76rem;
+  }
+
+  .notification-list strong {
+    font-size: 0.96rem;
+    line-height: 1.35;
+  }
+
+  .notification-list small {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .shell {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+
+  .shell .hero {
+    display: block;
+    min-height: auto;
+    margin: 0;
+    padding: clamp(62px, 16vh, 112px) 0 42px;
+  }
+
+  .shell .hero > .eyebrow,
+  .shell .hero > h1,
+  .shell .hero > p {
+    display: block;
+  }
+
+  .shell .hero > .eyebrow {
+    margin-bottom: 14px;
+    color: #0071e3;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+  }
+
+  .shell .hero > h1 {
+    max-width: 390px;
+    margin: 0 0 18px;
+    font-size: clamp(2.65rem, 12vw, 4rem);
+    font-weight: 720;
+    line-height: 1.02;
+    letter-spacing: -0.064em;
+  }
+
+  .shell .hero > p {
+    max-width: 420px;
+    margin: 0 0 30px;
+    color: #6e6e73;
+    font-size: 0.98rem;
+    line-height: 1.58;
+  }
+
+  .shell .share-form {
+    position: relative;
+    max-width: 480px;
+    margin: 0;
+    padding: 18px;
+    border-color: rgba(0, 0, 0, 0.085);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.07);
+  }
+
+  .shell .share-form label {
+    display: block;
+    margin-bottom: 10px;
+    padding: 0;
+    color: #1d1d1f;
+    font-size: 0.82rem;
+    font-weight: 620;
+  }
+
+  .shell .share-form div {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .shell .share-form input {
+    min-height: 54px;
+    padding: 0 16px;
+    border-radius: 13px;
+    background: #fbfbfd;
+    font-size: 1rem;
+  }
+
+  .shell .share-form button {
+    min-height: 50px;
+    border-radius: 13px;
+    font-size: 1rem;
+  }
+
+  .shell .share-form small {
+    display: block;
+    margin-top: 14px;
+    color: #86868b;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .shell .shared-content-shortcut {
+    display: inline-flex;
+    min-height: 36px;
+    margin-top: 4px;
+    align-items: center;
+    color: #0066cc;
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  /* The mobile home is intentionally a focused capture surface. */
+  .shell .home-dashboard {
+    display: none;
+  }
+
+  .mobile-bottom-nav {
+    right: 10px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 10px;
+    height: 64px;
+    padding: 5px 6px;
+    border-radius: 18px;
+  }
+
+  .mobile-bottom-nav a {
+    min-height: 52px;
+    border-radius: 13px;
+  }
+}
+
+@media (max-width: 390px) {
+  .shell .hero {
+    padding-top: 46px;
+  }
+
+  .shell .hero > h1 {
+    font-size: 2.55rem;
+  }
+
+  .notification-actions {
+    flex-wrap: wrap;
+  }
+}
+
 /* Account, authentication and captured-content surfaces */
 .auth-shell {
   display: grid;
