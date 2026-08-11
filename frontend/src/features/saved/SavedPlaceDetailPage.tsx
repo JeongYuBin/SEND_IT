@@ -16,6 +16,15 @@ import type { NearbyTourismPlace } from './types'
 import { KakaoMap } from '../../components/KakaoMap'
 import { eventPeriodState } from './eventPeriod'
 
+const sourceLabels = {
+  INSTAGRAM: 'Instagram',
+  TIKTOK: 'TikTok',
+  YOUTUBE: 'YouTube',
+  NAVER_BLOG: 'Naver Blog',
+  MAP: 'Map',
+  WEB: 'Web',
+} as const
+
 function kakaoMapUrl(place: {
   name: string
   address: string | null
@@ -346,10 +355,34 @@ export function SavedPlaceDetailPage() {
               <div><dt>좌표</dt><dd>{place.latitude.toFixed(6)}, {place.longitude.toFixed(6)}</dd></div>
             )}
           </dl>
-          {place.originalUrl && (
-            <a className="place-source-link" href={place.originalUrl} target="_blank" rel="noreferrer">
-              원본 콘텐츠 열기 ↗
-            </a>
+          {(place.sources.length > 0 || place.originalUrl) && (
+            <section className="place-source-section">
+              <div>
+                <h2>저장한 원본 콘텐츠</h2>
+                <span>{place.sources.length || 1}개</span>
+              </div>
+              {place.sources.length > 0 ? (
+                <ul>
+                  {place.sources.map((source) => (
+                    <li key={source.sharedContentId}>
+                      <a href={source.originalUrl} target="_blank" rel="noreferrer">
+                        {source.thumbnailUrl && <img src={source.thumbnailUrl} alt="" />}
+                        <span>
+                          <small>{sourceLabels[source.sourceType]}</small>
+                          <strong>{source.title ?? `${sourceLabels[source.sourceType]} 원본 콘텐츠`}</strong>
+                          <time>{new Date(source.linkedAt).toLocaleDateString('ko-KR')}</time>
+                        </span>
+                        <b aria-hidden="true">↗</b>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <a className="place-source-link" href={place.originalUrl!} target="_blank" rel="noreferrer">
+                  원본 콘텐츠 열기 ↗
+                </a>
+              )}
+            </section>
           )}
         </div>
       </article>

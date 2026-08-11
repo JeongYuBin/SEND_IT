@@ -34,6 +34,16 @@ export type SavedPlace = {
   originalUrl: string | null
   kakaoPlaceId: string | null
   kakaoPlaceUrl: string | null
+  sources: SavedPlaceSource[]
+}
+
+export type SavedPlaceSource = {
+  sharedContentId: number
+  sourceType: 'INSTAGRAM' | 'TIKTOK' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB'
+  title: string | null
+  originalUrl: string
+  thumbnailUrl: string | null
+  linkedAt: string
 }
 
 export type CreateSavedPlace = {

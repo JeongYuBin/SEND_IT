@@ -23,12 +23,15 @@ public class SavedPlaceService {
     private final CollectionRepository collections;
     private final SharedContentRepository shares;
     private final TourApiClient tourApiClient;
+    private final UserSavedPlaceSourceRepository savedPlaceSources;
 
     public SavedPlaceService(UserRepository users, PlaceRepository places,
             UserSavedPlaceRepository savedPlaces, CollectionRepository collections,
-            SharedContentRepository shares, TourApiClient tourApiClient) {
+            SharedContentRepository shares, TourApiClient tourApiClient,
+            UserSavedPlaceSourceRepository savedPlaceSources) {
         this.users=users; this.places=places; this.savedPlaces=savedPlaces;
         this.collections=collections; this.shares=shares; this.tourApiClient=tourApiClient;
+        this.savedPlaceSources = savedPlaceSources;
     }
 
     public SavedPlaceDtos.Response create(String email, SavedPlaceDtos.CreateRequest request) {
@@ -62,13 +65,16 @@ public class SavedPlaceService {
             saved.update(
                     request.memo(), request.priority(),
                     request.collectionId() == null ? saved.getCollection() : collection);
+            attachSource(saved, request.sharedContentId(), email);
             return response(saved);
         }
         SharedContent share = request.sharedContentId() == null ? null
                 : shares.findByIdAndUserEmail(request.sharedContentId(), email)
                 .orElseThrow(() -> new ResourceNotFoundException("공유 콘텐츠를 찾을 수 없습니다."));
-        return response(savedPlaces.save(new UserSavedPlace(user, place, share, collection,
-                request.memo(), request.priority() == null ? 0 : request.priority())));
+        UserSavedPlace saved = savedPlaces.save(new UserSavedPlace(user, place, share, collection,
+                request.memo(), request.priority() == null ? 0 : request.priority()));
+        if (share != null) attachSource(saved, share);
+        return response(saved);
     }
 
     public void autoSaveAnalyzedShare(Long sharedContentId) {
@@ -168,6 +174,15 @@ public class SavedPlaceService {
     private SavedPlaceDtos.Response response(UserSavedPlace saved) {
         Place p=saved.getPlace(); Collection c=saved.getCollection();
         SharedContent share=saved.getSharedContent();
+        var sources = savedPlaceSources.findBySavedPlaceIdOrderByLinkedAtDesc(saved.getId()).stream()
+                .map(source -> {
+                    SharedContent content = source.getSharedContent();
+                    return new SavedPlaceDtos.SourceResponse(
+                            content.getId(), content.getSourceType(), content.getTitle(),
+                            content.getOriginalUrl(), content.getThumbnailUrl(), source.getLinkedAt());
+                }).toList();
+        String originalUrl = sources.isEmpty()
+                ? (share == null ? null : share.getOriginalUrl()) : sources.get(0).originalUrl();
         return new SavedPlaceDtos.Response(saved.getId(), p.getId(), p.getName(), p.getCategory(),
                 p.getAddress(), p.getRoadAddress(), p.getLatitude(), p.getLongitude(),
                 p.getDescription(), p.getPrimaryImageUrl(), p.getPhone(), p.getHomepageUrl(),
@@ -176,7 +191,21 @@ public class SavedPlaceService {
                 p.getEventStartDate(), p.getEventEndDate(),
                 c==null?null:c.getId(),
                 c==null?null:c.getName(), saved.getMemo(), saved.getPriority(), saved.getSavedAt(),
-                share==null?null:share.getOriginalUrl(), p.getKakaoPlaceId(), p.getKakaoPlaceUrl());
+                originalUrl, p.getKakaoPlaceId(), p.getKakaoPlaceUrl(), sources);
+    }
+
+    private void attachSource(UserSavedPlace saved, Long sharedContentId, String email) {
+        if (sharedContentId == null) return;
+        SharedContent share = shares.findByIdAndUserEmail(sharedContentId, email)
+                .orElseThrow(() -> new ResourceNotFoundException("공유 콘텐츠를 찾을 수 없습니다."));
+        attachSource(saved, share);
+    }
+
+    private void attachSource(UserSavedPlace saved, SharedContent share) {
+        if (!savedPlaceSources.existsBySavedPlaceIdAndSharedContentId(
+                saved.getId(), share.getId())) {
+            savedPlaceSources.save(new UserSavedPlaceSource(saved, share));
+        }
     }
 
     private java.util.Optional<Place> duplicatePlace(

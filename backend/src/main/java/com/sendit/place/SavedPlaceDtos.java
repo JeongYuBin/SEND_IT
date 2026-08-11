@@ -3,6 +3,8 @@ package com.sendit.place;
 import jakarta.validation.constraints.*;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import com.sendit.share.SourceType;
 
 public final class SavedPlaceDtos {
     private SavedPlaceDtos() {}
@@ -42,6 +44,15 @@ public final class SavedPlaceDtos {
             LocalDate eventStartDate, LocalDate eventEndDate,
             Long collectionId, String collectionName,
             String memo, int priority, Instant savedAt,
-            String originalUrl, String kakaoPlaceId, String kakaoPlaceUrl
+            String originalUrl, String kakaoPlaceId, String kakaoPlaceUrl,
+            List<SourceResponse> sources
+    ) {}
+    public record SourceResponse(
+            Long sharedContentId,
+            SourceType sourceType,
+            String title,
+            String originalUrl,
+            String thumbnailUrl,
+            Instant linkedAt
     ) {}
 }

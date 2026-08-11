@@ -4424,6 +4424,82 @@ h1 {
   text-decoration: none;
   font-size: 25px;
 }
+
+.place-source-section > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.place-source-section > div:first-child span {
+  display: grid;
+  min-width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 999px;
+  color: #315f49;
+  background: #eaf3ee;
+  font-size: .78rem;
+  font-weight: 850;
+}
+
+.place-source-section ul {
+  display: grid;
+  margin: 12px 0 0;
+  padding: 0;
+  gap: 9px;
+  list-style: none;
+}
+
+.place-source-section li a {
+  display: grid;
+  min-width: 0;
+  padding: 11px;
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 11px;
+  border: 1px solid #dce4df;
+  border-radius: 12px;
+  color: inherit;
+  background: #f8faf9;
+  text-decoration: none;
+  transition: border-color .16s ease, transform .16s ease;
+}
+
+.place-source-section li a:hover {
+  border-color: #7ca18f;
+  transform: translateY(-1px);
+}
+
+.place-source-section img {
+  width: 54px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.place-source-section li a > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.place-source-section small,
+.place-source-section time {
+  color: #708078;
+  font-size: .7rem;
+}
+
+.place-source-section strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-source-section b {
+  color: #315f49;
+}
 .notification-shortcut strong {
   position: absolute;
   top: -5px;
