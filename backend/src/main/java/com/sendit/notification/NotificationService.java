@@ -64,6 +64,10 @@ public class NotificationService {
                 .forEach(Notification::markRead);
     }
 
+    public long deleteRead(String email) {
+        return notifications.deleteByUserEmailAndReadAtIsNotNull(email);
+    }
+
     public void deleteForTarget(String email, String targetUrl) {
         notifications.deleteByUserEmailAndTargetUrl(email, targetUrl);
     }

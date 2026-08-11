@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
-import { getNotifications, markAllNotificationsRead, markNotificationRead } from './notificationApi'
+import {
+  deleteReadNotifications,
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from './notificationApi'
 
 const formatDate = (value: string) => new Intl.DateTimeFormat('ko-KR', {
   dateStyle: 'medium', timeStyle: 'short',
@@ -16,6 +21,7 @@ export function NotificationsPage() {
   }
   const readMutation = useMutation({ mutationFn: markNotificationRead, onSuccess: invalidate })
   const allMutation = useMutation({ mutationFn: markAllNotificationsRead, onSuccess: invalidate })
+  const deleteReadMutation = useMutation({ mutationFn: deleteReadNotifications, onSuccess: invalidate })
 
   const openNotification = async (id: number, read: boolean, targetUrl: string | null) => {
     if (!read) await readMutation.mutateAsync(id)
@@ -30,9 +36,18 @@ export function NotificationsPage() {
       </nav>
       <header className="notification-header">
         <div><span className="eyebrow">NOTIFICATIONS</span><h1>알림</h1></div>
-        <button type="button" disabled={allMutation.isPending} onClick={() => allMutation.mutate()}>
-          모두 읽음
-        </button>
+        <div className="notification-actions">
+          <button type="button" disabled={allMutation.isPending} onClick={() => allMutation.mutate()}>
+            모두 읽음
+          </button>
+          <button
+            type="button"
+            disabled={deleteReadMutation.isPending || !query.data?.some((item) => item.read)}
+            onClick={() => deleteReadMutation.mutate()}
+          >
+            {deleteReadMutation.isPending ? '정리 중...' : '읽은 알림 정리'}
+          </button>
+        </div>
       </header>
       {query.isLoading && <div className="analysis-state">알림을 불러오고 있습니다.</div>}
       {query.isError && <div className="form-error">알림을 불러오지 못했습니다.</div>}

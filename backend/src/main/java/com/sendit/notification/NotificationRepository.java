@@ -10,4 +10,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     long countByUserEmailAndReadAtIsNull(String email);
     boolean existsByUniqueKey(String uniqueKey);
     void deleteByUserEmailAndTargetUrl(String email, String targetUrl);
+    long deleteByUserEmailAndReadAtIsNotNull(String email);
 }

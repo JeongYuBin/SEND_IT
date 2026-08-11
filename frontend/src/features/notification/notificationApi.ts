@@ -16,3 +16,7 @@ export async function markNotificationRead(id: number) {
 export async function markAllNotificationsRead() {
   await http.patch('/notifications/read-all')
 }
+
+export async function deleteReadNotifications() {
+  return (await http.delete<{ deletedCount: number }>('/notifications/read')).data
+}
