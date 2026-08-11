@@ -205,6 +205,7 @@ export function SavedPlacesPage() {
           <Link to="/">URL 저장하기</Link>
           <Link to="/profile">내 정보</Link>
           <Link to="/settings">설정</Link>
+          <Link to="/notifications">알림</Link>
         </div>
       </nav>
 

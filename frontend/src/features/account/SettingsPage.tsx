@@ -2,15 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuthStore } from '../../stores/authStore'
-import { deleteAccount, exportAccountData, updatePassword } from './accountApi'
+import { deleteAccount, updatePassword } from './accountApi'
 import { usePwaInstall } from '../../lib/usePwaInstall'
 
 export function SettingsPage() {
   const navigate = useNavigate()
   const { refreshToken, clearSession } = useAuthStore()
   const [loggingOut, setLoggingOut] = useState(false)
-  const [exporting, setExporting] = useState(false)
-  const [exportError, setExportError] = useState('')
   const [showDelete, setShowDelete] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -67,24 +65,6 @@ export function SettingsPage() {
     }
   }
 
-  const handleExport = async () => {
-    setExporting(true)
-    setExportError('')
-    try {
-      const blob = await exportAccountData()
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = `send-it-backup-${new Date().toISOString().slice(0, 10)}.json`
-      anchor.click()
-      URL.revokeObjectURL(url)
-    } catch {
-      setExportError('데이터 백업 파일을 만들지 못했습니다. 다시 시도해 주세요.')
-    } finally {
-      setExporting(false)
-    }
-  }
-
   return (
     <main className="account-shell">
       <nav className="top-nav">
@@ -93,6 +73,7 @@ export function SettingsPage() {
           <Link to="/itineraries">여행 계획</Link>
           <Link to="/saved">저장한 장소</Link>
           <Link to="/profile">내 정보</Link>
+          <Link to="/notifications">알림</Link>
         </div>
       </nav>
       <header className="account-header">
@@ -117,11 +98,6 @@ export function SettingsPage() {
               ? '홈 화면에 설치하고 SNS 공유 메뉴에서 바로 보내세요.'
               : '브라우저 메뉴의 홈 화면에 추가를 이용할 수 있습니다.'}</small>
         </button>
-        <button className="settings-action" type="button" onClick={handleExport} disabled={exporting}>
-          <span>내 데이터 내려받기</span>
-          <small>{exporting ? '백업 파일 생성 중...' : '장소·계획·원본 콘텐츠를 JSON으로 백업'}</small>
-        </button>
-        {exportError && <p className="settings-error">{exportError}</p>}
         <button className="settings-action" type="button" onClick={() => setShowPassword((value) => !value)}>
           <span>비밀번호 변경</span>
           <small>변경 후 모든 기기에서 다시 로그인합니다.</small>

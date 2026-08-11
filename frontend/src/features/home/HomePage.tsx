@@ -100,6 +100,7 @@ export function HomePage() {
               <Link to="/saved">저장한 장소</Link>
               <Link to="/profile">내 정보</Link>
               <Link to="/settings">설정</Link>
+              <Link to="/notifications">알림</Link>
               <button className="text-button" type="button" onClick={handleLogout}>로그아웃</button>
             </>
           ) : (

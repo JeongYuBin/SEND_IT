@@ -65,6 +65,7 @@ export function ItineraryListPage() {
           <Link to="/saved">저장한 장소</Link>
           <Link to="/profile">내 정보</Link>
           <Link to="/settings">설정</Link>
+          <Link to="/notifications">알림</Link>
           <Link to="/">URL 저장하기</Link>
         </div>
       </nav>

@@ -258,6 +258,7 @@ export function ItineraryDetailPage() {
           <Link to="/saved">저장한 장소</Link>
           <Link to="/profile">내 정보</Link>
           <Link to="/settings">설정</Link>
+          <Link to="/notifications">알림</Link>
         </div>
       </nav>
       {itineraryQuery.isLoading && <div className="empty-state detail-loading">여행 계획을 불러오고 있습니다.</div>}

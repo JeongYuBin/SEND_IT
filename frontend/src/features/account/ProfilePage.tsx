@@ -44,6 +44,7 @@ export function ProfilePage() {
           <Link to="/itineraries">여행 계획</Link>
           <Link to="/saved">저장한 장소</Link>
           <Link to="/settings">설정</Link>
+          <Link to="/notifications">알림</Link>
         </div>
       </nav>
       <header className="account-header">
