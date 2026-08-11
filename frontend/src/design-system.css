@@ -1,0 +1,599 @@
+/* SEND IT interface foundation
+   Calm, content-first surfaces with a native Apple-platform rhythm. */
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "SF Pro Text",
+    "Pretendard Variable", Pretendard, "Noto Sans KR", sans-serif;
+  color: #1d1d1f;
+  background: #f5f5f7;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --green: #0071e3;
+  --green-dark: #0058b0;
+  --surface: #ffffff;
+  --surface-soft: #f5f5f7;
+  --line: rgba(0, 0, 0, 0.1);
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --danger: #d70015;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 28px rgba(0, 0, 0, 0.045);
+}
+
+html {
+  background: #f5f5f7;
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--ink);
+  background: #f5f5f7;
+  line-height: 1.47;
+}
+
+button,
+input,
+select,
+textarea {
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+button,
+a,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(0, 113, 227, 0.24);
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #fff;
+  background: #0071e3;
+}
+
+.shell,
+.saved-shell,
+.itinerary-shell,
+.result-shell,
+.place-detail-shell,
+.account-shell,
+.auth-shell,
+.shared-contents-shell,
+.share-target-shell {
+  min-height: 100vh;
+  color: var(--ink);
+  background: #f5f5f7;
+}
+
+.shell,
+.saved-shell,
+.itinerary-shell,
+.result-shell,
+.place-detail-shell,
+.account-shell {
+  padding-inline: max(24px, env(safe-area-inset-left));
+}
+
+.top-nav {
+  position: sticky;
+  z-index: 60;
+  top: 12px;
+  width: min(100%, 1180px);
+  min-height: 52px;
+  margin: 0 auto;
+  padding: 7px 8px 7px 16px;
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.055);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+}
+
+.top-nav > div {
+  align-items: center;
+  gap: 6px;
+}
+
+.top-nav > div > a,
+.top-nav > div > span,
+.text-button {
+  min-height: 36px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  color: #424245;
+  font-size: 0.86rem;
+  font-weight: 560;
+}
+
+.top-nav > div > a:hover,
+.text-button:hover {
+  color: #1d1d1f;
+  background: rgba(0, 0, 0, 0.045);
+}
+
+.brand-link {
+  color: #1d1d1f;
+  font-size: 0.93rem;
+  font-weight: 720;
+  letter-spacing: 0.12em;
+}
+
+.nav-cta,
+.primary-button,
+.share-form button,
+.auth-form > button,
+.result-form > button {
+  border-color: #0071e3 !important;
+  color: #fff !important;
+  background: #0071e3 !important;
+  box-shadow: none !important;
+}
+
+.nav-cta:hover,
+.primary-button:hover,
+.share-form button:hover,
+.auth-form > button:hover,
+.result-form > button:hover {
+  background: #0077ed !important;
+}
+
+.eyebrow,
+.home-dashboard-section > header span,
+.itinerary-accommodations > header span,
+.itinerary-festivals > header span {
+  color: #6e6e73;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+}
+
+h1,
+h2,
+h3,
+h4,
+strong {
+  color: #1d1d1f;
+  letter-spacing: -0.032em;
+}
+
+p,
+small,
+time,
+dd {
+  color: #6e6e73;
+}
+
+.hero,
+.home-dashboard,
+.saved-header,
+.saved-itinerary-overview,
+.place-add-panel,
+.place-filters,
+.place-grid,
+.itinerary-layout,
+.itinerary-detail,
+.result-layout,
+.place-detail,
+.nearby-tourism,
+.account-header,
+.profile-card,
+.profile-stats,
+.settings-list,
+.notification-page,
+.shared-contents-header,
+.shared-content-list {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+}
+
+.hero {
+  padding-block: clamp(86px, 11vw, 144px) clamp(72px, 9vw, 112px);
+  text-align: center;
+}
+
+.hero h1 {
+  max-width: 820px;
+  margin: 14px auto 20px;
+  font-size: clamp(2.75rem, 7vw, 5.75rem);
+  font-weight: 720;
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+}
+
+.hero > p {
+  max-width: 650px;
+  margin-inline: auto;
+  color: #6e6e73;
+  font-size: clamp(1.05rem, 2vw, 1.32rem);
+  line-height: 1.55;
+}
+
+.share-form {
+  max-width: 720px;
+  margin: 38px auto 0;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+}
+
+.share-form label {
+  padding-inline: 4px;
+  color: #424245;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.share-form input,
+.auth-form input,
+.profile-edit-form input,
+.settings-list input,
+.result-form input,
+.result-form textarea,
+.result-form select,
+.place-form input,
+.place-form select,
+.place-form textarea,
+.itinerary-edit-form input,
+.itinerary-edit-form select,
+.place-schedule-form input,
+.place-schedule-form select,
+.place-filters select,
+.collection-bar input {
+  min-height: 48px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 11px;
+  color: #1d1d1f;
+  background: #fff;
+  box-shadow: none;
+}
+
+.share-form input:focus,
+.auth-form input:focus,
+.profile-edit-form input:focus,
+.settings-list input:focus,
+.result-form input:focus,
+.result-form textarea:focus,
+.place-form input:focus,
+.collection-bar input:focus {
+  border-color: #0071e3;
+  outline: 3px solid rgba(0, 113, 227, 0.14);
+}
+
+.share-form button,
+.auth-form > button,
+.primary-button,
+.secondary-button,
+.danger-button,
+.place-form button,
+.nearby-save-button,
+.stay-save-button,
+.festival-detail-button,
+.festival-day-actions button {
+  min-height: 44px;
+  border-radius: 11px;
+  font-weight: 650;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.secondary-button,
+.place-form button,
+.festival-detail-button,
+.festival-day-actions button {
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #1d1d1f;
+  background: #fff;
+}
+
+.danger-button {
+  border-color: rgba(215, 0, 21, 0.24) !important;
+  color: #d70015 !important;
+  background: #fff !important;
+}
+
+.home-dashboard-section,
+.saved-itinerary-overview,
+.place-add-panel,
+.place-filters,
+.place-card,
+.itinerary-saved-card,
+.itinerary-form,
+.itinerary-route-map,
+.timeline-card,
+.itinerary-accommodations,
+.itinerary-festivals,
+.result-preview,
+.save-panel,
+.place-detail-content,
+.place-detail-location,
+.nearby-tourism,
+.profile-card,
+.profile-stats a,
+.profile-edit-form,
+.settings-list,
+.auth-card,
+.shared-content-card,
+.notification-list button {
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.home-dashboard-section,
+.saved-itinerary-overview,
+.place-add-panel,
+.nearby-tourism,
+.itinerary-accommodations,
+.itinerary-festivals {
+  padding: clamp(20px, 3vw, 32px);
+}
+
+.home-dashboard-heading h2,
+.saved-header h1,
+.itinerary-list-header h1,
+.itinerary-detail h1,
+.account-header h1,
+.notification-header h1,
+.shared-contents-header h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.052em;
+}
+
+.home-trip-card,
+.home-place-card,
+.home-event-card,
+.saved-itinerary-cards > a,
+.kakao-place-results article,
+.nearby-tourism-grid > article,
+.stay-card,
+.itinerary-festival-grid article {
+  border-color: rgba(0, 0, 0, 0.09);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: none;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.home-trip-card:hover,
+.home-place-card:hover,
+.home-event-card:hover,
+.saved-itinerary-cards > a:hover,
+.nearby-tourism-grid > article:hover,
+.itinerary-saved-card:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  transform: translateY(-2px);
+}
+
+.place-image,
+.home-place-skeleton,
+.nearby-placeholder,
+.stay-placeholder,
+.festival-image-skeleton,
+.place-detail-visual {
+  background-color: #e8e8ed;
+}
+
+.place-image img,
+.home-place-card img,
+.stay-card img,
+.nearby-tourism-grid img {
+  transition: transform 400ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.place-card:hover .place-image img,
+.home-place-card:hover img,
+.stay-card:hover img,
+.nearby-tourism-grid article:hover img {
+  transform: scale(1.025);
+}
+
+.filter-chips button,
+.view-switcher button,
+.itinerary-list-filters button,
+.place-add-tabs button,
+.stay-toggle-button {
+  min-height: 40px;
+  border-color: rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  color: #424245;
+  background: #fff;
+  font-weight: 560;
+}
+
+.filter-chips button.active,
+.view-switcher button.active,
+.itinerary-list-filters button.active,
+.place-add-tabs button.active {
+  border-color: #1d1d1f;
+  color: #fff;
+  background: #1d1d1f;
+}
+
+.notification-shortcut {
+  top: 22px;
+  right: max(24px, calc((100vw - 1260px) / 2));
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  color: #1d1d1f;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.notification-shortcut strong {
+  background: #ff3b30;
+}
+
+.notification-shortcut svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.form-error,
+.schedule-form-error {
+  border-color: rgba(215, 0, 21, 0.15);
+  border-radius: 12px;
+  color: #b42318;
+  background: #fff2f2;
+}
+
+.form-success,
+.share-feedback.success,
+.auto-fill-notice {
+  border-color: rgba(0, 113, 227, 0.14);
+  color: #0058b0;
+  background: #eff7ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .shell,
+  .saved-shell,
+  .itinerary-shell,
+  .result-shell,
+  .place-detail-shell,
+  .account-shell {
+    padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .shell .top-nav,
+  .saved-shell > .top-nav,
+  .itinerary-shell > .top-nav,
+  .result-shell > .top-nav,
+  .place-detail-shell > .top-nav,
+  .account-shell > .top-nav {
+    display: none;
+  }
+
+  .hero {
+    padding: 54px 0 48px;
+    text-align: left;
+  }
+
+  .hero h1 {
+    margin-inline: 0;
+    font-size: clamp(2.65rem, 14vw, 4.3rem);
+  }
+
+  .hero > p {
+    margin-inline: 0;
+    font-size: 1.02rem;
+  }
+
+  .share-form {
+    margin-top: 28px;
+  }
+
+  .share-form div {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-bottom-nav {
+    display: grid;
+    position: fixed;
+    z-index: 100;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: 10px;
+    height: 66px;
+    padding: 5px 7px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    background: rgba(250, 250, 252, 0.9);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.15);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+  }
+
+  .mobile-bottom-nav a {
+    min-width: 0;
+    padding: 6px 2px 4px;
+    align-content: center;
+    border-radius: 14px;
+    color: #8e8e93;
+    background: transparent;
+    gap: 2px;
+  }
+
+  .mobile-bottom-nav a > span {
+    display: grid;
+    height: 25px;
+    place-items: center;
+    font-size: 0;
+  }
+
+  .mobile-bottom-nav svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .mobile-bottom-nav a > small {
+    color: inherit;
+    font-size: 0.64rem;
+    font-weight: 550;
+    letter-spacing: -0.025em;
+  }
+
+  .mobile-bottom-nav a.active {
+    color: #0071e3;
+    background: rgba(0, 113, 227, 0.08);
+  }
+
+  .notification-shortcut {
+    top: 14px;
+    right: 16px;
+  }
+
+  .home-dashboard-section,
+  .saved-itinerary-overview,
+  .place-add-panel,
+  .place-filters,
+  .nearby-tourism,
+  .itinerary-accommodations,
+  .itinerary-festivals {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}
