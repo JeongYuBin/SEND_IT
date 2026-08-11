@@ -39,6 +39,9 @@ public class Notification {
     @Column(name = "target_url", length = 500)
     private String targetUrl;
 
+    @Column(name = "unique_key", length = 160)
+    private String uniqueKey;
+
     @Column(name = "read_at")
     private Instant readAt;
 
@@ -50,11 +53,17 @@ public class Notification {
 
     public Notification(User user, NotificationType type, String title,
             String message, String targetUrl) {
+        this(user, type, title, message, targetUrl, null);
+    }
+
+    public Notification(User user, NotificationType type, String title,
+            String message, String targetUrl, String uniqueKey) {
         this.user = user;
         this.type = type;
         this.title = title;
         this.message = message;
         this.targetUrl = targetUrl;
+        this.uniqueKey = uniqueKey;
     }
 
     public Long getId() { return id; }

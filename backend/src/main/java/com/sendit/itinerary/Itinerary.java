@@ -86,6 +86,7 @@ public class Itinerary {
     }
 
     public Long getId() { return id; }
+    public User getUser() { return user; }
     public String getTitle() { return title; }
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getEndDate() { return endDate; }

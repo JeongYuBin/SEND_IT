@@ -2,6 +2,7 @@ export type NotificationType =
   | 'ANALYSIS_COMPLETED'
   | 'ANALYSIS_NEEDS_CONFIRMATION'
   | 'ANALYSIS_FAILED'
+  | 'ITINERARY_UPCOMING'
 
 export type AppNotification = {
   id: number
