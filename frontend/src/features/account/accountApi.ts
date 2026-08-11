@@ -8,3 +8,7 @@ export async function getProfile() {
 export async function updateProfile(nickname: string) {
   return (await http.patch<AuthUser>('/users/me', { nickname })).data
 }
+
+export async function exportAccountData() {
+  return (await http.get<Blob>('/users/me/data/export', { responseType: 'blob' })).data
+}

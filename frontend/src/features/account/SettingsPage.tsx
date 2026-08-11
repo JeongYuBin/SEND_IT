@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuthStore } from '../../stores/authStore'
+import { exportAccountData } from './accountApi'
 
 export function SettingsPage() {
   const navigate = useNavigate()
   const { refreshToken, clearSession } = useAuthStore()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -15,6 +18,24 @@ export function SettingsPage() {
     } finally {
       clearSession()
       navigate('/', { replace: true })
+    }
+  }
+
+  const handleExport = async () => {
+    setExporting(true)
+    setExportError('')
+    try {
+      const blob = await exportAccountData()
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `send-it-backup-${new Date().toISOString().slice(0, 10)}.json`
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setExportError('데이터 백업 파일을 만들지 못했습니다. 다시 시도해 주세요.')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -42,6 +63,11 @@ export function SettingsPage() {
           <span>데이터 저장</span>
           <strong>내 계정에 저장</strong>
         </div>
+        <button className="settings-action" type="button" onClick={handleExport} disabled={exporting}>
+          <span>내 데이터 내려받기</span>
+          <small>{exporting ? '백업 파일 생성 중...' : '장소·계획·원본 콘텐츠를 JSON으로 백업'}</small>
+        </button>
+        {exportError && <p className="settings-error">{exportError}</p>}
         <button type="button" onClick={handleLogout} disabled={loggingOut}>
           {loggingOut ? '로그아웃 중...' : '로그아웃'}
         </button>

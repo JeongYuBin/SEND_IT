@@ -358,6 +358,24 @@ h1 {
   font-weight: 500;
 }
 
+.settings-list .settings-action {
+  display: grid;
+  gap: 5px;
+  color: #18392f;
+}
+
+.settings-list .settings-action small {
+  color: #64766f;
+  font-weight: 500;
+}
+
+.settings-list .settings-error {
+  margin: 0;
+  padding: 14px 22px;
+  color: #a43f35;
+  background: #f9ece9;
+}
+
 .share-target-shell {
   min-height: 100vh;
   display: grid;
