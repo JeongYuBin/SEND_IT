@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/v1/users/me")
 public class UserProfileController {
     private final UserProfileService service;
+    private final UserPasswordService passwords;
 
-    public UserProfileController(UserProfileService service) {
+    public UserProfileController(UserProfileService service, UserPasswordService passwords) {
         this.service = service;
+        this.passwords = passwords;
     }
 
     @GetMapping
@@ -40,5 +42,14 @@ public class UserProfileController {
             @Valid @RequestBody UserProfileDtos.DeleteRequest request
     ) {
         service.delete(principal.getName(), request);
+    }
+
+    @PatchMapping("/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void updatePassword(
+            Principal principal,
+            @Valid @RequestBody UserProfileDtos.PasswordUpdateRequest request
+    ) {
+        passwords.update(principal.getName(), request);
     }
 }

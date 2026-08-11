@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuthStore } from '../../stores/authStore'
-import { deleteAccount, exportAccountData } from './accountApi'
+import { deleteAccount, exportAccountData, updatePassword } from './accountApi'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -14,6 +14,12 @@ export function SettingsPage() {
   const [deletePassword, setDeletePassword] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -22,6 +28,25 @@ export function SettingsPage() {
     } finally {
       clearSession()
       navigate('/', { replace: true })
+    }
+  }
+
+  const handlePasswordChange = async (event: FormEvent) => {
+    event.preventDefault()
+    if (newPassword !== passwordConfirmation) {
+      setPasswordError('새 비밀번호 확인이 일치하지 않습니다.')
+      return
+    }
+    setChangingPassword(true)
+    setPasswordError('')
+    try {
+      await updatePassword(currentPassword, newPassword)
+      clearSession()
+      navigate('/login', { replace: true })
+    } catch {
+      setPasswordError('비밀번호를 변경하지 못했습니다. 현재 비밀번호와 입력 조건을 확인해 주세요.')
+    } finally {
+      setChangingPassword(false)
     }
   }
 
@@ -87,6 +112,22 @@ export function SettingsPage() {
           <small>{exporting ? '백업 파일 생성 중...' : '장소·계획·원본 콘텐츠를 JSON으로 백업'}</small>
         </button>
         {exportError && <p className="settings-error">{exportError}</p>}
+        <button className="settings-action" type="button" onClick={() => setShowPassword((value) => !value)}>
+          <span>비밀번호 변경</span>
+          <small>변경 후 모든 기기에서 다시 로그인합니다.</small>
+        </button>
+        {showPassword && (
+          <form className="account-security-form" onSubmit={handlePasswordChange}>
+            <label><span>현재 비밀번호</span><input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required /></label>
+            <label><span>새 비밀번호</span><input type="password" autoComplete="new-password" minLength={8} maxLength={72} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required /></label>
+            <label><span>새 비밀번호 확인</span><input type="password" autoComplete="new-password" minLength={8} maxLength={72} value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} required /></label>
+            {passwordError && <p className="settings-error">{passwordError}</p>}
+            <div>
+              <button type="button" onClick={() => setShowPassword(false)}>취소</button>
+              <button type="submit" disabled={changingPassword}>{changingPassword ? '변경 중...' : '비밀번호 변경'}</button>
+            </div>
+          </form>
+        )}
         <button type="button" onClick={handleLogout} disabled={loggingOut}>
           {loggingOut ? '로그아웃 중...' : '로그아웃'}
         </button>

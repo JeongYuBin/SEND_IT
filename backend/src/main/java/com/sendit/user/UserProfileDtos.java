@@ -19,4 +19,10 @@ public final class UserProfileDtos {
             @NotBlank @Size(max = 100) String password
     ) {
     }
+
+    public record PasswordUpdateRequest(
+            @NotBlank @Size(max = 100) String currentPassword,
+            @NotBlank @Size(min = 8, max = 72) String newPassword
+    ) {
+    }
 }

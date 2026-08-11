@@ -387,6 +387,39 @@ h1 {
   background: #fff8f6;
 }
 
+.settings-list .account-security-form {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  background: #f5f8f6;
+}
+
+.settings-list .account-security-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.settings-list .account-security-form input {
+  padding: 13px 14px;
+  border: 1px solid #bdcbc4;
+  border-radius: 10px;
+}
+
+.settings-list .account-security-form > div {
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+}
+
+.settings-list .account-security-form button {
+  width: auto;
+  padding: 11px 15px;
+  border: 1px solid #bdcbc4;
+  border-radius: 9px;
+  color: #245943;
+}
+
 .settings-list .account-delete-form p {
   margin: 0;
   color: #765f59;

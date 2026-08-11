@@ -16,3 +16,7 @@ export async function exportAccountData() {
 export async function deleteAccount(password: string) {
   await http.delete('/users/me', { data: { password } })
 }
+
+export async function updatePassword(currentPassword: string, newPassword: string) {
+  await http.patch('/users/me/password', { currentPassword, newPassword })
+}
