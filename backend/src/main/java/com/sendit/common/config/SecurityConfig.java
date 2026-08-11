@@ -56,7 +56,8 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            @Value("${app.docs.public:true}") boolean publicDocs
     ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -67,19 +68,17 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions ->
                         exceptions.authenticationEntryPoint(
                                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-                .authorizeHttpRequests(authorize -> authorize
-                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                        .requestMatchers(
-                                "/error",
-                                "/actuator/health",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**"
-                        ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/tourism/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(authorize -> {
+                    authorize.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                            .requestMatchers("/error", "/actuator/health").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll();
+                    if (publicDocs) {
+                        authorize.requestMatchers(
+                                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
+                                .permitAll();
+                    }
+                    authorize.anyRequest().authenticated();
+                })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

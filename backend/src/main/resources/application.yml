@@ -37,6 +37,8 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  docs:
+    public: ${DOCS_PUBLIC:true}
   media:
     storage-directory: ${MEDIA_STORAGE_DIRECTORY:./data/uploads}
     max-bytes: ${MEDIA_MAX_BYTES:104857600}
