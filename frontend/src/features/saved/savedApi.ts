@@ -9,7 +9,14 @@ import type {
   TourismPlaceDetail,
   TourismFestival,
   TourismAccommodation,
+  KakaoPlaceSearchResponse,
 } from './types'
+
+export async function searchKakaoPlaces(query: string, page = 1) {
+  return (await http.get<KakaoPlaceSearchResponse>('/places/search', {
+    params: { query, page },
+  })).data
+}
 
 export async function getSavedPlaces() {
   return (await http.get<SavedPlace[]>('/saved-places')).data

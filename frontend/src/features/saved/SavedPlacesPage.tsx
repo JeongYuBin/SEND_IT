@@ -7,9 +7,10 @@ import {
   deleteSavedPlace,
   getCollections,
   getSavedPlaces,
+  searchKakaoPlaces,
   updateSavedPlace,
 } from './savedApi'
-import type { SavedPlace } from './types'
+import type { KakaoPlaceSearchResult, SavedPlace } from './types'
 import { SavedPlacesMap } from './SavedPlacesMap'
 import { getItineraries } from '../itinerary/itineraryApi'
 import type { TransportType } from '../itinerary/types'
@@ -43,6 +44,10 @@ export function SavedPlacesPage() {
     ? (showUncategorized ? 'none' : 'all')
     : String(selectedCollectionId)
   const [showForm, setShowForm] = useState(false)
+  const [addMode, setAddMode] = useState<'search' | 'direct'>('search')
+  const [placeSearch, setPlaceSearch] = useState('')
+  const [submittedPlaceSearch, setSubmittedPlaceSearch] = useState('')
+  const [placeSearchPage, setPlaceSearchPage] = useState(1)
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
   const [address, setAddress] = useState('')
@@ -63,6 +68,11 @@ export function SavedPlacesPage() {
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
   const itinerariesQuery = useQuery({ queryKey: ['itineraries'], queryFn: getItineraries })
+  const placeSearchQuery = useQuery({
+    queryKey: ['kakao-place-search', submittedPlaceSearch, placeSearchPage],
+    queryFn: () => searchKakaoPlaces(submittedPlaceSearch, placeSearchPage),
+    enabled: submittedPlaceSearch.length >= 2,
+  })
   const selectedCollection = collectionsQuery.data?.find((item) => item.id === selectedCollectionId)
   const refreshPlaces = () => queryClient.invalidateQueries({ queryKey: ['saved-places'] })
 
@@ -71,6 +81,7 @@ export function SavedPlacesPage() {
     onSuccess: () => {
       refreshPlaces()
       setName(''); setCategory(''); setAddress(''); setMemo(''); setShowForm(false)
+      setPlaceSearch(''); setSubmittedPlaceSearch(''); setPlaceSearchPage(1)
     },
   })
   const updateMutation = useMutation({
@@ -155,6 +166,37 @@ export function SavedPlacesPage() {
     })
   }
 
+  const handlePlaceSearch = (event: FormEvent) => {
+    event.preventDefault()
+    const query = placeSearch.trim()
+    if (query.length < 2) return
+    setPlaceSearchPage(1)
+    setSubmittedPlaceSearch(query)
+  }
+
+  const saveSearchResult = (result: KakaoPlaceSearchResult) => {
+    createMutation.mutate({
+      name: result.name,
+      category: result.categoryGroup ?? result.category ?? undefined,
+      address: result.address ?? undefined,
+      roadAddress: result.roadAddress ?? undefined,
+      latitude: result.latitude ?? undefined,
+      longitude: result.longitude ?? undefined,
+      phone: result.phone ?? undefined,
+      kakaoPlaceId: result.kakaoPlaceId,
+      kakaoPlaceUrl: result.kakaoPlaceUrl ?? undefined,
+      memo: memo || undefined,
+      collectionId,
+    })
+  }
+
+  const isSearchResultSaved = (result: KakaoPlaceSearchResult) => placesQuery.data?.some(
+    (saved) => saved.kakaoPlaceId === result.kakaoPlaceId
+      || (saved.name.replaceAll(/\s/g, '').toLowerCase()
+        === result.name.replaceAll(/\s/g, '').toLowerCase()
+        && (saved.roadAddress ?? saved.address) === (result.roadAddress ?? result.address)),
+  ) ?? false
+
   return (
     <main className="saved-shell">
       <nav className="top-nav">
@@ -225,18 +267,105 @@ export function SavedPlacesPage() {
       </aside>
 
       {showForm && (
-        <form className="place-form" onSubmit={handleSubmit}>
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="장소명 *" />
-          <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="카테고리" />
-          <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="주소" />
-          <input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="메모" />
-          <select value={collectionId ?? ''} onChange={(e) => setCollectionId(e.target.value ? Number(e.target.value) : undefined)}>
-            <option value="">컬렉션 없음</option>
-            {collectionsQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
-          <button disabled={createMutation.isPending}>저장</button>
+        <section className="place-add-panel">
+          <header>
+            <div>
+              <span className="eyebrow">ADD PLACE</span>
+              <h2>장소 추가</h2>
+            </div>
+            <div className="place-add-tabs" role="tablist" aria-label="장소 추가 방식">
+              <button
+                type="button"
+                className={addMode === 'search' ? 'active' : ''}
+                onClick={() => setAddMode('search')}
+              >장소 검색</button>
+              <button
+                type="button"
+                className={addMode === 'direct' ? 'active' : ''}
+                onClick={() => setAddMode('direct')}
+              >직접 입력</button>
+            </div>
+          </header>
+          {addMode === 'search' ? (
+            <>
+              <form className="kakao-place-search" onSubmit={handlePlaceSearch}>
+                <label>
+                  <span>카카오맵 장소 검색</span>
+                  <div>
+                    <input
+                      value={placeSearch}
+                      onChange={(event) => setPlaceSearch(event.target.value)}
+                      placeholder="장소명과 지역을 입력하세요. 예: 스시화 잠실"
+                      aria-label="카카오맵 장소 검색어"
+                    />
+                    <button type="submit" disabled={placeSearch.trim().length < 2}>검색</button>
+                  </div>
+                </label>
+              </form>
+              <div className="place-add-options">
+                <input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="공통 메모 (선택)" />
+                <select value={collectionId ?? ''} onChange={(e) => setCollectionId(e.target.value ? Number(e.target.value) : undefined)}>
+                  <option value="">컬렉션 없음</option>
+                  {collectionsQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
+              </div>
+              {placeSearchQuery.isLoading && <div className="analysis-state"><span className="spinner" />장소를 검색하고 있습니다.</div>}
+              {placeSearchQuery.isError && <div className="form-error">카카오 장소 검색을 완료하지 못했습니다.</div>}
+              {placeSearchQuery.data && placeSearchQuery.data.places.length === 0 && (
+                <div className="empty-state">검색 결과가 없습니다. 검색어를 바꾸거나 직접 입력해 주세요.</div>
+              )}
+              <div className="kakao-place-results">
+                {placeSearchQuery.data?.places.map((result) => {
+                  const saved = isSearchResultSaved(result)
+                  const saving = createMutation.isPending
+                    && createMutation.variables?.kakaoPlaceId === result.kakaoPlaceId
+                  return (
+                    <article key={result.kakaoPlaceId}>
+                      <div>
+                        <span>{result.category ?? result.categoryGroup ?? '카테고리 없음'}</span>
+                        <h3>{result.name}</h3>
+                        <p>{result.roadAddress ?? result.address ?? '주소 정보 없음'}</p>
+                        {result.phone && <small>{result.phone}</small>}
+                      </div>
+                      <div className="kakao-result-actions">
+                        {result.kakaoPlaceUrl && (
+                          <a href={result.kakaoPlaceUrl} target="_blank" rel="noreferrer">지도 보기 ↗</a>
+                        )}
+                        <button
+                          type="button"
+                          disabled={saved || createMutation.isPending}
+                          onClick={() => saveSearchResult(result)}
+                        >
+                          {saved ? '저장됨' : saving ? '저장 중...' : '+ 내 장소에 저장'}
+                        </button>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+              {placeSearchQuery.data && placeSearchQuery.data.places.length > 0 && (
+                <div className="place-search-pagination">
+                  <button type="button" disabled={placeSearchPage === 1} onClick={() => setPlaceSearchPage((page) => page - 1)}>이전</button>
+                  <span>{placeSearchPage} 페이지</span>
+                  <button type="button" disabled={placeSearchQuery.data.last} onClick={() => setPlaceSearchPage((page) => page + 1)}>다음</button>
+                </div>
+              )}
+            </>
+          ) : (
+            <form className="place-form" onSubmit={handleSubmit}>
+              <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="장소명 *" />
+              <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="카테고리" />
+              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="주소" />
+              <input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="메모" />
+              <select value={collectionId ?? ''} onChange={(e) => setCollectionId(e.target.value ? Number(e.target.value) : undefined)}>
+                <option value="">컬렉션 없음</option>
+                {collectionsQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+              <button disabled={createMutation.isPending}>저장</button>
+            </form>
+          )}
           {createMutation.isError && <div className="form-error">장소를 저장하지 못했습니다.</div>}
-        </form>
+        </section>
       )}
 
       <section className="collection-bar">

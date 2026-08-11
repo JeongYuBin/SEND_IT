@@ -32,6 +32,8 @@ export type SavedPlace = {
   priority: number
   savedAt: string
   originalUrl: string | null
+  kakaoPlaceId: string | null
+  kakaoPlaceUrl: string | null
 }
 
 export type CreateSavedPlace = {
@@ -51,6 +53,28 @@ export type CreateSavedPlace = {
   tourismContentTypeId?: string
   eventStartDate?: string
   eventEndDate?: string
+  kakaoPlaceId?: string
+  phone?: string
+  kakaoPlaceUrl?: string
+}
+
+export type KakaoPlaceSearchResult = {
+  kakaoPlaceId: string
+  name: string
+  category: string | null
+  categoryGroup: string | null
+  address: string | null
+  roadAddress: string | null
+  phone: string | null
+  latitude: number | null
+  longitude: number | null
+  kakaoPlaceUrl: string | null
+}
+
+export type KakaoPlaceSearchResponse = {
+  places: KakaoPlaceSearchResult[]
+  page: number
+  last: boolean
 }
 
 export type NearbyTourismPlace = {
