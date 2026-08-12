@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   deleteReadNotifications,
-  getNotifications,
+  getNotificationsPage,
   markAllNotificationsRead,
   markNotificationRead,
 } from './notificationApi'
@@ -14,7 +14,13 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('ko-KR', {
 export function NotificationsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const query = useQuery({ queryKey: ['notifications'], queryFn: getNotifications })
+  const query = useInfiniteQuery({
+    queryKey: ['notifications', 'page'],
+    queryFn: ({ pageParam }) => getNotificationsPage(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.last ? undefined : lastPage.page + 1,
+  })
+  const notifications = query.data?.pages.flatMap((page) => page.content) ?? []
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['notifications'] })
     queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
@@ -42,7 +48,7 @@ export function NotificationsPage() {
           </button>
           <button
             type="button"
-            disabled={deleteReadMutation.isPending || !query.data?.some((item) => item.read)}
+            disabled={deleteReadMutation.isPending || !notifications.some((item) => item.read)}
             onClick={() => deleteReadMutation.mutate()}
           >
             {deleteReadMutation.isPending ? '정리 중...' : '읽은 알림 정리'}
@@ -51,9 +57,9 @@ export function NotificationsPage() {
       </header>
       {query.isLoading && <div className="analysis-state">알림을 불러오고 있습니다.</div>}
       {query.isError && <div className="form-error">알림을 불러오지 못했습니다.</div>}
-      {query.data?.length === 0 && <div className="notification-empty">아직 도착한 알림이 없습니다.</div>}
+      {notifications.length === 0 && !query.isLoading && <div className="notification-empty">아직 도착한 알림이 없습니다.</div>}
       <section className="notification-list">
-        {query.data?.map((item) => (
+        {notifications.map((item) => (
           <button
             type="button"
             key={item.id}
@@ -66,6 +72,16 @@ export function NotificationsPage() {
           </button>
         ))}
       </section>
+      {query.hasNextPage && (
+        <button
+          className="shared-content-more"
+          type="button"
+          disabled={query.isFetchingNextPage}
+          onClick={() => query.fetchNextPage()}
+        >
+          {query.isFetchingNextPage ? '불러오는 중...' : '알림 더 보기'}
+        </button>
+      )}
     </main>
   )
 }

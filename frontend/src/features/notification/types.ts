@@ -13,3 +13,12 @@ export type AppNotification = {
   read: boolean
   createdAt: string
 }
+
+export type NotificationPage = {
+  content: AppNotification[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  last: boolean
+}

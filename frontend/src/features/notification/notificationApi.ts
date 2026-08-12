@@ -1,8 +1,14 @@
 import { http } from '../../api/http'
-import type { AppNotification } from './types'
+import type { AppNotification, NotificationPage } from './types'
 
 export async function getNotifications() {
   return (await http.get<AppNotification[]>('/notifications')).data
+}
+
+export async function getNotificationsPage(page = 0, size = 20) {
+  return (await http.get<NotificationPage>('/notifications/page', {
+    params: { page, size },
+  })).data
 }
 
 export async function getUnreadNotificationCount() {

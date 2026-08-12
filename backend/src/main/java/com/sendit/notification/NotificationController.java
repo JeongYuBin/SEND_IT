@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -21,6 +22,15 @@ public class NotificationController {
     @GetMapping
     List<NotificationDtos.Response> list(Principal principal) {
         return service.list(principal.getName());
+    }
+
+    @GetMapping("/page")
+    NotificationDtos.PageResponse page(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return service.page(principal.getName(), page, size);
     }
 
     @GetMapping("/unread-count")

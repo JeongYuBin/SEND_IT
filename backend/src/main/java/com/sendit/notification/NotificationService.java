@@ -4,6 +4,8 @@ import com.sendit.collection.ResourceNotFoundException;
 import com.sendit.share.AnalysisStatus;
 import com.sendit.share.SharedContent;
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,18 @@ public class NotificationService {
     public List<NotificationDtos.Response> list(String email) {
         return notifications.findByUserEmailOrderByCreatedAtDesc(email).stream()
                 .map(this::response).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public NotificationDtos.PageResponse page(String email, int page, int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(size, 50));
+        var result = notifications.findByUserEmail(email, PageRequest.of(
+                safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return new NotificationDtos.PageResponse(
+                result.getContent().stream().map(this::response).toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(),
+                result.getTotalPages(), result.isLast());
     }
 
     @Transactional(readOnly = true)
