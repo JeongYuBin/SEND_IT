@@ -30,6 +30,11 @@ public final class SavedPlaceDtos {
             @Size(max=2048) String kakaoPlaceUrl
     ) {}
     public record UpdateRequest(
+            @Size(max=200) String name,
+            @Size(max=100) String category,
+            @Size(max=500) String address,
+            @Size(max=500) String roadAddress,
+            @Size(max=2048) String imageUrl,
             @Size(max=1000) String memo,
             @Min(0) @Max(5) Integer priority,
             Long collectionId,

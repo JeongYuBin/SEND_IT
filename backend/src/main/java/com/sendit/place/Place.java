@@ -127,6 +127,24 @@ public class Place {
         if (endDate != null) eventEndDate = endDate;
     }
 
+    public void updateUserDetails(String updatedName, String updatedCategory,
+            String updatedAddress, String updatedRoadAddress, String updatedImageUrl) {
+        if (updatedName != null && !updatedName.isBlank()) {
+            name = updatedName.trim();
+            normalizedName = normalize(updatedName);
+        }
+        if (updatedCategory != null) category = blankToNull(updatedCategory);
+        if (updatedAddress != null) address = blankToNull(updatedAddress);
+        if (updatedRoadAddress != null) roadAddress = blankToNull(updatedRoadAddress);
+        if (updatedImageUrl != null) primaryImageUrl = blankToNull(updatedImageUrl);
+        dataSource = "USER";
+    }
+
+    private String blankToNull(String value) {
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     public void mergeExternalDetails(
             String incomingCategory, String incomingAddress, String incomingRoadAddress,
             Double incomingLatitude, Double incomingLongitude, String incomingDescription,

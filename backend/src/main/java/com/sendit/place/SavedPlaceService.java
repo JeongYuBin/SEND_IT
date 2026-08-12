@@ -123,6 +123,8 @@ public class SavedPlaceService {
 
     public SavedPlaceDtos.Response update(String email, Long id, SavedPlaceDtos.UpdateRequest request) {
         var saved = owned(email, id);
+        saved.getPlace().updateUserDetails(request.name(), request.category(),
+                request.address(), request.roadAddress(), request.imageUrl());
         Collection selectedCollection;
         if (Boolean.TRUE.equals(request.clearCollection())) {
             selectedCollection = null;

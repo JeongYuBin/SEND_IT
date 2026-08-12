@@ -35,6 +35,11 @@ export async function updateSavedPlace(
   request: {
     memo?: string
     priority?: number
+    name?: string
+    category?: string
+    address?: string
+    roadAddress?: string
+    imageUrl?: string
     collectionId?: number
     clearCollection?: boolean
   },

@@ -46,6 +46,11 @@ export function SavedPlaceDetailPage() {
   const queryClient = useQueryClient()
   const [selectedNearby, setSelectedNearby] = useState<NearbyTourismPlace | null>(null)
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
+  const [editingDetails, setEditingDetails] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editCategory, setEditCategory] = useState('')
+  const [editAddress, setEditAddress] = useState('')
+  const [editImageUrl, setEditImageUrl] = useState('')
   const placeQuery = useQuery({
     queryKey: ['saved-place', savedPlaceId],
     queryFn: () => getSavedPlace(savedPlaceId),
@@ -98,10 +103,15 @@ export function SavedPlaceDetailPage() {
     mutationFn: (request: {
       collectionId?: number
       clearCollection?: boolean
+      name?: string
+      category?: string
+      address?: string
+      imageUrl?: string
     }) => updateSavedPlace(savedPlaceId, request),
     onSuccess: (place) => {
       queryClient.setQueryData(['saved-place', savedPlaceId], place)
       queryClient.invalidateQueries({ queryKey: ['saved-places'] })
+      setEditingDetails(false)
     },
   })
   const saveNearbyMutation = useMutation({
@@ -208,6 +218,39 @@ export function SavedPlaceDetailPage() {
           </div>
           <h1>{place.name}</h1>
           <p className="place-detail-address">{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              setEditName(place.name)
+              setEditCategory(place.category ?? '')
+              setEditAddress(place.roadAddress ?? place.address ?? '')
+              setEditImageUrl(place.imageUrl ?? '')
+              setEditingDetails((value) => !value)
+            }}
+          >
+            {editingDetails ? '수정 취소' : '장소 정보 수정'}
+          </button>
+          {editingDetails && (
+            <form
+              className="account-security-form"
+              onSubmit={(event) => {
+                event.preventDefault()
+                updateMutation.mutate({
+                  name: editName,
+                  category: editCategory,
+                  roadAddress: editAddress,
+                  imageUrl: editImageUrl,
+                })
+              }}
+            >
+              <label><span>장소명</span><input required maxLength={200} value={editName} onChange={(event) => setEditName(event.target.value)} /></label>
+              <label><span>카테고리</span><input maxLength={100} value={editCategory} onChange={(event) => setEditCategory(event.target.value)} /></label>
+              <label><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => setEditAddress(event.target.value)} /></label>
+              <label><span>대표 이미지 URL</span><input type="url" maxLength={2048} value={editImageUrl} onChange={(event) => setEditImageUrl(event.target.value)} /></label>
+              <button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? '저장 중...' : '변경 저장'}</button>
+            </form>
+          )}
           <div className="place-map-actions">
             <a
               className="kakao-map-link"
