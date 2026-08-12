@@ -48,6 +48,7 @@ public class SharedTextMetadataParser {
         String address = explicitAddress(text);
         if (address == null && labeled != null) address = labeled.address();
         if (address == null) address = address(text);
+        if (placeName == null && address != null) placeName = titleTailPlace(text);
         return new PageMetadata(
                 firstReadableLine(text),
                 text,
@@ -132,6 +133,22 @@ public class SharedTextMetadataParser {
             if (!cleaned.isBlank()) return truncate(cleaned, 500);
         }
         return null;
+    }
+
+    private String titleTailPlace(String text) {
+        String firstLine = text.lines().findFirst().orElse("");
+        String cleaned = firstLine
+                .replaceAll("^\\s*\\[[^]]+\\]", " ")
+                .replaceAll("[🔥❤♥✨👍!?~]+", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (cleaned.isBlank()) return null;
+        String[] tokens = cleaned.split(" ");
+        String candidate = tokens[tokens.length - 1]
+                .replaceAll("^[^가-힣A-Za-z0-9]+|[^가-힣A-Za-z0-9]+$", "");
+        if (candidate.length() < 3 || candidate.length() > 30
+                || !candidate.matches(".*[가-힣].*")) return null;
+        return candidate;
     }
 
     private String category(String placeName, String text) {

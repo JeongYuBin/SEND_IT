@@ -143,4 +143,15 @@ class SharedTextMetadataParserTest {
         assertThat(result.description()).isEqualTo(
                 "대표 메뉴는 순두부입니다.\n웨이팅은 20분이었어요.");
     }
+
+    @Test
+    void extractsTitleTailCandidateWhenExactAddressIsPresent() {
+        PageMetadata result = parser.parse("""
+                [구로맛집]최자로드 출연! 군만두 찐맛집 월래순교자관
+                위치 서울 구로구 디지털로19길 13
+                """);
+
+        assertThat(result.placeName()).isEqualTo("월래순교자관");
+        assertThat(result.address()).contains("서울 구로구 디지털로19길 13");
+    }
 }
