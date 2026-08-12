@@ -35,8 +35,12 @@ public class NotificationService {
         } else {
             return;
         }
+        String targetUrl = "/shares/" + share.getId();
+        String uniqueKey = "analysis:" + share.getId() + ":" + share.getAnalysisStatus();
+        if (notifications.existsByUniqueKey(uniqueKey)) return;
+        notifications.deleteByUserEmailAndTargetUrl(share.getUser().getEmail(), targetUrl);
         notifications.save(new Notification(share.getUser(), type, title, message,
-                "/shares/" + share.getId()));
+                targetUrl, uniqueKey));
     }
 
     @Transactional(readOnly = true)

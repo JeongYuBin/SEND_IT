@@ -71,6 +71,7 @@ public class Notification {
     public String getTitle() { return title; }
     public String getMessage() { return message; }
     public String getTargetUrl() { return targetUrl; }
+    public String getUniqueKey() { return uniqueKey; }
     public Instant getReadAt() { return readAt; }
     public Instant getCreatedAt() { return createdAt; }
     public void markRead() { if (readAt == null) readAt = Instant.now(); }
