@@ -51,7 +51,7 @@ export function NotificationsPage() {
             disabled={deleteReadMutation.isPending || !notifications.some((item) => item.read)}
             onClick={() => deleteReadMutation.mutate()}
           >
-            {deleteReadMutation.isPending ? '정리 중...' : '읽은 알림 정리'}
+            {deleteReadMutation.isPending ? '삭제 중...' : '읽은 알림 삭제'}
           </button>
         </div>
       </header>
