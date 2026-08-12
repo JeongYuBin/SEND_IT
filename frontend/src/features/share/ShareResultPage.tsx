@@ -60,7 +60,6 @@ export function ShareResultPage() {
       memo: memo || undefined,
       collectionId,
       sharedContentId: shareQuery.data.shareId,
-      description: shareQuery.data.description ?? undefined,
       imageUrl: shareQuery.data.thumbnailUrl ?? undefined,
       latitude: shareQuery.data.extractedLatitude ?? undefined,
       longitude: shareQuery.data.extractedLongitude ?? undefined,

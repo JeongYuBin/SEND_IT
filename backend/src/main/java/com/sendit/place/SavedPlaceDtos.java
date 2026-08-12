@@ -51,6 +51,7 @@ public final class SavedPlaceDtos {
             Long sharedContentId,
             SourceType sourceType,
             String title,
+            String description,
             String originalUrl,
             String thumbnailUrl,
             Instant linkedAt

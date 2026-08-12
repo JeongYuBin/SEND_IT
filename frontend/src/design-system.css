@@ -1244,6 +1244,17 @@ dd {
   }
 }
 
+.place-source-section li p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 2px 0;
+  color: #6e6e73;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 /* Account, authentication and captured-content surfaces */
 .auth-shell {
   display: grid;

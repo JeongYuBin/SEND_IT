@@ -371,6 +371,7 @@ export function SavedPlaceDetailPage() {
                         <span>
                           <small>{sourceLabels[source.sourceType]}</small>
                           <strong>{source.title ?? `${sourceLabels[source.sourceType]} 원본 콘텐츠`}</strong>
+                          {source.description && <p>{source.description}</p>}
                           <time>{new Date(source.linkedAt).toLocaleDateString('ko-KR')}</time>
                         </span>
                         <b aria-hidden="true">↗</b>

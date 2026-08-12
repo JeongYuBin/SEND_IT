@@ -93,7 +93,7 @@ public class SavedPlaceService {
                 share.getExtractedAddress(),
                 share.getExtractedLatitude(),
                 share.getExtractedLongitude(),
-                share.getDescription(),
+                null,
                 share.getThumbnailUrl(),
                 null,
                 null,
@@ -179,7 +179,8 @@ public class SavedPlaceService {
                     SharedContent content = source.getSharedContent();
                     return new SavedPlaceDtos.SourceResponse(
                             content.getId(), content.getSourceType(), content.getTitle(),
-                            content.getOriginalUrl(), content.getThumbnailUrl(), source.getLinkedAt());
+                            content.getDescription(), content.getOriginalUrl(),
+                            content.getThumbnailUrl(), source.getLinkedAt());
                 }).toList();
         String originalUrl = sources.isEmpty()
                 ? (share == null ? null : share.getOriginalUrl()) : sources.get(0).originalUrl();

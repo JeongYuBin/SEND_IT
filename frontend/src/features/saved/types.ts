@@ -41,6 +41,7 @@ export type SavedPlaceSource = {
   sharedContentId: number
   sourceType: 'INSTAGRAM' | 'TIKTOK' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB'
   title: string | null
+  description: string | null
   originalUrl: string
   thumbnailUrl: string | null
   linkedAt: string
