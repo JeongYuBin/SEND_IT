@@ -15,6 +15,7 @@ import {
 import type { NearbyTourismPlace } from './types'
 import { KakaoMap } from '../../components/KakaoMap'
 import { eventPeriodState } from './eventPeriod'
+import { sourceExcerpt } from './sourceExcerpt'
 
 const sourceLabels = {
   INSTAGRAM: 'Instagram',
@@ -364,20 +365,23 @@ export function SavedPlaceDetailPage() {
               </div>
               {place.sources.length > 0 ? (
                 <ul>
-                  {place.sources.map((source) => (
+                  {place.sources.map((source) => {
+                    const excerpt = sourceExcerpt(source.description)
+                    return (
                     <li key={source.sharedContentId}>
                       <a href={source.originalUrl} target="_blank" rel="noreferrer">
                         {source.thumbnailUrl && <img src={source.thumbnailUrl} alt="" />}
                         <span>
                           <small>{sourceLabels[source.sourceType]}</small>
                           <strong>{source.title ?? `${sourceLabels[source.sourceType]} 원본 콘텐츠`}</strong>
-                          {source.description && <p>{source.description}</p>}
+                          {excerpt && <p>{excerpt}</p>}
                           <time>{new Date(source.linkedAt).toLocaleDateString('ko-KR')}</time>
                         </span>
                         <b aria-hidden="true">↗</b>
                       </a>
                     </li>
-                  ))}
+                    )
+                  })}
                 </ul>
               ) : (
                 <a className="place-source-link" href={place.originalUrl!} target="_blank" rel="noreferrer">
