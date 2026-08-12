@@ -25,6 +25,7 @@ public class ContentAnalysisWorker {
     private final InstagramCarouselDownloader instagramCarouselDownloader;
     private final MultiPlaceExtractor multiPlaceExtractor;
     private final SharedContentPlaceService sharedContentPlaceService;
+    private final CarouselPlaceImageService carouselPlaceImageService;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -43,7 +44,8 @@ public class ContentAnalysisWorker {
             PlaceVerificationPolicy placeVerificationPolicy,
             InstagramCarouselDownloader instagramCarouselDownloader,
             MultiPlaceExtractor multiPlaceExtractor,
-            SharedContentPlaceService sharedContentPlaceService
+            SharedContentPlaceService sharedContentPlaceService,
+            CarouselPlaceImageService carouselPlaceImageService
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -62,6 +64,7 @@ public class ContentAnalysisWorker {
         this.instagramCarouselDownloader = instagramCarouselDownloader;
         this.multiPlaceExtractor = multiPlaceExtractor;
         this.sharedContentPlaceService = sharedContentPlaceService;
+        this.carouselPlaceImageService = carouselPlaceImageService;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -158,6 +161,7 @@ public class ContentAnalysisWorker {
                 }
                 java.util.List<PageMetadata> extractedPlaces =
                         multiPlaceExtractor.extract(ocrText, metadata);
+                extractedPlaces = carouselPlaceImageService.attach(extractedPlaces, frameKeys);
                 if (!extractedPlaces.isEmpty()) {
                     PageMetadata first = extractedPlaces.getFirst();
                     metadata = new PageMetadata(

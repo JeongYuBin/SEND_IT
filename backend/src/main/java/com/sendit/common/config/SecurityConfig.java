@@ -71,6 +71,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> {
                     authorize.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                             .requestMatchers("/error", "/actuator/health").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/media/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll();
                     if (publicDocs) {
                         authorize.requestMatchers(

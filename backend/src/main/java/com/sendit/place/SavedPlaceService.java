@@ -95,8 +95,7 @@ public class SavedPlaceService {
                         new SavedPlaceDtos.CreateRequest(
                                 candidate.getName(), candidate.getCategory(), candidate.getAddress(),
                                 candidate.getAddress(), candidate.getLatitude(), candidate.getLongitude(),
-                                null, candidate.getImageUrl() == null
-                                        ? share.getThumbnailUrl() : candidate.getImageUrl(),
+                                null, candidate.getImageUrl(),
                                 null, null, null, null, sharedContentId, null,
                                 null, 0, null, null, null));
                 candidate.markSaved(saved.savedPlaceId());

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { resolveImageUrl } from '../../components/PlaceImage'
 import { Link, useParams } from 'react-router-dom'
 import {
   createSavedPlace,
@@ -177,7 +178,7 @@ export function SavedPlaceDetailPage() {
           {place.imageUrl && place.imageUrl !== failedImageUrl
             ? (
               <img
-                src={place.imageUrl}
+                src={resolveImageUrl(place.imageUrl) ?? undefined}
                 alt={place.name}
                 referrerPolicy="no-referrer"
                 onError={() => setFailedImageUrl(place.imageUrl)}
