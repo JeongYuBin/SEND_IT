@@ -122,4 +122,25 @@ class SharedTextMetadataParserTest {
 
         assertThat(result.placeName()).isNull();
     }
+
+    @Test
+    void doesNotUseUnknownHashtagAsVerifiedPlaceName() {
+        PageMetadata result = parser.parse("#분위기최고 #오늘의발견 #서울데이트");
+
+        assertThat(result.placeName()).isNull();
+    }
+
+    @Test
+    void removesDuplicateDescriptionLinesWhileMerging() {
+        PageMetadata page = new PageMetadata("영상", "대표 메뉴는 순두부입니다.", null,
+                null, null, null, null, null);
+        PageMetadata shared = new PageMetadata(null,
+                "대표 메뉴는 순두부입니다.\n웨이팅은 20분이었어요.", null,
+                null, null, null, null, null);
+
+        PageMetadata result = parser.merge(page, shared);
+
+        assertThat(result.description()).isEqualTo(
+                "대표 메뉴는 순두부입니다.\n웨이팅은 20분이었어요.");
+    }
 }

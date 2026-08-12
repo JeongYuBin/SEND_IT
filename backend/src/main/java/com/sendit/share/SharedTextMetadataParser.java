@@ -1,6 +1,7 @@
 package com.sendit.share;
 
 import java.util.Locale;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,7 +63,7 @@ public class SharedTextMetadataParser {
     public PageMetadata merge(PageMetadata page, PageMetadata shared) {
         return new PageMetadata(
                 first(page.title(), shared.title()),
-                combine(page.description(), shared.description()),
+                combine(page.description(), shared.description(), shared.title()),
                 first(page.imageUrl(), shared.imageUrl()),
                 first(page.placeName(), shared.placeName()),
                 first(page.category(), shared.category()),
@@ -110,7 +111,6 @@ public class SharedTextMetadataParser {
 
     private String hashtagPlace(String text) {
         Matcher matcher = HASHTAG.matcher(text);
-        String fallback = null;
         while (matcher.find()) {
             String candidate = matcher.group(1).replace('_', ' ').trim();
             String normalized = candidate.toLowerCase(Locale.KOREAN).replace(" ", "");
@@ -119,11 +119,8 @@ public class SharedTextMetadataParser {
                     || normalized.endsWith("여행")
                     || PROMOTIONAL_HASHTAG.matcher(normalized).matches()) continue;
             if (PLACE_SUFFIX.matcher(normalized).matches()) return candidate;
-            if (fallback == null && candidate.length() >= 4 && candidate.length() <= 20) {
-                fallback = candidate;
-            }
         }
-        return fallback;
+        return null;
     }
 
     private String firstReadableLine(String text) {
@@ -157,11 +154,40 @@ public class SharedTextMetadataParser {
         return cleaned.isBlank() ? null : truncate(cleaned, 200);
     }
 
-    private String combine(String primary, String shared) {
+    private String combine(String primary, String shared, String sharedTitle) {
         if (primary == null || primary.isBlank()) return shared;
         if (shared == null || shared.isBlank()
-                || primary.contains(shared) || shared.contains(primary)) return primary;
-        return primary + "\n\n공유된 게시물 문구\n" + shared;
+                || normalizeDescription(primary).equals(normalizeDescription(shared))) return primary;
+        LinkedHashSet<String> lines = new LinkedHashSet<>();
+        addUniqueLines(lines, primary, null);
+        addUniqueLines(lines, shared, sharedTitle);
+        return String.join("\n", lines);
+    }
+
+    private void addUniqueLines(Set<String> lines, String value, String ignoredLine) {
+        for (String line : value.split("\\R")) {
+            String trimmed = line.trim();
+            if (trimmed.isBlank()
+                    || trimmed.matches("(?:#[\\p{L}\\p{N}_]+\\s*)+")
+                    || (ignoredLine != null
+                    && normalizeDescription(trimmed).equals(normalizeDescription(ignoredLine)))) continue;
+            boolean duplicate = lines.stream().anyMatch(existing ->
+                    containsNormalized(existing, trimmed)
+                            || containsNormalized(trimmed, existing));
+            if (!duplicate) lines.add(trimmed);
+        }
+    }
+
+    private boolean containsNormalized(String container, String candidate) {
+        String left = normalizeDescription(container);
+        String right = normalizeDescription(candidate);
+        return !right.isBlank() && left.contains(right);
+    }
+
+    private String normalizeDescription(String value) {
+        return URL.matcher(value.toLowerCase(Locale.KOREAN))
+                .replaceAll("")
+                .replaceAll("[^0-9a-z가-힣]", "");
     }
 
     private String first(String primary, String fallback) {

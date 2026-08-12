@@ -64,4 +64,18 @@ class KakaoPlaceSearchClientTest {
         assertThat(result.address()).isEqualTo("서울 송파구 백제고분로 187");
         assertThat(result.longitude()).isEqualTo(127.08);
     }
+
+    @Test
+    void rejectsPartialNameWithoutSourceAddress() {
+        String response = """
+                {"documents": [
+                  {"place_name":"스시화 잠실점", "address_name":"서울 송파구 잠실동",
+                   "road_address_name":"서울 송파구 백제고분로 1", "x":"127.08", "y":"37.51"}
+                ]}
+                """;
+        PageMetadata fallback = new PageMetadata(
+                "영상", "설명", null, "스시화", "음식점", null, null, null);
+
+        assertThat(client.parse(response, fallback)).isEmpty();
+    }
 }

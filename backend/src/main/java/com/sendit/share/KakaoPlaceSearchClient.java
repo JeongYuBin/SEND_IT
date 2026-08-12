@@ -141,7 +141,12 @@ public class KakaoPlaceSearchClient {
         int nameScore;
         if (candidate.equals(expected)) nameScore = 100;
         else if (!candidate.isBlank()
-                && (candidate.contains(expected) || expected.contains(candidate))) nameScore = 80;
+                && (candidate.contains(expected) || expected.contains(candidate))) {
+            // A partial name alone is too weak to auto-confirm a physical place.
+            // It is accepted only when the source also supplied a matching region.
+            if (addressRegion(expectedAddress) == null) return 0;
+            nameScore = 80;
+        }
         else return 0;
         String region = addressRegion(expectedAddress);
         if (region != null && candidateAddress != null
