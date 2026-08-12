@@ -26,7 +26,7 @@ public class UrlNormalizer {
                 throw new IllegalArgumentException("HTTP 또는 HTTPS URL만 사용할 수 있습니다.");
             }
 
-            String query = normalizeQuery(uri.getRawQuery());
+            String query = normalizeQuery(uri.getHost(), uri.getRawQuery());
             String path = uri.getPath();
             if (path != null && path.length() > 1 && path.endsWith("/")) {
                 path = path.substring(0, path.length() - 1);
@@ -73,14 +73,16 @@ public class UrlNormalizer {
         return SourceType.WEB;
     }
 
-    private String normalizeQuery(String query) {
+    private String normalizeQuery(String host, String query) {
         if (query == null || query.isBlank()) {
             return null;
         }
         String normalized = Arrays.stream(query.split("&"))
                 .filter(parameter -> {
                     String name = parameter.split("=", 2)[0].toLowerCase();
-                    return !TRACKING_PARAMETERS.contains(name);
+                    boolean youtubeShareParameter = "si".equals(name)
+                            && (host.contains("youtube.com") || host.equals("youtu.be"));
+                    return !TRACKING_PARAMETERS.contains(name) && !youtubeShareParameter;
                 })
                 .sorted()
                 .collect(Collectors.joining("&"));
