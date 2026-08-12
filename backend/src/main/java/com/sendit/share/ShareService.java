@@ -92,6 +92,10 @@ public class ShareService {
 
     public ShareAcceptedResponse reanalyze(String email, Long shareId) {
         SharedContent content = findOwnedContent(email, shareId);
+        if (analysisJobRepository.existsBySharedContentIdAndStatusIn(
+                shareId, List.of(JobStatus.PENDING, JobStatus.PROCESSING))) {
+            return accepted(content, true, "이미 분석이 진행 중입니다.");
+        }
         content.queueForAnalysis();
         analysisJobRepository.save(new AnalysisJob(content));
         return accepted(content, false, "콘텐츠 재분석을 요청했습니다.");

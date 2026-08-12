@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Lock;
 
 public interface AnalysisJobRepository extends JpaRepository<AnalysisJob, Long> {
 
+    boolean existsBySharedContentIdAndStatusIn(Long sharedContentId, List<JobStatus> statuses);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<AnalysisJob> findByStatusOrderByCreatedAtAsc(JobStatus status, Pageable pageable);
 
