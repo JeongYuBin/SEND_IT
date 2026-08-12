@@ -48,9 +48,22 @@ public final class ShareDtos {
             boolean mediaAudioAvailable,
             String mediaOcrText,
             String mediaTranscript,
+            List<ExtractedPlaceResponse> extractedPlaces,
             Instant createdAt
     ) {
     }
+
+    public record ExtractedPlaceResponse(
+            Long id,
+            int order,
+            String name,
+            String category,
+            String address,
+            Double latitude,
+            Double longitude,
+            String imageUrl,
+            Long savedPlaceId
+    ) { }
 
     public record SharePageResponse(
             List<ShareDetailResponse> content,

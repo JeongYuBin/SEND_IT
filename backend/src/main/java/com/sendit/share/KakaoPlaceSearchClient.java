@@ -67,6 +67,21 @@ public class KakaoPlaceSearchClient {
         return fallback;
     }
 
+    public Optional<PageMetadata> resolveCandidate(String placeName) {
+        return resolveCandidate(placeName, null);
+    }
+
+    public Optional<PageMetadata> resolveCandidate(String placeName, String addressHint) {
+        if (apiKey.isBlank() || placeName == null || placeName.isBlank()) return Optional.empty();
+        PageMetadata candidate = new PageMetadata(
+                null, null, null, placeName.trim(), null, addressHint, null, null);
+        String query = addressHint == null || addressHint.isBlank()
+                ? placeName.trim() : placeName.trim() + " " + addressHint.trim();
+        Optional<PageMetadata> resolved = search(query, candidate);
+        return resolved.filter(place -> place.latitude() != null && place.longitude() != null
+                && place.address() != null && !place.address().isBlank());
+    }
+
     private Optional<PageMetadata> search(String query, PageMetadata fallback) {
         try {
             URI uri = URI.create(baseUrl + "?size=10&query="
@@ -151,6 +166,7 @@ public class KakaoPlaceSearchClient {
         String region = addressRegion(expectedAddress);
         if (region != null && candidateAddress != null
                 && normalize(candidateAddress).contains(normalize(region))) return nameScore + 20;
+        if (region != null) return 0;
         return nameScore;
     }
 

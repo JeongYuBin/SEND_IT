@@ -23,6 +23,7 @@ public class ShareService {
     private final UrlNormalizer urlNormalizer;
     private final MediaStorageCleaner mediaStorageCleaner;
     private final NotificationService notificationService;
+    private final SharedContentPlaceRepository extractedPlaces;
 
     public ShareService(
             UserRepository userRepository,
@@ -30,7 +31,8 @@ public class ShareService {
             AnalysisJobRepository analysisJobRepository,
             UrlNormalizer urlNormalizer,
             MediaStorageCleaner mediaStorageCleaner,
-            NotificationService notificationService
+            NotificationService notificationService,
+            SharedContentPlaceRepository extractedPlaces
     ) {
         this.userRepository = userRepository;
         this.sharedContentRepository = sharedContentRepository;
@@ -38,6 +40,7 @@ public class ShareService {
         this.urlNormalizer = urlNormalizer;
         this.mediaStorageCleaner = mediaStorageCleaner;
         this.notificationService = notificationService;
+        this.extractedPlaces = extractedPlaces;
     }
 
     public ShareAcceptedResponse create(String email, CreateShareRequest request) {
@@ -163,6 +166,12 @@ public class ShareService {
                 content.hasMediaAudio(),
                 content.getMediaOcrText(),
                 content.getMediaTranscript(),
+                extractedPlaces.findBySharedContentIdOrderByDisplayOrder(content.getId()).stream()
+                        .map(place -> new ShareDtos.ExtractedPlaceResponse(
+                                place.getId(), place.getDisplayOrder(), place.getName(),
+                                place.getCategory(), place.getAddress(), place.getLatitude(),
+                                place.getLongitude(), place.getImageUrl(), place.getSavedPlaceId()))
+                        .toList(),
                 content.getCreatedAt()
         );
     }

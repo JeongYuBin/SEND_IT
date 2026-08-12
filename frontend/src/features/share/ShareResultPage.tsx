@@ -122,7 +122,34 @@ export function ShareResultPage() {
               장소 후보를 찾았지만 지도 검색으로 정확한 위치를 확인하지 못했습니다. 내용을 확인하고 수정한 뒤 저장해 주세요.
             </div>
           )}
-          {canSave && (
+          {share.extractedPlaces.length > 0 && (
+            <section className="extracted-place-list" aria-labelledby="extracted-place-title">
+              <div className="extracted-place-heading">
+                <div>
+                  <span className="eyebrow">EXTRACTED PLACES</span>
+                  <h2 id="extracted-place-title">찾은 장소 {share.extractedPlaces.length}곳</h2>
+                </div>
+                <span className="saved-count">
+                  {share.extractedPlaces.filter((place) => place.savedPlaceId !== null).length}곳 저장됨
+                </span>
+              </div>
+              <ol>
+                {share.extractedPlaces.map((place) => (
+                  <li key={place.id}>
+                    <span className="place-order">{place.order}</span>
+                    <div>
+                      <strong>{place.name}</strong>
+                      <small>{[place.category, place.address].filter(Boolean).join(' · ')}</small>
+                    </div>
+                    {place.savedPlaceId !== null
+                      ? <Link to={`/saved/places/${place.savedPlaceId}`}>저장됨</Link>
+                      : <span>저장 대기</span>}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+          {canSave && share.extractedPlaces.length === 0 && (
             <form className="result-form" onSubmit={handleSave}>
               <h2>장소 정보 확인</h2>
               {(share.extractedPlaceName || share.extractedAddress) && (

@@ -35,7 +35,20 @@ export type ShareDetail = {
   mediaAudioAvailable: boolean
   mediaOcrText: string | null
   mediaTranscript: string | null
+  extractedPlaces: ExtractedPlace[]
   createdAt: string
+}
+
+export type ExtractedPlace = {
+  id: number
+  order: number
+  name: string
+  category: string | null
+  address: string | null
+  latitude: number | null
+  longitude: number | null
+  imageUrl: string | null
+  savedPlaceId: number | null
 }
 
 export type SharePage = {

@@ -22,6 +22,9 @@ public class ContentAnalysisWorker {
     private final FrameOcrExtractor frameOcrExtractor;
     private final AudioTranscriber audioTranscriber;
     private final PlaceVerificationPolicy placeVerificationPolicy;
+    private final InstagramCarouselDownloader instagramCarouselDownloader;
+    private final MultiPlaceExtractor multiPlaceExtractor;
+    private final SharedContentPlaceService sharedContentPlaceService;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -37,7 +40,10 @@ public class ContentAnalysisWorker {
             VideoMediaProcessor videoMediaProcessor,
             FrameOcrExtractor frameOcrExtractor,
             AudioTranscriber audioTranscriber,
-            PlaceVerificationPolicy placeVerificationPolicy
+            PlaceVerificationPolicy placeVerificationPolicy,
+            InstagramCarouselDownloader instagramCarouselDownloader,
+            MultiPlaceExtractor multiPlaceExtractor,
+            SharedContentPlaceService sharedContentPlaceService
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -53,6 +59,9 @@ public class ContentAnalysisWorker {
         this.frameOcrExtractor = frameOcrExtractor;
         this.audioTranscriber = audioTranscriber;
         this.placeVerificationPolicy = placeVerificationPolicy;
+        this.instagramCarouselDownloader = instagramCarouselDownloader;
+        this.multiPlaceExtractor = multiPlaceExtractor;
+        this.sharedContentPlaceService = sharedContentPlaceService;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -86,6 +95,14 @@ public class ContentAnalysisWorker {
                 String ocrText = job.mediaOcrText();
                 String audioStorageKey = job.mediaAudioStorageKey();
                 String transcript = job.mediaTranscript();
+                if (needsConfirmation && frameKeys.isEmpty()
+                        && instagramCarouselDownloader.supports(job.url())) {
+                    MediaProcessingResult carousel = instagramCarouselDownloader.downloadFrames(job.url());
+                    if (!carousel.frameStorageKeys().isEmpty()) {
+                        analysisJobService.attachMediaProcessingResult(job.jobId(), carousel);
+                        frameKeys = carousel.frameStorageKeys();
+                    }
+                }
                 if (needsConfirmation
                         && mediaStorageKey == null
                         && automaticMediaDownloader.supports(job.url())) {
@@ -139,7 +156,20 @@ public class ContentAnalysisWorker {
                         // STT 실패 시 기존 메타데이터와 OCR 결과로 분석을 마무리한다.
                     }
                 }
+                java.util.List<PageMetadata> extractedPlaces =
+                        multiPlaceExtractor.extract(ocrText, metadata);
+                if (!extractedPlaces.isEmpty()) {
+                    PageMetadata first = extractedPlaces.getFirst();
+                    metadata = new PageMetadata(
+                            metadata.title(), metadata.description(), metadata.imageUrl(),
+                            first.placeName(), first.category(), first.address(),
+                            first.latitude(), first.longitude());
+                    needsConfirmation = false;
+                }
                 analysisJobService.complete(job.jobId(), metadata, needsConfirmation);
+                if (!extractedPlaces.isEmpty()) {
+                    sharedContentPlaceService.replace(job.sharedContentId(), extractedPlaces);
+                }
                 try {
                     savedPlaceService.autoSaveAnalyzedShare(job.sharedContentId());
                 } catch (RuntimeException ignored) {

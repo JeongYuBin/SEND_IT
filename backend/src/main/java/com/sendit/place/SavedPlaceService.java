@@ -6,6 +6,7 @@ import com.sendit.collection.ResourceNotFoundException;
 import com.sendit.share.SharedContent;
 import com.sendit.share.SharedContentRepository;
 import com.sendit.share.AnalysisStatus;
+import com.sendit.share.SharedContentPlaceRepository;
 import com.sendit.tourism.TourApiClient;
 import com.sendit.user.UserRepository;
 import java.util.List;
@@ -24,14 +25,17 @@ public class SavedPlaceService {
     private final SharedContentRepository shares;
     private final TourApiClient tourApiClient;
     private final UserSavedPlaceSourceRepository savedPlaceSources;
+    private final SharedContentPlaceRepository extractedPlaces;
 
     public SavedPlaceService(UserRepository users, PlaceRepository places,
             UserSavedPlaceRepository savedPlaces, CollectionRepository collections,
             SharedContentRepository shares, TourApiClient tourApiClient,
-            UserSavedPlaceSourceRepository savedPlaceSources) {
+            UserSavedPlaceSourceRepository savedPlaceSources,
+            SharedContentPlaceRepository extractedPlaces) {
         this.users=users; this.places=places; this.savedPlaces=savedPlaces;
         this.collections=collections; this.shares=shares; this.tourApiClient=tourApiClient;
         this.savedPlaceSources = savedPlaceSources;
+        this.extractedPlaces = extractedPlaces;
     }
 
     public SavedPlaceDtos.Response create(String email, SavedPlaceDtos.CreateRequest request) {
@@ -80,12 +84,28 @@ public class SavedPlaceService {
     public void autoSaveAnalyzedShare(Long sharedContentId) {
         SharedContent share = shares.findById(sharedContentId)
                 .orElseThrow(() -> new ResourceNotFoundException("공유 콘텐츠를 찾을 수 없습니다."));
-        if (share.getAnalysisStatus() != AnalysisStatus.COMPLETED
-                || share.getExtractedPlaceName() == null || share.getExtractedPlaceName().isBlank()
-                || savedPlaces.existsByUserIdAndSharedContentId(
-                        share.getUser().getId(), sharedContentId)) {
+        if (share.getAnalysisStatus() != AnalysisStatus.COMPLETED) {
             return;
         }
+        var candidates = extractedPlaces.findBySharedContentIdOrderByDisplayOrder(sharedContentId);
+        if (!candidates.isEmpty()) {
+            for (var candidate : candidates) {
+                if (candidate.getSavedPlaceId() != null) continue;
+                SavedPlaceDtos.Response saved = create(share.getUser().getEmail(),
+                        new SavedPlaceDtos.CreateRequest(
+                                candidate.getName(), candidate.getCategory(), candidate.getAddress(),
+                                candidate.getAddress(), candidate.getLatitude(), candidate.getLongitude(),
+                                null, candidate.getImageUrl() == null
+                                        ? share.getThumbnailUrl() : candidate.getImageUrl(),
+                                null, null, null, null, sharedContentId, null,
+                                null, 0, null, null, null));
+                candidate.markSaved(saved.savedPlaceId());
+            }
+            return;
+        }
+        if (share.getExtractedPlaceName() == null || share.getExtractedPlaceName().isBlank()
+                || savedPlaces.existsByUserIdAndSharedContentId(
+                share.getUser().getId(), sharedContentId)) return;
         create(share.getUser().getEmail(), new SavedPlaceDtos.CreateRequest(
                 share.getExtractedPlaceName(),
                 share.getExtractedCategory(),

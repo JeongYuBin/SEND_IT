@@ -28,7 +28,7 @@ class ShareServiceTest {
                 7L, List.of(JobStatus.PENDING, JobStatus.PROCESSING))).thenReturn(true);
         ShareService service = new ShareService(users, contents, jobs,
                 mock(UrlNormalizer.class), mock(MediaStorageCleaner.class),
-                mock(NotificationService.class));
+                mock(NotificationService.class), mock(SharedContentPlaceRepository.class));
 
         ShareDtos.ShareAcceptedResponse response = service.reanalyze(
                 "user@example.com", 7L);

@@ -36,9 +36,15 @@ public class FrameOcrExtractor {
 
     public String extract(List<String> frameStorageKeys) {
         if (frameStorageKeys == null || frameStorageKeys.isEmpty()) return null;
-        Set<String> lines = new LinkedHashSet<>();
-        frameStorageKeys.stream().limit(12).forEach(key -> collectFrameText(key, lines));
-        String combined = String.join("\n", lines);
+        List<String> frames = new java.util.ArrayList<>();
+        int index = 1;
+        for (String key : frameStorageKeys.stream().limit(20).toList()) {
+            Set<String> lines = new LinkedHashSet<>();
+            collectFrameText(key, lines);
+            if (!lines.isEmpty()) frames.add("--- SLIDE " + index + " ---\n" + String.join("\n", lines));
+            index++;
+        }
+        String combined = String.join("\n", frames);
         if (combined.isBlank()) return null;
         return combined.length() <= maxTextLength
                 ? combined : combined.substring(0, maxTextLength);
