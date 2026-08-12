@@ -5,8 +5,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 import com.sendit.place.Place;
+import com.sendit.notification.NotificationService;
 import com.sendit.place.UserSavedPlace;
 import com.sendit.place.UserSavedPlaceRepository;
 import com.sendit.user.UserRepository;
@@ -21,8 +23,9 @@ class ItineraryServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final UserSavedPlaceRepository savedPlaces = mock(UserSavedPlaceRepository.class);
     private final ItineraryRoutePlanner routePlanner = mock(ItineraryRoutePlanner.class);
+    private final NotificationService notificationService = mock(NotificationService.class);
     private final ItineraryService service = new ItineraryService(
-            itineraries, users, savedPlaces, routePlanner);
+            itineraries, users, savedPlaces, routePlanner, notificationService);
 
     @Test
     void rejectsScheduleDateOutsideEventPeriod() {
@@ -54,6 +57,34 @@ class ItineraryServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("행사 종료일");
         verify(itineraries, never()).flush();
+    }
+
+    @Test
+    void removesExistingReminderWhenItineraryIsDeleted() {
+        Itinerary itinerary = itineraryWithEvent(LocalDate.of(2026, 8, 10));
+        when(itineraries.findByIdAndUserEmail(1L, "user@example.com"))
+                .thenReturn(Optional.of(itinerary));
+
+        service.delete("user@example.com", 1L);
+
+        verify(notificationService).deleteForTarget(
+                "user@example.com", "/itineraries/1");
+        verify(itineraries).delete(itinerary);
+    }
+
+    @Test
+    void removesExistingReminderWhenItineraryIsUpdated() {
+        Itinerary itinerary = itineraryWithEvent(LocalDate.of(2026, 8, 10));
+        when(itineraries.findByIdAndUserEmail(1L, "user@example.com"))
+                .thenReturn(Optional.of(itinerary));
+        when(routePlanner.plan(any(Itinerary.class))).thenReturn(List.of());
+
+        service.update("user@example.com", 1L, new ItineraryDtos.UpdateRequest(
+                "수정 여행", LocalDate.of(2026, 8, 2), LocalDate.of(2026, 8, 20),
+                LocalTime.of(9, 0), LocalTime.of(20, 0), TransportType.CAR));
+
+        verify(notificationService).deleteForTarget(
+                "user@example.com", "/itineraries/1");
     }
 
     private Itinerary itineraryWithEvent(LocalDate eventEnd) {

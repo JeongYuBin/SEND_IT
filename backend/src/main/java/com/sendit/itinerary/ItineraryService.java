@@ -2,6 +2,7 @@ package com.sendit.itinerary;
 
 import com.sendit.collection.ResourceNotFoundException;
 import com.sendit.map.KakaoTransitClient;
+import com.sendit.notification.NotificationService;
 import com.sendit.place.Place;
 import com.sendit.place.UserSavedPlace;
 import com.sendit.place.UserSavedPlaceRepository;
@@ -22,14 +23,17 @@ public class ItineraryService {
     private final UserRepository users;
     private final UserSavedPlaceRepository savedPlaces;
     private final ItineraryRoutePlanner routePlanner;
+    private final NotificationService notificationService;
 
     public ItineraryService(ItineraryRepository itineraries, UserRepository users,
                             UserSavedPlaceRepository savedPlaces,
-                            ItineraryRoutePlanner routePlanner) {
+                            ItineraryRoutePlanner routePlanner,
+                            NotificationService notificationService) {
         this.itineraries = itineraries;
         this.users = users;
         this.savedPlaces = savedPlaces;
         this.routePlanner = routePlanner;
+        this.notificationService = notificationService;
     }
 
     public ItineraryDtos.Response create(String email, ItineraryDtos.CreateRequest request) {
@@ -71,6 +75,7 @@ public class ItineraryService {
         validateDatesAndTimes(request.startDate(), request.endDate(),
                 request.dailyStartTime(), request.dailyEndTime());
         Itinerary itinerary = ownedItinerary(email, id);
+        notificationService.deleteForTarget(email, "/itineraries/" + id);
         itinerary.update(request.title(), request.startDate(), request.endDate(),
                 request.dailyStartTime(), request.dailyEndTime(), request.transportType());
         return response(itinerary);
@@ -101,7 +106,9 @@ public class ItineraryService {
     }
 
     public void delete(String email, Long id) {
-        itineraries.delete(ownedItinerary(email, id));
+        Itinerary itinerary = ownedItinerary(email, id);
+        notificationService.deleteForTarget(email, "/itineraries/" + id);
+        itineraries.delete(itinerary);
     }
 
     public ItineraryDtos.Response updateItemTransport(
