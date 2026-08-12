@@ -2,6 +2,7 @@ package com.sendit.share;
 
 import jakarta.persistence.LockModeType;
 import java.util.List;
+import java.time.Instant;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -10,5 +11,8 @@ public interface AnalysisJobRepository extends JpaRepository<AnalysisJob, Long> 
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<AnalysisJob> findByStatusOrderByCreatedAtAsc(JobStatus status, Pageable pageable);
-}
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<AnalysisJob> findByStatusAndStartedAtBeforeOrderByStartedAtAsc(
+            JobStatus status, Instant startedBefore, Pageable pageable);
+}

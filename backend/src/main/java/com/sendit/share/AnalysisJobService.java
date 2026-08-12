@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -14,15 +15,18 @@ public class AnalysisJobService {
     private final AnalysisJobRepository analysisJobRepository;
     private final NotificationService notificationService;
     private final int maxRetries;
+    private final long staleTimeoutSeconds;
 
     public AnalysisJobService(
             AnalysisJobRepository analysisJobRepository,
             NotificationService notificationService,
-            @Value("${app.analysis.max-retries}") int maxRetries
+            @Value("${app.analysis.max-retries}") int maxRetries,
+            @Value("${app.analysis.stale-timeout-seconds:1800}") long staleTimeoutSeconds
     ) {
         this.analysisJobRepository = analysisJobRepository;
         this.notificationService = notificationService;
         this.maxRetries = maxRetries;
+        this.staleTimeoutSeconds = Math.max(60, staleTimeoutSeconds);
     }
 
     @Transactional
@@ -95,6 +99,21 @@ public class AnalysisJobService {
                 notificationService.notifyAnalysisResult(job.getSharedContent());
             }
         });
+    }
+
+    @Scheduled(fixedDelayString = "${app.analysis.recovery-delay-ms:60000}")
+    @Transactional
+    public void recoverStaleJobs() {
+        Instant cutoff = Instant.now().minusSeconds(staleTimeoutSeconds);
+        var jobs = analysisJobRepository
+                .findByStatusAndStartedAtBeforeOrderByStartedAtAsc(
+                        JobStatus.PROCESSING, cutoff, PageRequest.of(0, 50));
+        for (AnalysisJob job : jobs) {
+            job.retryOrFail(Instant.now(), "분석 서버 중단으로 작업을 자동 복구했습니다.", maxRetries);
+            if (job.getStatus() == JobStatus.FAILED) {
+                notificationService.notifyAnalysisResult(job.getSharedContent());
+            }
+        }
     }
 
     private String truncate(String error) {

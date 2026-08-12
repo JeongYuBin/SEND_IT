@@ -67,6 +67,8 @@ app:
     request-timeout-seconds: ${ANALYSIS_REQUEST_TIMEOUT_SECONDS:10}
     max-response-bytes: ${ANALYSIS_MAX_RESPONSE_BYTES:2097152}
     max-retries: ${ANALYSIS_MAX_RETRIES:2}
+    stale-timeout-seconds: ${ANALYSIS_STALE_TIMEOUT_SECONDS:1800}
+    recovery-delay-ms: ${ANALYSIS_RECOVERY_DELAY_MS:60000}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
   jwt:
