@@ -34,6 +34,14 @@ export function NotificationsPage() {
     if (targetUrl) navigate(targetUrl)
   }
 
+  const deleteRead = () => {
+    const readCount = notifications.filter((item) => item.read).length
+    if (readCount === 0) return
+    if (window.confirm('읽은 알림을 모두 삭제할까요? 삭제한 알림은 복구할 수 없습니다.')) {
+      deleteReadMutation.mutate()
+    }
+  }
+
   return (
     <main className="notification-page">
       <nav className="top-nav">
@@ -49,7 +57,7 @@ export function NotificationsPage() {
           <button
             type="button"
             disabled={deleteReadMutation.isPending || !notifications.some((item) => item.read)}
-            onClick={() => deleteReadMutation.mutate()}
+            onClick={deleteRead}
           >
             {deleteReadMutation.isPending ? '삭제 중...' : '읽은 알림 삭제'}
           </button>
