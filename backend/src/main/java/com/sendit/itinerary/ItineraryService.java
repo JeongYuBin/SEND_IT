@@ -91,10 +91,10 @@ public class ItineraryService {
         if (request.startTime() != null && request.visitDate() == null) {
             throw new IllegalArgumentException("방문 시간을 지정하려면 방문일도 선택해 주세요.");
         }
-        ItineraryItem item = itinerary.getItems().stream()
-                .filter(candidate -> candidate.getSavedPlace().getId().equals(savedPlaceId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("여행 계획에서 장소를 찾을 수 없습니다."));
+        ItineraryItem item = itineraryItem(itinerary, savedPlaceId);
+        if (request.visitDate() != null) {
+            validateEventDate(item.getSavedPlace().getPlace(), request.visitDate());
+        }
         item.updateSchedule(request.visitDate(), request.startTime(), request.stayMinutes());
         itinerary.markGenerated();
         return response(itinerary);
@@ -172,16 +172,21 @@ public class ItineraryService {
                 .distinct().count() != itinerary.getItems().size()) {
             throw new IllegalArgumentException("모든 장소를 중복 없이 전달해 주세요.");
         }
+        for (var ordered : request.items()) {
+            if (ordered.visitDate().isBefore(itinerary.getStartDate())
+                    || ordered.visitDate().isAfter(itinerary.getEndDate())) {
+                throw new IllegalArgumentException("여행 기간 안의 날짜를 선택해 주세요.");
+            }
+            validateEventDate(
+                    itineraryItem(itinerary, ordered.savedPlaceId()).getSavedPlace().getPlace(),
+                    ordered.visitDate());
+        }
         for (int index = 0; index < request.items().size(); index++) {
             itineraryItem(itinerary, request.items().get(index).savedPlaceId())
                     .updateOrdering(request.items().get(index).visitDate(), 10_000 + index);
         }
         itineraries.flush();
         for (var ordered : request.items()) {
-            if (ordered.visitDate().isBefore(itinerary.getStartDate())
-                    || ordered.visitDate().isAfter(itinerary.getEndDate())) {
-                throw new IllegalArgumentException("여행 기간 안의 날짜를 선택해 주세요.");
-            }
             ItineraryItem item = itineraryItem(itinerary, ordered.savedPlaceId());
             item.updateOrdering(ordered.visitDate(), ordered.sequence());
             if (ordered.transportTypeFromPrevious() != null) {
