@@ -106,6 +106,7 @@ export function SavedPlaceDetailPage() {
       name?: string
       category?: string
       address?: string
+      roadAddress?: string
       imageUrl?: string
     }) => updateSavedPlace(savedPlaceId, request),
     onSuccess: (place) => {
