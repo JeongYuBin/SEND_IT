@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { resolveImageUrl } from '../../components/PlaceImage'
+import { resolveImageUrl } from '../../components/imageUrl'
 import { Link, useParams } from 'react-router-dom'
 import {
   createSavedPlace,

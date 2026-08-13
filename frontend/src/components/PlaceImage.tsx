@@ -1,20 +1,11 @@
 import { useState } from 'react'
+import { resolveImageUrl } from './imageUrl'
 
 type PlaceImageProps = {
   src: string | null | undefined
   alt?: string
   className?: string
   label?: string
-}
-
-export function resolveImageUrl(src: string | null | undefined) {
-  if (!src || !src.startsWith('/api/')) return src
-  const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1'
-  try {
-    return new URL(src, new URL(apiBase).origin).toString()
-  } catch {
-    return src
-  }
 }
 
 export function PlaceImage({

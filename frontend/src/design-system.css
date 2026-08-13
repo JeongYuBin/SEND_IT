@@ -1578,6 +1578,21 @@ dd {
   letter-spacing: -0.06em;
 }
 
+.fatal-error {
+  width: min(560px, calc(100% - 32px));
+  margin: 18vh auto 0;
+  padding: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.fatal-error h1 { margin: 12px 0; font-size: clamp(1.8rem, 5vw, 2.6rem); }
+.fatal-error p { color: var(--text-muted); line-height: 1.65; }
+.fatal-error button { margin-top: 18px; }
+
 .place-operating-info,
 .place-detail-content section,
 .place-source-section {
