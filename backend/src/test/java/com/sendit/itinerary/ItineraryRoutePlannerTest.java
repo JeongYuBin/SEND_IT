@@ -85,6 +85,27 @@ class ItineraryRoutePlannerTest {
     }
 
     @Test
+    void warnsForEveryDayThatExceedsDailyEndTime() {
+        ItineraryItem firstDay = item(1, 37.5, 127.0);
+        ItineraryItem secondDay = item(2, 37.6, 127.1);
+        when(firstDay.getPreferredVisitDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(firstDay.getPreferredStartTime()).thenReturn(LocalTime.of(17, 30));
+        when(secondDay.getPreferredVisitDate()).thenReturn(LocalDate.of(2026, 8, 2));
+        Itinerary itinerary = mock(Itinerary.class);
+        when(itinerary.getItems()).thenReturn(List.of(firstDay, secondDay));
+        when(itinerary.getStartDate()).thenReturn(LocalDate.of(2026, 8, 1));
+        when(itinerary.getEndDate()).thenReturn(LocalDate.of(2026, 8, 2));
+        when(itinerary.getDailyStartTime()).thenReturn(LocalTime.of(9, 0));
+        when(itinerary.getDailyEndTime()).thenReturn(LocalTime.of(18, 0));
+        when(itinerary.getTransportType()).thenReturn(TransportType.CAR);
+
+        var days = planner.plan(itinerary);
+
+        assertThat(days.getFirst().exceedsDailyWindow()).isTrue();
+        assertThat(days.get(1).exceedsDailyWindow()).isFalse();
+    }
+
+    @Test
     void warnsWhenVisitStartsBeforeTourismOperatingHours() {
         ItineraryItem place = item(1, 37.5, 127.0);
         when(tourApiClient.operatingInfo(

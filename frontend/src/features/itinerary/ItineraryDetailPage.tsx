@@ -342,7 +342,7 @@ export function ItineraryDetailPage() {
                 </header>
                 {day.exceedsDailyWindow && (
                   <div className="schedule-warning">
-                    마지막 장소의 종료 시각이 여행 종료 일시를 넘습니다. 장소 수나 체류 시간을 조정해 주세요.
+                    이 날짜의 마지막 장소가 설정한 종료 시간을 넘습니다. 방문 시작 시각이나 체류 시간을 조정해 주세요.
                   </div>
                 )}
                 {day.items.length === 0 ? (
