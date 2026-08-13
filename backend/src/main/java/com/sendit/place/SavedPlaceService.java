@@ -26,16 +26,19 @@ public class SavedPlaceService {
     private final TourApiClient tourApiClient;
     private final UserSavedPlaceSourceRepository savedPlaceSources;
     private final SharedContentPlaceRepository extractedPlaces;
+    private final PlaceDuplicateMatcher duplicateMatcher;
 
     public SavedPlaceService(UserRepository users, PlaceRepository places,
             UserSavedPlaceRepository savedPlaces, CollectionRepository collections,
             SharedContentRepository shares, TourApiClient tourApiClient,
             UserSavedPlaceSourceRepository savedPlaceSources,
-            SharedContentPlaceRepository extractedPlaces) {
+            SharedContentPlaceRepository extractedPlaces,
+            PlaceDuplicateMatcher duplicateMatcher) {
         this.users=users; this.places=places; this.savedPlaces=savedPlaces;
         this.collections=collections; this.shares=shares; this.tourApiClient=tourApiClient;
         this.savedPlaceSources = savedPlaceSources;
         this.extractedPlaces = extractedPlaces;
+        this.duplicateMatcher = duplicateMatcher;
     }
 
     public SavedPlaceDtos.Response create(String email, SavedPlaceDtos.CreateRequest request) {
@@ -48,7 +51,7 @@ public class SavedPlaceService {
                 .orElse(request.description());
         String imageUrl = tourismDetail.map(TourApiClient.TourismPlaceDetail::imageUrl)
                 .orElse(request.imageUrl());
-        Place place = duplicatePlace(normalizedName, request)
+        Place place = duplicateMatcher.find(normalizedName, request)
                 .orElseGet(() -> places.save(new Place(
                         request.name(), request.category(), request.address(),
                         request.roadAddress(), request.latitude(), request.longitude(),
@@ -230,33 +233,4 @@ public class SavedPlaceService {
         }
     }
 
-    private java.util.Optional<Place> duplicatePlace(
-            String normalizedName, SavedPlaceDtos.CreateRequest request
-    ) {
-        if (request.kakaoPlaceId() != null && !request.kakaoPlaceId().isBlank()) {
-            var byKakao = places.findFirstByKakaoPlaceId(request.kakaoPlaceId());
-            if (byKakao.isPresent()) return byKakao;
-        }
-        if (request.tourismContentId() != null && !request.tourismContentId().isBlank()) {
-            var byTourism = places.findFirstByTourismContentId(request.tourismContentId());
-            if (byTourism.isPresent()) return byTourism;
-        }
-        if (request.latitude() != null && request.longitude() != null) {
-            var nearby = places.findNearbyDuplicate(
-                    normalizedName, request.latitude(), request.longitude());
-            if (nearby.isPresent()) return nearby;
-        }
-        if (request.roadAddress() != null && !request.roadAddress().isBlank()) {
-            var byRoadAddress = places.findFirstByNormalizedNameAndRoadAddress(
-                    normalizedName, request.roadAddress());
-            if (byRoadAddress.isPresent()) return byRoadAddress;
-        }
-        if (request.address() != null && !request.address().isBlank()) {
-            var byAddress = places.findFirstByNormalizedNameAndAddress(
-                    normalizedName, request.address());
-            if (byAddress.isPresent()) return byAddress;
-        }
-        return places.findFirstByNormalizedNameAndLatitudeAndLongitude(
-                normalizedName, request.latitude(), request.longitude());
-    }
 }

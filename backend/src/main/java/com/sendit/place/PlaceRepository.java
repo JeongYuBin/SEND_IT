@@ -23,7 +23,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
               AND ST_DWithin(
                   geography,
                   ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
-                  50
+                  :distanceMeters
               )
             ORDER BY ST_Distance(
                 geography,
@@ -34,6 +34,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     Optional<Place> findNearbyDuplicate(
             @Param("normalizedName") String normalizedName,
             @Param("latitude") Double latitude,
-            @Param("longitude") Double longitude
+            @Param("longitude") Double longitude,
+            @Param("distanceMeters") Double distanceMeters
     );
 }
