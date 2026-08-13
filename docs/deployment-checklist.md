@@ -18,7 +18,7 @@ docker compose -f compose.yaml -f compose.prod.yaml up -d --build
 
 1. `.env`가 Git 추적 대상이 아닌지 확인합니다.
 2. `DOCS_PUBLIC=false`와 `SPRING_PROFILES_ACTIVE=prod`를 확인합니다.
-3. DB·Redis 포트가 인터넷에 노출되지 않았는지 확인합니다.
+3. DB 포트가 인터넷에 노출되지 않았는지 확인합니다.
 4. `/actuator/health`가 `UP`인지 확인합니다.
 5. 회원가입, 로그인, URL 분석, 장소 저장, 일정 생성 스모크 테스트를 실행합니다.
 6. HTTPS 인증서와 HTTP→HTTPS 리다이렉트를 확인합니다.

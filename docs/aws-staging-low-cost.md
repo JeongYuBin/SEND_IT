@@ -3,7 +3,6 @@
 ## 기본 구성
 
 - EC2 한 대에서 frontend, backend, PostgreSQL 실행
-- Redis는 실제 사용 코드가 없어 제외
 - 분석 원본 영상과 WAV는 분석 완료 즉시 삭제
 - 비정상 종료로 남은 원본과 WAV는 24시간 후 자동 삭제
 - OCR/게시물 프레임은 장소 이미지 출처로 사용될 수 있어 자동 삭제 대상에서 제외
@@ -32,9 +31,8 @@ docker compose \
 | PostgreSQL | 매일 압축 백업, 기본 7일 보관 |
 | Docker 로그 | backend/db 각 최대 30MB, frontend 최대 10MB |
 
-테스트 사용량이 적을 때는 S3를 필수로 사용하지 않습니다. EC2 디스크 사용량 또는 백업의
-외부 보관 필요성이 생기면 DB 백업부터 S3로 전송하고, 이후 장소 이미지를 이전합니다.
-SNS 원본 영상 전체를 S3에 영구 보관하지 않습니다.
+S3에는 `place-images/`의 대표 이미지와 `database-backups/`의 DB 백업만 저장합니다.
+SNS 원본 영상, WAV와 OCR 작업용 프레임 전체를 S3에 영구 보관하지 않습니다.
 
 ## 비용 경보
 

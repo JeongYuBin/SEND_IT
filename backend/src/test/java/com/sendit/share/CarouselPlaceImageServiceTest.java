@@ -18,7 +18,8 @@ class CarouselPlaceImageServiceTest {
         write("cover.jpg");
         write("single.jpg");
         write("grid.jpg");
-        var service = new CarouselPlaceImageService(storage.toString());
+        var imageStorage = new RepresentativeImageStorage(storage.toString(), "", "ap-northeast-2");
+        var service = new CarouselPlaceImageService(storage.toString(), imageStorage);
         List<PageMetadata> places = List.of(
                 place("한 곳"), place("둘"), place("셋"), place("넷"), place("다섯"));
 

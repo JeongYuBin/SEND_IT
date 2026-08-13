@@ -10,7 +10,7 @@ SEND_IT/
 ├─ frontend/              React + TypeScript + Vite
 ├─ backend/               Java 21 + Spring Boot
 ├─ docs/                  아키텍처 및 개발 문서
-├─ compose.yaml           PostGIS + Redis + 애플리케이션
+├─ compose.yaml           PostGIS + 애플리케이션
 └─ .env.example           로컬 환경변수 예시
 ```
 
@@ -47,7 +47,7 @@ cd backend
 mvn spring-boot:run
 ```
 
-PostgreSQL과 Redis 접속 정보는 `backend/src/main/resources/application.yml`의
+PostgreSQL 접속 정보는 `backend/src/main/resources/application.yml`의
 환경변수로 변경할 수 있습니다.
 
 ## 초기 개발 원칙
@@ -57,4 +57,3 @@ PostgreSQL과 Redis 접속 정보는 `backend/src/main/resources/application.yml
 - DB 스키마 변경은 Flyway 마이그레이션으로만 수행합니다.
 - 관광공사 API 응답은 백엔드에서 정규화하고 프런트엔드가 직접 호출하지 않습니다.
 - 기능 작업은 검증 가능한 단위로 나누고 각 단위마다 Git 커밋을 남깁니다.
-

@@ -14,10 +14,13 @@ import org.springframework.stereotype.Service;
 public class CarouselPlaceImageService {
     private static final int GRID_SIZE = 4;
     private final Path storageRoot;
+    private final RepresentativeImageStorage imageStorage;
 
     public CarouselPlaceImageService(
-            @Value("${app.media.storage-directory}") String storageDirectory) {
+            @Value("${app.media.storage-directory}") String storageDirectory,
+            RepresentativeImageStorage imageStorage) {
         this.storageRoot = Path.of(storageDirectory).toAbsolutePath().normalize();
+        this.imageStorage = imageStorage;
     }
 
     public List<PageMetadata> attach(List<PageMetadata> places, List<String> frameKeys) {
@@ -103,7 +106,8 @@ public class CarouselPlaceImageService {
     }
 
     private String mediaUrl(String key) {
-        return "/api/v1/media/" + key;
+        String persisted = imageStorage.persist(key);
+        return persisted == null ? "/api/v1/media/" + key : persisted;
     }
 
     private PageMetadata withImage(PageMetadata place, String imageUrl) {

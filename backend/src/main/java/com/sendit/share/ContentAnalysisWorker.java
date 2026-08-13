@@ -206,6 +206,7 @@ public class ContentAnalysisWorker {
                     // 분석 결과는 유지하고 자동 저장 실패 시 결과 화면에서 직접 저장할 수 있게 한다.
                 }
                 mediaStorageCleaner.deleteTransient(mediaStorageKey, audioStorageKey);
+                mediaStorageCleaner.deleteAll(frameKeys);
             } catch (RuntimeException exception) {
                 analysisJobService.retryOrFail(job.jobId(), exception.getMessage());
             }
