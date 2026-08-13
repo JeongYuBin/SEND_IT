@@ -102,7 +102,7 @@ public class AutomaticMediaDownloader {
                 "--restrict-filenames",
                 // 분석에는 4K 원본보다 안정적인 단일 A/V 스트림이 적합하다. 분리 스트림을
                 // 받다가 음성 파일만 완료본으로 오인하는 문제도 함께 방지한다.
-                "--format", "best[height<=720][vcodec!=none][acodec!=none]/best[height<=720]",
+                "--format", "best[height<=360][vcodec!=none][acodec!=none]/best[height<=360]",
                 "--merge-output-format", "mp4",
                 "--output", outputTemplate.toString(),
                 "--print", "after_move:filepath",
@@ -114,6 +114,7 @@ public class AutomaticMediaDownloader {
         try (var paths = Files.list(storageRoot)) {
             return paths.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().startsWith(keyPrefix + "."))
+                    .filter(path -> !path.getFileName().toString().endsWith(".part"))
                     .findFirst()
                     .orElseThrow(() -> new ContentAnalysisException("확보된 영상 파일을 찾지 못했습니다."));
         }
