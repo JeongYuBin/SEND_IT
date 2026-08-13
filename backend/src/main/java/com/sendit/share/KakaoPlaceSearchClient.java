@@ -75,11 +75,20 @@ public class KakaoPlaceSearchClient {
         if (apiKey.isBlank() || placeName == null || placeName.isBlank()) return Optional.empty();
         PageMetadata candidate = new PageMetadata(
                 null, null, null, placeName.trim(), null, addressHint, null, null);
-        String query = addressHint == null || addressHint.isBlank()
-                ? placeName.trim() : placeName.trim() + " " + addressHint.trim();
-        Optional<PageMetadata> resolved = search(query, candidate);
-        return resolved.filter(place -> place.latitude() != null && place.longitude() != null
-                && place.address() != null && !place.address().isBlank());
+        Set<String> queries = new LinkedHashSet<>();
+        if (addressHint != null && !addressHint.isBlank()) {
+            queries.add(placeName.trim() + " " + addressHint.trim());
+            String region = addressRegion(addressHint);
+            if (region != null) queries.add(placeName.trim() + " " + region);
+        }
+        queries.add(placeName.trim());
+        for (String query : queries) {
+            Optional<PageMetadata> resolved = search(query, candidate)
+                    .filter(place -> place.latitude() != null && place.longitude() != null
+                            && place.address() != null && !place.address().isBlank());
+            if (resolved.isPresent()) return resolved;
+        }
+        return Optional.empty();
     }
 
     private Optional<PageMetadata> search(String query, PageMetadata fallback) {
