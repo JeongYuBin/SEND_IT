@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import { useState } from 'react'
 import { resolveImageUrl } from '../../components/imageUrl'
 import { Link, useParams } from 'react-router-dom'
@@ -257,7 +258,12 @@ export function SavedPlaceDetailPage() {
                 <label><span>카테고리</span><input maxLength={100} placeholder="예: 음식점, 관광지" value={editCategory} onChange={(event) => setEditCategory(event.target.value)} /></label>
                 <label className="wide-field"><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => setEditAddress(event.target.value)} /></label>
               </div>
-              {updateMutation.isError && <p className="form-error" role="alert">장소 정보를 저장하지 못했습니다. 입력 내용을 확인해 주세요.</p>}
+              {updateMutation.isError && (
+                <p className="form-error" role="alert">
+                  {(updateMutation.error as AxiosError<{ message?: string }>).response?.data?.message
+                    ?? '장소 정보를 저장하지 못했습니다. 입력 내용을 확인해 주세요.'}
+                </p>
+              )}
               <div className="place-detail-edit-actions">
                 <button type="button" className="secondary-button" onClick={() => setEditingDetails(false)}>취소</button>
                 <button type="submit" className="primary-button" disabled={updateMutation.isPending}>{updateMutation.isPending ? '저장 중...' : '변경 저장'}</button>

@@ -140,6 +140,17 @@ public class Place {
         dataSource = "USER";
     }
 
+    public void updateKakaoLocation(PlaceSearchDtos.Result matched) {
+        address = firstNonBlank(matched.address(), address);
+        roadAddress = firstNonBlank(matched.roadAddress(), roadAddress);
+        latitude = matched.latitude();
+        longitude = matched.longitude();
+        phone = firstNonBlank(matched.phone(), phone);
+        kakaoPlaceId = matched.kakaoPlaceId();
+        kakaoPlaceUrl = matched.kakaoPlaceUrl();
+        dataSource = "KAKAO";
+    }
+
     private String blankToNull(String value) {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;

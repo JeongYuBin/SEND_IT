@@ -27,18 +27,21 @@ public class SavedPlaceService {
     private final UserSavedPlaceSourceRepository savedPlaceSources;
     private final SharedContentPlaceRepository extractedPlaces;
     private final PlaceDuplicateMatcher duplicateMatcher;
+    private final PlaceLocationResolver locationResolver;
 
     public SavedPlaceService(UserRepository users, PlaceRepository places,
             UserSavedPlaceRepository savedPlaces, CollectionRepository collections,
             SharedContentRepository shares, TourApiClient tourApiClient,
             UserSavedPlaceSourceRepository savedPlaceSources,
             SharedContentPlaceRepository extractedPlaces,
-            PlaceDuplicateMatcher duplicateMatcher) {
+            PlaceDuplicateMatcher duplicateMatcher,
+            PlaceLocationResolver locationResolver) {
         this.users=users; this.places=places; this.savedPlaces=savedPlaces;
         this.collections=collections; this.shares=shares; this.tourApiClient=tourApiClient;
         this.savedPlaceSources = savedPlaceSources;
         this.extractedPlaces = extractedPlaces;
         this.duplicateMatcher = duplicateMatcher;
+        this.locationResolver = locationResolver;
     }
 
     public SavedPlaceDtos.Response create(String email, SavedPlaceDtos.CreateRequest request) {
@@ -145,8 +148,21 @@ public class SavedPlaceService {
 
     public SavedPlaceDtos.Response update(String email, Long id, SavedPlaceDtos.UpdateRequest request) {
         var saved = owned(email, id);
-        saved.getPlace().updateUserDetails(request.name(), request.category(),
+        Place place = saved.getPlace();
+        String nextName = valueOrCurrent(request.name(), place.getName());
+        String nextAddress = preferredAddress(request, place);
+        boolean locationChanged = changed(request.name(), place.getName())
+                || changedAddress(request, place);
+        PlaceSearchDtos.Result resolvedLocation = null;
+        if (locationChanged) {
+            if (nextName == null || nextName.isBlank() || nextAddress == null || nextAddress.isBlank()) {
+                throw new IllegalArgumentException("지도 위치를 갱신하려면 장소명과 주소를 모두 입력해 주세요.");
+            }
+            resolvedLocation = locationResolver.resolve(nextName, nextAddress);
+        }
+        place.updateUserDetails(request.name(), request.category(),
                 request.address(), request.roadAddress(), request.imageUrl());
+        if (resolvedLocation != null) place.updateKakaoLocation(resolvedLocation);
         Collection selectedCollection;
         if (Boolean.TRUE.equals(request.clearCollection())) {
             selectedCollection = null;
@@ -157,6 +173,25 @@ public class SavedPlaceService {
         }
         saved.update(request.memo(), request.priority(), selectedCollection);
         return response(saved);
+    }
+
+    private String valueOrCurrent(String requested, String current) {
+        return requested == null ? current : requested.trim();
+    }
+
+    private String preferredAddress(SavedPlaceDtos.UpdateRequest request, Place place) {
+        if (request.roadAddress() != null) return request.roadAddress().trim();
+        if (request.address() != null) return request.address().trim();
+        return place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress();
+    }
+
+    private boolean changed(String requested, String current) {
+        return requested != null && !requested.trim().equals(current == null ? "" : current.trim());
+    }
+
+    private boolean changedAddress(SavedPlaceDtos.UpdateRequest request, Place place) {
+        return changed(request.address(), place.getAddress())
+                || changed(request.roadAddress(), place.getRoadAddress());
     }
 
     public void delete(String email, Long id) {
