@@ -29,6 +29,12 @@ class PlaceVerificationPolicyTest {
                 "https://example.com/place", null, 37.5, 127.0))).isFalse();
     }
 
+    @Test
+    void rejectsProgramAndGenericContentNamesAsPhysicalPlaces() {
+        assertThat(policy.isVerified(metadata("또간집", null, 37.5, 127.0))).isFalse();
+        assertThat(policy.isVerified(metadata("맛집", null, 37.5, 127.0))).isFalse();
+    }
+
     private PageMetadata metadata(
             String name, String address, Double latitude, Double longitude
     ) {

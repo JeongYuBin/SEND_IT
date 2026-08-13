@@ -26,6 +26,7 @@ public class ContentAnalysisWorker {
     private final MultiPlaceExtractor multiPlaceExtractor;
     private final SharedContentPlaceService sharedContentPlaceService;
     private final CarouselPlaceImageService carouselPlaceImageService;
+    private final YouTubeCaptionExtractor youtubeCaptionExtractor;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -45,7 +46,8 @@ public class ContentAnalysisWorker {
             InstagramCarouselDownloader instagramCarouselDownloader,
             MultiPlaceExtractor multiPlaceExtractor,
             SharedContentPlaceService sharedContentPlaceService,
-            CarouselPlaceImageService carouselPlaceImageService
+            CarouselPlaceImageService carouselPlaceImageService,
+            YouTubeCaptionExtractor youtubeCaptionExtractor
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -65,6 +67,7 @@ public class ContentAnalysisWorker {
         this.multiPlaceExtractor = multiPlaceExtractor;
         this.sharedContentPlaceService = sharedContentPlaceService;
         this.carouselPlaceImageService = carouselPlaceImageService;
+        this.youtubeCaptionExtractor = youtubeCaptionExtractor;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -93,12 +96,19 @@ public class ContentAnalysisWorker {
                 metadata = kakaoPlaceSearchClient.enrich(metadata);
                 metadata = tourApiClient.enrich(metadata);
                 boolean needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
+                boolean analyzeMedia = needsConfirmation || shouldDeepAnalyze(job.url(), metadata);
                 String mediaStorageKey = job.mediaStorageKey();
                 java.util.List<String> frameKeys = job.mediaFrameKeys();
                 String ocrText = job.mediaOcrText();
                 String audioStorageKey = job.mediaAudioStorageKey();
                 String transcript = job.mediaTranscript();
-                if (needsConfirmation && frameKeys.isEmpty()
+                if (analyzeMedia && (transcript == null || transcript.isBlank())) {
+                    transcript = youtubeCaptionExtractor.extract(job.url());
+                    if (transcript != null && !transcript.isBlank()) {
+                        analysisJobService.attachMediaTranscript(job.jobId(), transcript);
+                    }
+                }
+                if (analyzeMedia && frameKeys.isEmpty()
                         && instagramCarouselDownloader.supports(job.url())) {
                     MediaProcessingResult carousel = instagramCarouselDownloader.downloadFrames(job.url());
                     if (!carousel.frameStorageKeys().isEmpty()) {
@@ -106,7 +116,7 @@ public class ContentAnalysisWorker {
                         frameKeys = carousel.frameStorageKeys();
                     }
                 }
-                if (needsConfirmation
+                if (analyzeMedia
                         && mediaStorageKey == null
                         && automaticMediaDownloader.supports(job.url())) {
                     try {
@@ -117,7 +127,7 @@ public class ContentAnalysisWorker {
                         // 캡션 분석 결과는 유지하고 영상 확보 실패는 재분석 화면에서 다시 시도한다.
                     }
                 }
-                if (needsConfirmation && mediaStorageKey != null && !job.mediaProcessed()) {
+                if (analyzeMedia && mediaStorageKey != null && !job.mediaProcessed()) {
                     try {
                         MediaProcessingResult processingResult = videoMediaProcessor.process(mediaStorageKey);
                         analysisJobService.attachMediaProcessingResult(job.jobId(), processingResult);
@@ -127,7 +137,7 @@ public class ContentAnalysisWorker {
                         // 영상 원본은 유지하고 프레임·음원 추출은 재분석에서 다시 시도한다.
                     }
                 }
-                if (needsConfirmation && !frameKeys.isEmpty()
+                if (analyzeMedia && !frameKeys.isEmpty()
                         && (ocrText == null || ocrText.isBlank())) {
                     try {
                         ocrText = frameOcrExtractor.extract(frameKeys);
@@ -143,7 +153,7 @@ public class ContentAnalysisWorker {
                         // OCR 실패 시 프레임을 유지하고 재분석에서 다시 시도한다.
                     }
                 }
-                if (needsConfirmation && audioStorageKey != null
+                if (analyzeMedia && audioStorageKey != null
                         && (transcript == null || transcript.isBlank())) {
                     try {
                         transcript = audioTranscriber.transcribe(audioStorageKey);
@@ -159,8 +169,14 @@ public class ContentAnalysisWorker {
                         // STT 실패 시 기존 메타데이터와 OCR 결과로 분석을 마무리한다.
                     }
                 }
-                java.util.List<PageMetadata> extractedPlaces =
-                        multiPlaceExtractor.extract(ocrText, metadata);
+                java.util.List<PageMetadata> extractedPlaces = new java.util.ArrayList<>(
+                        multiPlaceExtractor.extract(ocrText, metadata));
+                for (PageMetadata place : multiPlaceExtractor.extractCaption(transcript, metadata)) {
+                    boolean duplicate = extractedPlaces.stream().anyMatch(existing ->
+                            normalizePlace(existing.placeName()).equals(normalizePlace(place.placeName()))
+                                    && normalizePlace(existing.address()).equals(normalizePlace(place.address())));
+                    if (!duplicate) extractedPlaces.add(place);
+                }
                 extractedPlaces = carouselPlaceImageService.attach(extractedPlaces, frameKeys);
                 if (!extractedPlaces.isEmpty()) {
                     PageMetadata first = extractedPlaces.getFirst();
@@ -183,5 +199,19 @@ public class ContentAnalysisWorker {
                 analysisJobService.retryOrFail(job.jobId(), exception.getMessage());
             }
         });
+    }
+
+    private String normalizePlace(String value) {
+        return value == null ? "" : value.toLowerCase(java.util.Locale.KOREAN)
+                .replaceAll("[^0-9a-z가-힣]", "");
+    }
+
+    private boolean shouldDeepAnalyze(String url, PageMetadata metadata) {
+        if (url == null || !url.matches("https://(?:www\\.|m\\.)?(?:youtube\\.com|youtu\\.be)/.*")) {
+            return false;
+        }
+        String text = String.join(" ", metadata.title() == null ? "" : metadata.title(),
+                metadata.description() == null ? "" : metadata.description());
+        return text.matches("(?s).*(맛집|먹방|카페|투어|총정리|또간집|곳|BEST|best).*" );
     }
 }

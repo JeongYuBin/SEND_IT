@@ -100,7 +100,9 @@ public class AutomaticMediaDownloader {
                 "--js-runtimes", "node:/usr/bin/node",
                 "--max-filesize", String.valueOf(maxBytes),
                 "--restrict-filenames",
-                "--format", "bv*+ba/b",
+                // 분석에는 4K 원본보다 안정적인 단일 A/V 스트림이 적합하다. 분리 스트림을
+                // 받다가 음성 파일만 완료본으로 오인하는 문제도 함께 방지한다.
+                "--format", "best[height<=720][vcodec!=none][acodec!=none]/best[height<=720]",
                 "--merge-output-format", "mp4",
                 "--output", outputTemplate.toString(),
                 "--print", "after_move:filepath",

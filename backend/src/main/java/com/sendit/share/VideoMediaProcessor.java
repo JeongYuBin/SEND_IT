@@ -44,15 +44,7 @@ public class VideoMediaProcessor {
         }
         String base = storageKey.substring(0, storageKey.lastIndexOf('.'));
         double duration = probeDuration(input);
-        double interval = Math.max(1.0, duration / 12.0);
-        Path frameTemplate = storageRoot.resolve(base + "-frame-%02d.jpg");
-        runRequired(List.of(
-                ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
-                "-i", input.toString(),
-                "-vf", String.format(Locale.ROOT,
-                        "fps=1/%.3f,scale=1280:-2:force_original_aspect_ratio=decrease", interval),
-                "-frames:v", "12", frameTemplate.toString()
-        ), "대표 프레임을 추출하지 못했습니다.");
+        extractFrames(input, base, duration);
         List<String> frames = findFrames(base);
         if (frames.isEmpty()) {
             throw new ContentAnalysisException("영상에서 대표 프레임을 찾지 못했습니다.");
@@ -101,12 +93,43 @@ public class VideoMediaProcessor {
         }
     }
 
+    private void extractFrames(Path input, String base, double duration) {
+        // 긴 영상 전체를 디코딩하면 제한 시간을 쉽게 넘긴다. 입력 전 seek로 각 구간만 읽는다.
+        if (duration >= 600) {
+            for (int index = 1; index <= 12; index++) {
+                double second = duration * index / 13.0;
+                Path output = storageRoot.resolve(String.format(Locale.ROOT,
+                        "%s-frame-%02d.jpg", base, index));
+                runRequired(List.of(
+                        ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
+                        "-ss", String.format(Locale.ROOT, "%.3f", second),
+                        "-i", input.toString(), "-frames:v", "1",
+                        "-vf", "scale=1280:-2:force_original_aspect_ratio=decrease",
+                        output.toString()), "대표 프레임을 추출하지 못했습니다.");
+            }
+            return;
+        }
+        double interval = Math.max(1.0, duration / 12.0);
+        Path frameTemplate = storageRoot.resolve(base + "-frame-%02d.jpg");
+        runRequired(List.of(
+                ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
+                "-i", input.toString(),
+                "-vf", String.format(Locale.ROOT,
+                        "fps=1/%.3f,scale=1280:-2:force_original_aspect_ratio=decrease", interval),
+                "-frames:v", "12", frameTemplate.toString()
+        ), "대표 프레임을 추출하지 못했습니다.");
+    }
+
     private void runRequired(List<String> command, String message) {
         if (run(command).exitCode() != 0) throw new ContentAnalysisException(message);
     }
 
     private boolean runOptional(List<String> command) {
-        return run(command).exitCode() == 0;
+        try {
+            return run(command).exitCode() == 0;
+        } catch (ContentAnalysisException ignored) {
+            return false;
+        }
     }
 
     private ProcessResult run(List<String> command) {
