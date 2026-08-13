@@ -1593,6 +1593,76 @@ dd {
 .fatal-error p { color: var(--text-muted); line-height: 1.65; }
 .fatal-error button { margin-top: 18px; }
 
+.place-detail-edit-toggle { margin-top: 10px; }
+
+.place-detail-edit-form {
+  display: grid;
+  gap: 22px;
+  margin-top: 22px;
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  background: rgba(247, 249, 248, 0.9);
+}
+
+.place-detail-edit-heading,
+.place-detail-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.place-detail-edit-heading h2 { margin: 6px 0 0; font-size: 1.35rem; }
+
+.edit-close-button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  color: #505653;
+  background: rgba(255, 255, 255, 0.86);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.place-detail-edit-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px;
+}
+
+.place-detail-edit-fields label { display: grid; min-width: 0; gap: 8px; }
+.place-detail-edit-fields label > span { color: #4f5753; font-size: 0.84rem; font-weight: 650; }
+.place-detail-edit-fields em { color: #0071e3; font-size: 0.72rem; font-style: normal; }
+.place-detail-edit-fields .wide-field { grid-column: 1 / -1; }
+.place-detail-edit-fields input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 12px;
+  color: #1d1d1f;
+  background: rgba(255, 255, 255, 0.94);
+  font: inherit;
+}
+.place-detail-edit-fields input:focus {
+  border-color: #0071e3;
+  outline: 3px solid rgba(0, 113, 227, 0.13);
+}
+.place-detail-edit-actions { justify-content: flex-end; }
+.place-detail-edit-actions button { min-width: 104px; }
+
+@media (max-width: 620px) {
+  .place-detail-edit-fields { grid-template-columns: 1fr; }
+  .place-detail-edit-fields .wide-field { grid-column: auto; }
+  .place-detail-edit-actions button { flex: 1; min-width: 0; }
+}
+
 .place-operating-info,
 .place-detail-content section,
 .place-source-section {

@@ -220,22 +220,24 @@ export function SavedPlaceDetailPage() {
           </div>
           <h1>{place.name}</h1>
           <p className="place-detail-address">{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
-          <button
-            type="button"
-            className="secondary-button"
-            onClick={() => {
-              setEditName(place.name)
-              setEditCategory(place.category ?? '')
-              setEditAddress(place.roadAddress ?? place.address ?? '')
-              setEditImageUrl(place.imageUrl ?? '')
-              setEditingDetails((value) => !value)
-            }}
-          >
-            {editingDetails ? '수정 취소' : '장소 정보 수정'}
-          </button>
+          {!editingDetails && (
+            <button
+              type="button"
+              className="secondary-button place-detail-edit-toggle"
+              onClick={() => {
+                setEditName(place.name)
+                setEditCategory(place.category ?? '')
+                setEditAddress(place.roadAddress ?? place.address ?? '')
+                setEditImageUrl(place.imageUrl ?? '')
+                setEditingDetails(true)
+              }}
+            >
+              장소 정보 수정
+            </button>
+          )}
           {editingDetails && (
             <form
-              className="account-security-form"
+              className="place-detail-edit-form"
               onSubmit={(event) => {
                 event.preventDefault()
                 updateMutation.mutate({
@@ -246,11 +248,24 @@ export function SavedPlaceDetailPage() {
                 })
               }}
             >
-              <label><span>장소명</span><input required maxLength={200} value={editName} onChange={(event) => setEditName(event.target.value)} /></label>
-              <label><span>카테고리</span><input maxLength={100} value={editCategory} onChange={(event) => setEditCategory(event.target.value)} /></label>
-              <label><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => setEditAddress(event.target.value)} /></label>
-              <label><span>대표 이미지 URL</span><input type="url" maxLength={2048} value={editImageUrl} onChange={(event) => setEditImageUrl(event.target.value)} /></label>
-              <button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? '저장 중...' : '변경 저장'}</button>
+              <div className="place-detail-edit-heading">
+                <div>
+                  <span className="eyebrow">EDIT PLACE</span>
+                  <h2>장소 정보 수정</h2>
+                </div>
+                <button type="button" className="edit-close-button" onClick={() => setEditingDetails(false)} aria-label="장소 정보 수정 닫기">×</button>
+              </div>
+              <div className="place-detail-edit-fields">
+                <label><span>장소명 <em>필수</em></span><input required maxLength={200} value={editName} onChange={(event) => setEditName(event.target.value)} /></label>
+                <label><span>카테고리</span><input maxLength={100} placeholder="예: 음식점, 관광지" value={editCategory} onChange={(event) => setEditCategory(event.target.value)} /></label>
+                <label className="wide-field"><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => setEditAddress(event.target.value)} /></label>
+                <label className="wide-field"><span>대표 이미지 URL</span><input type="url" maxLength={2048} placeholder="https://" value={editImageUrl} onChange={(event) => setEditImageUrl(event.target.value)} /></label>
+              </div>
+              {updateMutation.isError && <p className="form-error" role="alert">장소 정보를 저장하지 못했습니다. 입력 내용을 확인해 주세요.</p>}
+              <div className="place-detail-edit-actions">
+                <button type="button" className="secondary-button" onClick={() => setEditingDetails(false)}>취소</button>
+                <button type="submit" className="primary-button" disabled={updateMutation.isPending}>{updateMutation.isPending ? '저장 중...' : '변경 저장'}</button>
+              </div>
             </form>
           )}
           <div className="place-map-actions">
