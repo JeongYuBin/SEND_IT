@@ -51,7 +51,6 @@ export function SavedPlaceDetailPage() {
   const [editName, setEditName] = useState('')
   const [editCategory, setEditCategory] = useState('')
   const [editAddress, setEditAddress] = useState('')
-  const [editImageUrl, setEditImageUrl] = useState('')
   const placeQuery = useQuery({
     queryKey: ['saved-place', savedPlaceId],
     queryFn: () => getSavedPlace(savedPlaceId),
@@ -228,7 +227,6 @@ export function SavedPlaceDetailPage() {
                 setEditName(place.name)
                 setEditCategory(place.category ?? '')
                 setEditAddress(place.roadAddress ?? place.address ?? '')
-                setEditImageUrl(place.imageUrl ?? '')
                 setEditingDetails(true)
               }}
             >
@@ -244,7 +242,6 @@ export function SavedPlaceDetailPage() {
                   name: editName,
                   category: editCategory,
                   roadAddress: editAddress,
-                  imageUrl: editImageUrl,
                 })
               }}
             >
@@ -259,7 +256,6 @@ export function SavedPlaceDetailPage() {
                 <label><span>장소명 <em>필수</em></span><input required maxLength={200} value={editName} onChange={(event) => setEditName(event.target.value)} /></label>
                 <label><span>카테고리</span><input maxLength={100} placeholder="예: 음식점, 관광지" value={editCategory} onChange={(event) => setEditCategory(event.target.value)} /></label>
                 <label className="wide-field"><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => setEditAddress(event.target.value)} /></label>
-                <label className="wide-field"><span>대표 이미지 URL</span><input type="url" maxLength={2048} placeholder="https://" value={editImageUrl} onChange={(event) => setEditImageUrl(event.target.value)} /></label>
               </div>
               {updateMutation.isError && <p className="form-error" role="alert">장소 정보를 저장하지 못했습니다. 입력 내용을 확인해 주세요.</p>}
               <div className="place-detail-edit-actions">
