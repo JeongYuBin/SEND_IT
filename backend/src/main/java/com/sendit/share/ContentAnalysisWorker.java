@@ -27,6 +27,7 @@ public class ContentAnalysisWorker {
     private final SharedContentPlaceService sharedContentPlaceService;
     private final CarouselPlaceImageService carouselPlaceImageService;
     private final YouTubeCaptionExtractor youtubeCaptionExtractor;
+    private final MediaStorageCleaner mediaStorageCleaner;
 
     public ContentAnalysisWorker(
             AnalysisJobService analysisJobService,
@@ -47,7 +48,8 @@ public class ContentAnalysisWorker {
             MultiPlaceExtractor multiPlaceExtractor,
             SharedContentPlaceService sharedContentPlaceService,
             CarouselPlaceImageService carouselPlaceImageService,
-            YouTubeCaptionExtractor youtubeCaptionExtractor
+            YouTubeCaptionExtractor youtubeCaptionExtractor,
+            MediaStorageCleaner mediaStorageCleaner
     ) {
         this.analysisJobService = analysisJobService;
         this.safePageFetcher = safePageFetcher;
@@ -68,6 +70,7 @@ public class ContentAnalysisWorker {
         this.sharedContentPlaceService = sharedContentPlaceService;
         this.carouselPlaceImageService = carouselPlaceImageService;
         this.youtubeCaptionExtractor = youtubeCaptionExtractor;
+        this.mediaStorageCleaner = mediaStorageCleaner;
     }
 
     @Scheduled(fixedDelayString = "${app.analysis.poll-delay-ms}")
@@ -202,6 +205,7 @@ public class ContentAnalysisWorker {
                 } catch (RuntimeException ignored) {
                     // 분석 결과는 유지하고 자동 저장 실패 시 결과 화면에서 직접 저장할 수 있게 한다.
                 }
+                mediaStorageCleaner.deleteTransient(mediaStorageKey, audioStorageKey);
             } catch (RuntimeException exception) {
                 analysisJobService.retryOrFail(job.jobId(), exception.getMessage());
             }

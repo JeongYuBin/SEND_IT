@@ -15,18 +15,6 @@ services:
       timeout: 5s
       retries: 10
 
-  redis:
-    image: redis:7.4-alpine
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
   backend:
     build: ./backend
     environment:
@@ -35,8 +23,6 @@ services:
       DB_NAME: ${POSTGRES_DB:-sendit}
       DB_USERNAME: ${POSTGRES_USER:-sendit}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-sendit_local}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-sendit-local-development-secret-key-change-me}
       TOUR_API_SERVICE_KEY: ${TOUR_API_SERVICE_KEY:-}
       KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:-}
@@ -50,8 +36,6 @@ services:
       - media_uploads:/app/data/uploads
     depends_on:
       db:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
@@ -79,5 +63,4 @@ services:
 
 volumes:
   postgres_data:
-  redis_data:
   media_uploads:

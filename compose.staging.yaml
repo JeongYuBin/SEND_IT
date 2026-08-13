@@ -1,0 +1,38 @@
+services:
+  db:
+    shm_size: 128mb
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - effective_cache_size=384MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=64MB
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+        reservations:
+          memory: 256M
+
+  backend:
+    environment:
+      MEDIA_MAX_BYTES: ${MEDIA_MAX_BYTES:-104857600}
+      MEDIA_TRANSIENT_RETENTION_HOURS: ${MEDIA_TRANSIENT_RETENTION_HOURS:-24}
+    deploy:
+      resources:
+        limits:
+          memory: 2304M
+        reservations:
+          memory: 1024M
+
+  frontend:
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 32M
