@@ -155,7 +155,11 @@ public class Place {
         address = firstNonBlank(incomingAddress, address);
         roadAddress = firstNonBlank(incomingRoadAddress, roadAddress);
         description = firstNonBlank(incomingDescription, description);
-        primaryImageUrl = firstNonBlank(incomingImageUrl, primaryImageUrl);
+        if (incomingImageUrl != null && !incomingImageUrl.isBlank()) {
+            primaryImageUrl = incomingImageUrl;
+        } else if (isPlatformThumbnail(primaryImageUrl)) {
+            primaryImageUrl = null;
+        }
         phone = firstNonBlank(incomingPhone, phone);
         kakaoPlaceId = firstNonBlank(incomingKakaoPlaceId, kakaoPlaceId);
         kakaoPlaceUrl = firstNonBlank(incomingKakaoPlaceUrl, kakaoPlaceUrl);
@@ -164,6 +168,13 @@ public class Place {
             longitude = incomingLongitude;
         }
         if (incomingKakaoPlaceId != null && !incomingKakaoPlaceId.isBlank()) dataSource = "KAKAO";
+    }
+
+    private boolean isPlatformThumbnail(String value) {
+        if (value == null) return false;
+        String lower = value.toLowerCase(java.util.Locale.ROOT);
+        return lower.contains("ytimg.com/") || lower.contains("youtube.com/")
+                || lower.contains("cdninstagram.com/") || lower.contains("tiktokcdn");
     }
 
     private String firstNonBlank(String preferred, String fallback) {

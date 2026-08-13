@@ -177,7 +177,14 @@ public class ContentAnalysisWorker {
                                     && normalizePlace(existing.address()).equals(normalizePlace(place.address())));
                     if (!duplicate) extractedPlaces.add(place);
                 }
-                extractedPlaces = carouselPlaceImageService.attach(extractedPlaces, frameKeys);
+                extractedPlaces = extractedPlaces.stream()
+                        .map(this::enrichPlaceImage)
+                        .toList();
+                // Instagram 이미지 게시물은 각 슬라이드가 장소별 원본 이미지다.
+                // 영상 대표 프레임이나 YouTube 썸네일은 개별 업체 사진으로 사용하지 않는다.
+                if (instagramCarouselDownloader.supports(job.url())) {
+                    extractedPlaces = carouselPlaceImageService.attach(extractedPlaces, frameKeys);
+                }
                 if (!extractedPlaces.isEmpty()) {
                     PageMetadata first = extractedPlaces.getFirst();
                     metadata = new PageMetadata(
@@ -204,6 +211,14 @@ public class ContentAnalysisWorker {
     private String normalizePlace(String value) {
         return value == null ? "" : value.toLowerCase(java.util.Locale.KOREAN)
                 .replaceAll("[^0-9a-z가-힣]", "");
+    }
+
+    private PageMetadata enrichPlaceImage(PageMetadata place) {
+        PageMetadata withoutSourceThumbnail = new PageMetadata(
+                place.title(), place.description(), null,
+                place.placeName(), place.category(), place.address(),
+                place.latitude(), place.longitude());
+        return tourApiClient.enrich(withoutSourceThumbnail);
     }
 
     private boolean shouldDeepAnalyze(String url, PageMetadata metadata) {

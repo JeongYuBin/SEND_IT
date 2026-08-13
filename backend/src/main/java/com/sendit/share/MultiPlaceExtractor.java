@@ -83,7 +83,7 @@ public class MultiPlaceExtractor {
         resolved.ifPresent(place -> {
                     String key = normalize(place.placeName()) + "|" + normalize(place.address());
                     found.putIfAbsent(key, new PageMetadata(
-                            source.title(), source.description(), source.imageUrl(),
+                            source.title(), source.description(), null,
                             place.placeName(), place.category(), place.address(),
                             place.latitude(), place.longitude()));
                 });
@@ -140,7 +140,7 @@ public class MultiPlaceExtractor {
             return java.util.Optional.empty();
         }
         return java.util.Optional.of(new PageMetadata(
-                source.title(), source.description(), source.imageUrl(),
+                source.title(), source.description(), null,
                 name, "음식점", addressHint, null, null));
     }
 
