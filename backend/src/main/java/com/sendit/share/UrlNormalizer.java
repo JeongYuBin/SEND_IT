@@ -67,6 +67,10 @@ public class UrlNormalizer {
         if (host.contains("blog.naver.com")) {
             return SourceType.NAVER_BLOG;
         }
+        if (host.equals("naver.me") || host.equals("map.naver.com")
+                || host.equals("m.map.naver.com")) {
+            return SourceType.MAP;
+        }
         if (host.contains("map.") || host.contains("maps.")) {
             return SourceType.MAP;
         }
