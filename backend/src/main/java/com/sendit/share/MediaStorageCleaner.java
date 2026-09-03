@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class MediaStorageCleaner {
     private final Path storageRoot;
     private final Duration transientRetention;
 
+    @Autowired
     public MediaStorageCleaner(
             @Value("${app.media.storage-directory}") String storageDirectory,
             @Value("${app.media.transient-retention-hours:24}") long retentionHours) {
