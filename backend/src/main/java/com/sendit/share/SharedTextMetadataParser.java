@@ -17,6 +17,11 @@ public class SharedTextMetadataParser {
                     + "\\s*[:：-]\\s*([^\\r\\n#|]{5,150})");
     private static final Pattern LOCATION_MARKER_PLACE = Pattern.compile(
             "📍\\s*([^📍\\r\\n#]{2,80}?)\\s*📍");
+    private static final Pattern LANDMARK_PLACE = Pattern.compile(
+            "(?im)^\\s*[\\p{So}\\p{Sk}\\p{Punct}]*\\s*"
+                    + "([^#\\r\\n]{2,50}?(?:호수|온천|폭포|계곡|해변|해수욕장|공원|박물관|"
+                    + "미술관|전시관|수목원|정원|전망대|성당|사찰|궁|시장|마을|섬))"
+                    + "(?=\\s|#|$)");
     private static final Pattern LABELED_PLACE_INFO = Pattern.compile(
             "(?im)^\\s*\\[(?:식당|음식점|카페|매장|가게|장소|숙소|관광지)정보]"
                     + "\\s*([^\\r\\n]+)");
@@ -47,6 +52,7 @@ public class SharedTextMetadataParser {
         String placeName = labeled == null ? null : labeled.placeName();
         if (placeName == null) placeName = explicitPlace(text);
         if (placeName == null) placeName = locationMarkerPlace(text);
+        if (placeName == null) placeName = landmarkPlace(text);
         if (placeName == null) placeName = hashtagPlace(text);
         String address = explicitAddress(text);
         if (address == null && labeled != null) address = labeled.address();
@@ -110,6 +116,11 @@ public class SharedTextMetadataParser {
         return candidate;
     }
 
+    private String landmarkPlace(String text) {
+        Matcher matcher = LANDMARK_PLACE.matcher(text);
+        return matcher.find() ? cleanCandidate(matcher.group(1)) : null;
+    }
+
     private PlaceInfo labeledPlaceInfo(String text) {
         Matcher matcher = LABELED_PLACE_INFO.matcher(text);
         if (!matcher.find()) return null;
@@ -171,6 +182,11 @@ public class SharedTextMetadataParser {
         String value = ((placeName == null ? "" : placeName) + " " + text)
                 .toLowerCase(Locale.KOREAN)
                 .replaceAll("\\s+", " ");
+        if (placeName != null && placeName.matches(
+                ".*(호수|온천|폭포|계곡|해변|해수욕장|공원|박물관|미술관|전시관|"
+                        + "수목원|정원|전망대|성당|사찰|궁|시장|마을|섬)$")) {
+            return "관광지";
+        }
         if (value.matches(".*(맛집|음식점|식당|횟집|국수|냉면|갈비|치킨|먹방).*")) {
             return "음식점";
         }

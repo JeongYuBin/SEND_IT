@@ -144,6 +144,18 @@ class SharedTextMetadataParserTest {
     }
 
     @Test
+    void extractsLandmarkBeforeSocialHashtags() {
+        PageMetadata result = parser.parse("""
+                유후인 긴린코 호수 #오늘클립챌린지 #온천 #후쿠시마 #벳부 #오이타현 #맛집 #도쿄 #엔화
+                레이킹 | 유후인 긴린코 호수 #오늘클립챌린지
+                """);
+
+        assertThat(result.placeName()).isEqualTo("유후인 긴린코 호수");
+        assertThat(result.category()).isEqualTo("관광지");
+        assertThat(result.address()).isNull();
+    }
+
+    @Test
     void removesDuplicateDescriptionLinesWhileMerging() {
         PageMetadata page = new PageMetadata("영상", "대표 메뉴는 순두부입니다.", null,
                 null, null, null, null, null);

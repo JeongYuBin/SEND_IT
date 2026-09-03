@@ -29,7 +29,7 @@ export function ShareResultPage() {
   useEffect(() => {
     const share = shareQuery.data
     if (!share || initialized.current || !new Set(['COMPLETED', 'NEEDS_CONFIRMATION']).has(share.status)) return
-    setName(share.extractedPlaceName ?? share.title ?? '')
+    setName(share.extractedPlaceName ?? '')
     setCategory(share.extractedCategory ?? '')
     setAddress(share.extractedAddress ?? '')
     initialized.current = true
@@ -119,7 +119,7 @@ export function ShareResultPage() {
           )}
           {share.status === 'NEEDS_CONFIRMATION' && (
             <div className="auto-fill-notice">
-              장소 후보를 찾았지만 지도 검색으로 정확한 위치를 확인하지 못했습니다. 내용을 확인하고 수정한 뒤 저장해 주세요.
+              장소 정보를 자동으로 확정하지 못했습니다. 추출된 후보를 확인하거나 실제 장소명을 입력해 주세요.
             </div>
           )}
           {share.extractedPlaces.length > 0 && (
