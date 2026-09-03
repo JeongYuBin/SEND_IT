@@ -3176,6 +3176,31 @@ h1 {
   background: #176b52;
 }
 
+.stay-minutes-input {
+  position: relative;
+  display: block;
+}
+
+.stay-minutes-input input {
+  padding-right: 38px;
+}
+
+.stay-minutes-input > span {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: #6e6e73;
+  font-weight: 600;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.place-schedule-form label > small {
+  color: #6e6e73;
+  font-size: .72rem;
+  font-weight: 500;
+}
+
 .transit-guide {
   margin-bottom: 12px;
   padding: 14px 16px;

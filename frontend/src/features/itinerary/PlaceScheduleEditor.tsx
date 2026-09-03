@@ -24,11 +24,11 @@ export function PlaceScheduleEditor({
   const [startTime, setStartTime] = useState(
     (item.preferredStartTime ?? item.arrivalTime).slice(0, 5),
   )
-  const [stayMinutes, setStayMinutes] = useState(item.stayMinutes)
+  const [stayMinutes, setStayMinutes] = useState(String(item.stayMinutes || 60))
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    onSave({ visitDate, startTime, stayMinutes })
+    onSave({ visitDate, startTime, stayMinutes: Number(stayMinutes) })
   }
 
   return (
@@ -43,9 +43,21 @@ export function PlaceScheduleEditor({
       </label>
       <label>
         체류 시간
-        <select value={stayMinutes} onChange={(event) => setStayMinutes(Number(event.target.value))}>
-          {[30, 45, 60, 90, 120, 180, 240].map((minutes) => <option key={minutes} value={minutes}>{minutes}분</option>)}
-        </select>
+        <span className="stay-minutes-input">
+          <input
+            required
+            type="number"
+            min={15}
+            max={720}
+            step={1}
+            inputMode="numeric"
+            value={stayMinutes}
+            onChange={(event) => setStayMinutes(event.target.value)}
+            aria-describedby={`stay-minutes-help-${item.savedPlaceId}`}
+          />
+          <span aria-hidden="true">분</span>
+        </span>
+        <small id={`stay-minutes-help-${item.savedPlaceId}`}>15분부터 720분까지 입력할 수 있습니다.</small>
       </label>
       <button type="button" onClick={onCancel}>취소</button>
       <button type="submit" className="primary-button" disabled={pending}>
