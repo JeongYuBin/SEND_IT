@@ -131,6 +131,19 @@ class SharedTextMetadataParserTest {
     }
 
     @Test
+    void extractsNaverShortsPlaceBetweenLocationMarkers() {
+        PageMetadata result = parser.parse("""
+                🥩오사카 야키니쿠 맛집 🥩 📍갓포 yp류📍 일본 방송에 여러번 나온 맛집!
+                ⭐ 평점 맛 ⭐⭐⭐⭐⭐ 가성비 ⭐⭐⭐⭐⭐ 재방문 의사 ⭐⭐⭐⭐⭐
+                #야키니쿠캇포YP류#오사카야키니쿠
+                """);
+
+        assertThat(result.placeName()).isEqualTo("갓포 yp류");
+        assertThat(result.category()).isEqualTo("음식점");
+        assertThat(result.address()).isNull();
+    }
+
+    @Test
     void removesDuplicateDescriptionLinesWhileMerging() {
         PageMetadata page = new PageMetadata("영상", "대표 메뉴는 순두부입니다.", null,
                 null, null, null, null, null);

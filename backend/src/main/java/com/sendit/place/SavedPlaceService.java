@@ -151,12 +151,12 @@ public class SavedPlaceService {
         Place place = saved.getPlace();
         String nextName = valueOrCurrent(request.name(), place.getName());
         String nextAddress = preferredAddress(request, place);
-        boolean locationChanged = changed(request.name(), place.getName())
-                || changedAddress(request, place);
+        boolean locationChanged = changedAddress(request, place)
+                && nextAddress != null && !nextAddress.isBlank();
         PlaceSearchDtos.Result resolvedLocation = null;
         if (locationChanged) {
-            if (nextName == null || nextName.isBlank() || nextAddress == null || nextAddress.isBlank()) {
-                throw new IllegalArgumentException("지도 위치를 갱신하려면 장소명과 주소를 모두 입력해 주세요.");
+            if (nextName == null || nextName.isBlank()) {
+                throw new IllegalArgumentException("지도 위치를 갱신하려면 장소명을 입력해 주세요.");
             }
             resolvedLocation = locationResolver.resolve(nextName, nextAddress);
         }

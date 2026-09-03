@@ -15,6 +15,8 @@ public class SharedTextMetadataParser {
     private static final Pattern EXPLICIT_ADDRESS = Pattern.compile(
             "(?im)(?:도로명\\s*주소|지번\\s*주소|주소|위치)"
                     + "\\s*[:：-]\\s*([^\\r\\n#|]{5,150})");
+    private static final Pattern LOCATION_MARKER_PLACE = Pattern.compile(
+            "📍\\s*([^📍\\r\\n#]{2,80}?)\\s*📍");
     private static final Pattern LABELED_PLACE_INFO = Pattern.compile(
             "(?im)^\\s*\\[(?:식당|음식점|카페|매장|가게|장소|숙소|관광지)정보]"
                     + "\\s*([^\\r\\n]+)");
@@ -44,6 +46,7 @@ public class SharedTextMetadataParser {
         PlaceInfo labeled = labeledPlaceInfo(text);
         String placeName = labeled == null ? null : labeled.placeName();
         if (placeName == null) placeName = explicitPlace(text);
+        if (placeName == null) placeName = locationMarkerPlace(text);
         if (placeName == null) placeName = hashtagPlace(text);
         String address = explicitAddress(text);
         if (address == null && labeled != null) address = labeled.address();
@@ -92,6 +95,19 @@ public class SharedTextMetadataParser {
         Matcher addressMatcher = KOREAN_ADDRESS.matcher(candidate);
         return addressMatcher.find()
                 ? cleanCandidate(addressMatcher.group()) : cleanCandidate(candidate);
+    }
+
+    private String locationMarkerPlace(String text) {
+        Matcher matcher = LOCATION_MARKER_PLACE.matcher(text);
+        if (!matcher.find()) return null;
+        String candidate = matcher.group(1)
+                .replaceAll("^[\\p{So}\\p{Sk}\\p{Punct}\\s]+", "")
+                .replaceAll("[\\p{So}\\p{Sk}\\p{Punct}\\s]+$", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (candidate.length() < 2 || candidate.length() > 50
+                || !candidate.matches(".*[\\p{L}\\p{N}].*")) return null;
+        return candidate;
     }
 
     private PlaceInfo labeledPlaceInfo(String text) {
