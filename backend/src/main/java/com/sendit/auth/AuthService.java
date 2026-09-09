@@ -24,28 +24,37 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailVerificationService emailVerificationService;
 
     public AuthService(
             UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
-            JwtTokenProvider jwtTokenProvider
+            JwtTokenProvider jwtTokenProvider,
+            EmailVerificationService emailVerificationService
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.emailVerificationService = emailVerificationService;
     }
 
     public TokenResponse signUp(SignUpRequest request) {
         String email = request.email().trim().toLowerCase();
+        String username = request.username().trim();
+        if (userRepository.existsByUsername(username)) {
+            throw new AuthException("이미 사용 중인 아이디입니다.");
+        }
         if (userRepository.existsByEmail(email)) {
             throw new AuthException("이미 가입된 이메일입니다.");
         }
+        emailVerificationService.verify(email, request.emailOtp(), true);
 
         User user = userRepository.save(new User(
+                username,
                 email,
                 passwordEncoder.encode(request.password()),
                 request.nickname().trim()
@@ -54,12 +63,27 @@ public class AuthService {
     }
 
     public TokenResponse login(LoginRequest request) {
-        String email = request.email().trim().toLowerCase();
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, request.password()));
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AuthException("이메일 또는 비밀번호가 올바르지 않습니다."));
+        String username = request.username().trim();
+        User user;
+        if (username.contains("@")) {
+            // 기존 회원은 아이디가 생성되기 전 사용하던 이메일로도 로그인할 수 있습니다.
+            user = userRepository.findByEmail(username.toLowerCase())
+                    .filter(value -> passwordEncoder.matches(request.password(), value.getPassword()))
+                    .orElseThrow(() -> new AuthException("아이디 또는 비밀번호가 올바르지 않습니다."));
+        } else {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, request.password()));
+            user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new AuthException("아이디 또는 비밀번호가 올바르지 않습니다."));
+        }
         return issueTokens(user);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isUsernameAvailable(String username) {
+        return username != null
+                && username.matches("(?=.*[a-z])(?=.*\\d)[a-z\\d]{8,15}")
+                && !userRepository.existsByUsername(username);
     }
 
     public TokenResponse refresh(String rawToken) {
@@ -105,8 +129,7 @@ public class AuthService {
                 accessToken,
                 refreshToken,
                 Math.max(0, Duration.between(Instant.now(), expiration).toSeconds()),
-                new UserSummary(user.getId(), user.getEmail(), user.getNickname())
+                new UserSummary(user.getId(), user.getUsername(), user.getEmail(), user.getNickname())
         );
     }
 }
-

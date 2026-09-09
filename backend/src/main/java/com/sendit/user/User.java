@@ -18,6 +18,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true, length = 15)
+    private String username;
+
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -48,6 +51,11 @@ public class User {
     }
 
     public User(String email, String password, String nickname) {
+        this(email.substring(0, email.indexOf('@')), email, password, nickname);
+    }
+
+    public User(String username, String email, String password, String nickname) {
+        this.username = username;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
@@ -71,6 +79,10 @@ public class User {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public void updatePassword(String encodedPassword) {

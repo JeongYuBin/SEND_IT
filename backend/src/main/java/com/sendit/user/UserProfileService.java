@@ -68,6 +68,6 @@ public class UserProfileService {
 
     private UserProfileDtos.Response response(User user) {
         return new UserProfileDtos.Response(
-                user.getId(), user.getEmail(), user.getNickname());
+                user.getId(), user.getUsername(), user.getEmail(), user.getNickname());
     }
 }

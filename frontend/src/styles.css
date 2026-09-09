@@ -1543,6 +1543,49 @@ h1 {
   background: white;
 }
 
+.auth-inline-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.auth-inline-field button {
+  min-width: 112px;
+  padding: 0 16px;
+  border: 1px solid rgba(0, 113, 227, .22);
+  border-radius: 12px;
+  color: #0066cc;
+  background: #edf5ff;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.auth-inline-field button:disabled {
+  color: #8e8e93;
+  border-color: rgba(0, 0, 0, .08);
+  background: #f2f2f4;
+  cursor: default;
+}
+
+.auth-form label small.field-success {
+  color: #16835f;
+}
+
+.auth-form label small.otp-timer {
+  color: #6e6e73;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .auth-inline-field {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-inline-field button {
+    min-height: 46px;
+  }
+}
+
 .place-add-panel {
   width: min(100%, 1100px);
   margin: 32px auto;

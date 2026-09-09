@@ -1,5 +1,6 @@
 export type AuthUser = {
   id: number
+  username: string
   email: string
   nickname: string
 }
@@ -13,11 +14,15 @@ export type TokenResponse = {
 }
 
 export type LoginRequest = {
-  email: string
+  username: string
   password: string
 }
 
-export type SignUpRequest = LoginRequest & {
+export type SignUpRequest = {
+  username: string
+  email: string
+  emailOtp: string
+  password: string
   nickname: string
 }
 
@@ -26,4 +31,3 @@ export type ApiError = {
   message?: string
   fieldErrors?: Record<string, string>
 }
-

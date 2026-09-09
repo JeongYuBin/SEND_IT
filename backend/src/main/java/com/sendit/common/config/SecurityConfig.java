@@ -35,9 +35,9 @@ public class SecurityConfig {
 
     @Bean
     UserDetailsService userDetailsService(UserRepository userRepository) {
-        return email -> userRepository.findByEmail(email)
+        return username -> userRepository.findByUsername(username)
                 .map(user -> org.springframework.security.core.userdetails.User
-                        .withUsername(user.getEmail())
+                        .withUsername(user.getUsername())
                         .password(user.getPassword())
                         .authorities("ROLE_USER")
                         .build())
@@ -81,6 +81,7 @@ public class SecurityConfig {
                             .requestMatchers("/error", "/actuator/health").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/v1/media/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/api/v1/auth/**").permitAll();
                     if (publicDocs) {
                         authorize.requestMatchers(
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")

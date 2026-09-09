@@ -18,11 +18,25 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 101MB
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
 
 server:
   port: ${SERVER_PORT:8080}
 
 management:
+  health:
+    mail:
+      enabled: false
   endpoints:
     web:
       exposure:
@@ -33,6 +47,8 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  mail:
+    from: ${MAIL_FROM:${MAIL_USERNAME:}}
   docs:
     public: ${DOCS_PUBLIC:true}
   media:
