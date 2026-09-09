@@ -1,5 +1,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import {
   deleteReadNotifications,
   getNotificationsPage,
@@ -14,6 +16,7 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('ko-KR', {
 export function NotificationsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const query = useInfiniteQuery({
     queryKey: ['notifications', 'page'],
     queryFn: ({ pageParam }) => getNotificationsPage(pageParam),
@@ -27,7 +30,13 @@ export function NotificationsPage() {
   }
   const readMutation = useMutation({ mutationFn: markNotificationRead, onSuccess: invalidate })
   const allMutation = useMutation({ mutationFn: markAllNotificationsRead, onSuccess: invalidate })
-  const deleteReadMutation = useMutation({ mutationFn: deleteReadNotifications, onSuccess: invalidate })
+  const deleteReadMutation = useMutation({
+    mutationFn: deleteReadNotifications,
+    onSuccess: () => {
+      setShowDeleteConfirm(false)
+      invalidate()
+    },
+  })
 
   const openNotification = async (id: number, read: boolean, targetUrl: string | null) => {
     if (!read) await readMutation.mutateAsync(id)
@@ -37,9 +46,7 @@ export function NotificationsPage() {
   const deleteRead = () => {
     const readCount = notifications.filter((item) => item.read).length
     if (readCount === 0) return
-    if (window.confirm('읽은 알림을 모두 삭제할까요? 삭제한 알림은 복구할 수 없습니다.')) {
-      deleteReadMutation.mutate()
-    }
+    setShowDeleteConfirm(true)
   }
 
   return (
@@ -90,6 +97,15 @@ export function NotificationsPage() {
           {query.isFetchingNextPage ? '불러오는 중...' : '알림 더 보기'}
         </button>
       )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="읽은 알림을 삭제할까요?"
+        description="읽은 알림을 모두 삭제합니다. 삭제한 알림은 복구할 수 없습니다."
+        confirmLabel="읽은 알림 삭제"
+        pending={deleteReadMutation.isPending}
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={() => deleteReadMutation.mutate()}
+      />
     </main>
   )
 }
