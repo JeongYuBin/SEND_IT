@@ -33,3 +33,7 @@ export async function reanalyzeShare(shareId: number) {
 export async function deleteShare(shareId: number) {
   await http.delete(`/shares/${shareId}`)
 }
+
+export async function deleteAllShares() {
+  await http.delete('/shares')
+}

@@ -4742,7 +4742,30 @@ h1 {
 .notification-list small, .notification-list time { color: #687b72; font-size: 14px; }
 .notification-empty { border: 1px dashed #c8d5ce; border-radius: 18px; padding: 64px 24px; text-align: center; color: #687b72; }
 
-.shared-content-count { margin: 0 0 14px; color: #687b72; text-align: right; }
+.shared-content-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  color: #687b72;
+}
+
+.shared-content-toolbar button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(217, 45, 32, .22);
+  border-radius: 11px;
+  color: #c9342b;
+  background: rgba(255, 255, 255, .78);
+  font-size: .84rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.shared-content-toolbar button:hover {
+  background: #fff0ee;
+}
 .shared-content-more { display: block; min-width: 180px; margin: 26px auto 0; padding: 13px 22px; border: 1px solid #aec3b8; border-radius: 999px; background: #fff; color: #245943; font-weight: 800; }
 @media (max-width: 720px) {
   .notification-shortcut { top: 14px; right: 16px; width: 43px; height: 43px; }

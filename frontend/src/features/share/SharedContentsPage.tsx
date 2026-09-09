@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { PlaceImage } from '../../components/PlaceImage'
-import { deleteShare, getSharesPage } from './shareApi'
+import { deleteAllShares, deleteShare, getSharesPage } from './shareApi'
 import type { AnalysisStatus } from './types'
 
 const sourceLabels = {
@@ -35,7 +35,7 @@ function formatDate(value: string) {
 
 export function SharedContentsPage() {
   const queryClient = useQueryClient()
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<number | 'all' | null>(null)
   const sharesQuery = useInfiniteQuery({
     queryKey: ['shares', 'page'],
     queryFn: ({ pageParam }) => getSharesPage(pageParam),
@@ -48,7 +48,15 @@ export function SharedContentsPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteShare,
     onSuccess: () => {
-      setDeleteTargetId(null)
+      setDeleteTarget(null)
+      queryClient.invalidateQueries({ queryKey: ['shares'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+  })
+  const deleteAllMutation = useMutation({
+    mutationFn: deleteAllShares,
+    onSuccess: () => {
+      setDeleteTarget(null)
       queryClient.invalidateQueries({ queryKey: ['shares'] })
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
@@ -78,7 +86,10 @@ export function SharedContentsPage() {
         <div className="shared-contents-state error">받은 콘텐츠를 불러오지 못했습니다.</div>
       ) : shares.length ? (
         <>
-        <div className="shared-content-count">전체 {totalElements}개</div>
+        <div className="shared-content-toolbar">
+          <button type="button" onClick={() => setDeleteTarget('all')}>전체 삭제</button>
+          <span>전체 {totalElements}개</span>
+        </div>
         <section className="shared-content-list" aria-label="받은 콘텐츠 목록">
           {shares.map((share) => (
             <article className="shared-content-card-wrap" key={share.shareId}>
@@ -106,7 +117,7 @@ export function SharedContentsPage() {
                 className="shared-content-delete"
                 type="button"
                 disabled={deleteMutation.isPending || ['PENDING', 'ANALYZING'].includes(share.status)}
-                onClick={() => setDeleteTargetId(share.shareId)}
+                onClick={() => setDeleteTarget(share.shareId)}
                 aria-label="받은 콘텐츠 삭제"
               >삭제</button>
             </article>
@@ -131,13 +142,17 @@ export function SharedContentsPage() {
         </div>
       )}
       <ConfirmDialog
-        open={deleteTargetId !== null}
-        title="받은 콘텐츠를 삭제할까요?"
-        description="콘텐츠와 분석용 영상 파일만 삭제됩니다. 이미 저장한 장소는 그대로 유지됩니다."
-        pending={deleteMutation.isPending}
-        onCancel={() => setDeleteTargetId(null)}
+        open={deleteTarget !== null}
+        title={deleteTarget === 'all' ? '받은 콘텐츠를 모두 삭제할까요?' : '받은 콘텐츠를 삭제할까요?'}
+        description={deleteTarget === 'all'
+          ? `받은 콘텐츠 ${totalElements}개와 분석용 파일을 삭제합니다. 이미 저장한 장소는 그대로 유지됩니다.`
+          : '콘텐츠와 분석용 영상 파일만 삭제됩니다. 이미 저장한 장소는 그대로 유지됩니다.'}
+        confirmLabel={deleteTarget === 'all' ? '전체 삭제' : '삭제'}
+        pending={deleteMutation.isPending || deleteAllMutation.isPending}
+        onCancel={() => setDeleteTarget(null)}
         onConfirm={() => {
-          if (deleteTargetId !== null) deleteMutation.mutate(deleteTargetId)
+          if (deleteTarget === 'all') deleteAllMutation.mutate()
+          else if (deleteTarget !== null) deleteMutation.mutate(deleteTarget)
         }}
       />
     </main>

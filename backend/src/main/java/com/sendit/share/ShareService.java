@@ -106,16 +106,33 @@ public class ShareService {
 
     public void delete(String email, Long shareId) {
         SharedContent content = findOwnedContent(email, shareId);
-        if (content.getAnalysisStatus() == AnalysisStatus.PENDING
-                || content.getAnalysisStatus() == AnalysisStatus.ANALYZING) {
+        if (isAnalysisActive(content)) {
             throw new IllegalArgumentException("분석 중인 콘텐츠는 완료된 뒤 삭제해 주세요.");
         }
+        deleteContent(email, content);
+        sharedContentRepository.flush();
+    }
+
+    public void deleteAll(String email) {
+        List<SharedContent> contents = sharedContentRepository.findAllByUserEmailOrderByCreatedAtDesc(email);
+        if (contents.stream().anyMatch(this::isAnalysisActive)) {
+            throw new IllegalArgumentException("분석 중인 콘텐츠가 있습니다. 분석이 끝난 뒤 다시 시도해 주세요.");
+        }
+        contents.forEach(content -> deleteContent(email, content));
+        sharedContentRepository.flush();
+    }
+
+    private boolean isAnalysisActive(SharedContent content) {
+        return content.getAnalysisStatus() == AnalysisStatus.PENDING
+                || content.getAnalysisStatus() == AnalysisStatus.ANALYZING;
+    }
+
+    private void deleteContent(String email, SharedContent content) {
         List<String> mediaKeys = new ArrayList<>(content.getMediaFrameKeys());
         mediaKeys.add(content.getMediaStorageKey());
         mediaKeys.add(content.getMediaAudioStorageKey());
-        notificationService.deleteForTarget(email, "/shares/" + shareId);
+        notificationService.deleteForTarget(email, "/shares/" + content.getId());
         sharedContentRepository.delete(content);
-        sharedContentRepository.flush();
         mediaStorageCleaner.deleteAll(mediaKeys);
     }
 

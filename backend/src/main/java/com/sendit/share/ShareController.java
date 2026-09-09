@@ -66,4 +66,10 @@ public class ShareController {
     void delete(Principal principal, @PathVariable Long shareId) {
         shareService.delete(principal.getName(), shareId);
     }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void deleteAll(Principal principal) {
+        shareService.deleteAll(principal.getName());
+    }
 }
