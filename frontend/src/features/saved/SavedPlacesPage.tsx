@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   createCollection,
   createSavedPlace,
+  deleteCollection,
   deleteSavedPlace,
   getCollections,
   getSavedPlaces,
@@ -16,6 +17,7 @@ import { getItineraries } from '../itinerary/itineraryApi'
 import type { TransportType } from '../itinerary/types'
 import { PlaceImage } from '../../components/PlaceImage'
 import { eventPeriodState } from './eventPeriod'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -40,9 +42,7 @@ export function SavedPlacesPage() {
   const [searchParams] = useSearchParams()
   const selectedCollectionId = collectionIdParam ? Number(collectionIdParam) : null
   const showUncategorized = selectedCollectionId === null && searchParams.get('collection') === 'none'
-  const collectionScope = selectedCollectionId === null
-    ? (showUncategorized ? 'none' : 'all')
-    : String(selectedCollectionId)
+  const [showCollectionDeleteConfirm, setShowCollectionDeleteConfirm] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [addMode, setAddMode] = useState<'search' | 'direct'>('search')
   const [placeSearch, setPlaceSearch] = useState('')
@@ -63,7 +63,7 @@ export function SavedPlacesPage() {
     setRegionFilter('all')
     setDistrictFilter('all')
     setCategoryFilter('all')
-  }, [collectionScope])
+  }, [selectedCollectionId, showUncategorized])
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
@@ -104,6 +104,15 @@ export function SavedPlacesPage() {
       queryClient.invalidateQueries({ queryKey: ['collections'] })
       setCollectionId(collection.id)
       setNewCollection('')
+    },
+  })
+  const deleteCollectionMutation = useMutation({
+    mutationFn: deleteCollection,
+    onSuccess: () => {
+      setShowCollectionDeleteConfirm(false)
+      queryClient.invalidateQueries({ queryKey: ['collections'] })
+      refreshPlaces()
+      navigate('/saved')
     },
   })
 
@@ -385,29 +394,19 @@ export function SavedPlacesPage() {
         <form onSubmit={(e) => { e.preventDefault(); if (newCollection.trim()) collectionMutation.mutate(newCollection) }}>
           <input value={newCollection} onChange={(e) => setNewCollection(e.target.value)} placeholder="새 컬렉션" />
           <button disabled={collectionMutation.isPending}>추가</button>
+          <button
+            className="collection-delete-button"
+            type="button"
+            disabled={!selectedCollection}
+            onClick={() => setShowCollectionDeleteConfirm(true)}
+          >
+            삭제
+          </button>
         </form>
       </section>
 
       <section className="place-filters" aria-label="저장 장소 필터">
         <div>
-          <label>
-            컬렉션
-            <select
-              value={collectionScope}
-              onChange={(event) => {
-                const value = event.target.value
-                if (value === 'all') navigate('/saved')
-                else if (value === 'none') navigate('/saved?collection=none')
-                else navigate(`/saved/collections/${value}`)
-              }}
-            >
-              <option value="all">전체 컬렉션</option>
-              <option value="none">컬렉션 없음</option>
-              {collectionsQuery.data?.map((item) => (
-                <option key={item.id} value={item.id}>{item.name}</option>
-              ))}
-            </select>
-          </label>
           <label>
             지역
             <select
@@ -558,6 +557,17 @@ export function SavedPlacesPage() {
           ))}
         </section>
       ))}
+      <ConfirmDialog
+        open={showCollectionDeleteConfirm && selectedCollection !== undefined}
+        title="컬렉션을 삭제할까요?"
+        description={`‘${selectedCollection?.name ?? ''}’ 컬렉션만 삭제됩니다. 컬렉션에 담긴 장소는 삭제되지 않고 컬렉션 없음으로 이동합니다.`}
+        confirmLabel="컬렉션 삭제"
+        pending={deleteCollectionMutation.isPending}
+        onCancel={() => setShowCollectionDeleteConfirm(false)}
+        onConfirm={() => {
+          if (selectedCollection) deleteCollectionMutation.mutate(selectedCollection.id)
+        }}
+      />
     </main>
   )
 }

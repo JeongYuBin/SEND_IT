@@ -59,6 +59,10 @@ export async function createCollection(name: string) {
   return (await http.post<Collection>('/collections', { name })).data
 }
 
+export async function deleteCollection(id: number) {
+  await http.delete(`/collections/${id}`)
+}
+
 export async function getNearbyTourismPlaces(
   latitude: number,
   longitude: number,

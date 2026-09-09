@@ -1778,6 +1778,22 @@ h1 {
   gap: 8px;
 }
 
+.collection-bar form .collection-delete-button {
+  color: #c9342b;
+  border-color: rgba(217, 45, 32, .22);
+}
+
+.collection-bar form .collection-delete-button:not(:disabled):hover {
+  background: #fff0ee;
+}
+
+.collection-bar form .collection-delete-button:disabled {
+  color: #a1a1a6;
+  border-color: rgba(0, 0, 0, .09);
+  cursor: default;
+  opacity: .58;
+}
+
 .place-filters {
   display: flex;
   width: min(100%, 1100px);
@@ -3287,6 +3303,11 @@ h1 {
   .confirm-dialog-backdrop {
     align-items: end;
     padding: 12px;
+  }
+
+  .collection-bar form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
   }
 
   .confirm-dialog {
