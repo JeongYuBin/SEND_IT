@@ -1,5 +1,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { PlaceImage } from '../../components/PlaceImage'
 import { deleteShare, getSharesPage } from './shareApi'
 import type { AnalysisStatus } from './types'
@@ -33,6 +35,7 @@ function formatDate(value: string) {
 
 export function SharedContentsPage() {
   const queryClient = useQueryClient()
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
   const sharesQuery = useInfiniteQuery({
     queryKey: ['shares', 'page'],
     queryFn: ({ pageParam }) => getSharesPage(pageParam),
@@ -45,16 +48,11 @@ export function SharedContentsPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteShare,
     onSuccess: () => {
+      setDeleteTargetId(null)
       queryClient.invalidateQueries({ queryKey: ['shares'] })
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
   })
-
-  const handleDelete = (shareId: number) => {
-    if (window.confirm('받은 콘텐츠와 분석용 영상 파일을 삭제할까요? 저장한 장소는 유지됩니다.')) {
-      deleteMutation.mutate(shareId)
-    }
-  }
 
   return (
     <main className="shared-contents-shell">
@@ -108,7 +106,7 @@ export function SharedContentsPage() {
                 className="shared-content-delete"
                 type="button"
                 disabled={deleteMutation.isPending || ['PENDING', 'ANALYZING'].includes(share.status)}
-                onClick={() => handleDelete(share.shareId)}
+                onClick={() => setDeleteTargetId(share.shareId)}
                 aria-label="받은 콘텐츠 삭제"
               >삭제</button>
             </article>
@@ -132,6 +130,16 @@ export function SharedContentsPage() {
           <Link to="/">URL 직접 저장하기</Link>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        title="받은 콘텐츠를 삭제할까요?"
+        description="콘텐츠와 분석용 영상 파일만 삭제됩니다. 이미 저장한 장소는 그대로 유지됩니다."
+        pending={deleteMutation.isPending}
+        onCancel={() => setDeleteTargetId(null)}
+        onConfirm={() => {
+          if (deleteTargetId !== null) deleteMutation.mutate(deleteTargetId)
+        }}
+      />
     </main>
   )
 }
