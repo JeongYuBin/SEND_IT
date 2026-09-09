@@ -117,7 +117,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                   setUsernameAvailable(false)
                   usernameMutation.reset()
                 }}
-                placeholder={isSignUp ? '영문 소문자와 숫자 8~15자' : '아이디 (기존 회원은 이메일)'}
+                placeholder={isSignUp ? '영문 소문자와 숫자 8~15자' : '아이디'}
               />
               {isSignUp && (
                 <button
