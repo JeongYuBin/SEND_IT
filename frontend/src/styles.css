@@ -1543,6 +1543,34 @@ h1 {
   background: white;
 }
 
+.auth-recovery-links {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: -8px;
+  color: #8e8e93;
+  font-size: 14px;
+}
+
+.auth-recovery-links a {
+  color: #176b52;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.form-success {
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #176b52;
+  background: #e8f3ee;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.recovery-card h1 {
+  font-size: clamp(2.35rem, 6vw, 3.75rem);
+}
+
 .auth-inline-field {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

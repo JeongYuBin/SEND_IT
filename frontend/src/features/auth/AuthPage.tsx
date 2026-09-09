@@ -220,6 +220,14 @@ export function AuthPage({ mode }: AuthPageProps) {
             {apiError?.fieldErrors?.password && <small>{apiError.fieldErrors.password}</small>}
           </label>
 
+          {!isSignUp && (
+            <div className="auth-recovery-links">
+              <Link to="/find-id">아이디 찾기</Link>
+              <span aria-hidden="true">·</span>
+              <Link to="/reset-password">비밀번호 찾기</Link>
+            </div>
+          )}
+
           {mutation.isError && (
             <div className="form-error" role="alert">
               {apiError?.message ?? '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'}

@@ -11,6 +11,8 @@ public class EmailVerification {
     private Long id;
     @Column(nullable = false, length = 255)
     private String email;
+    @Column(nullable = false, length = 30)
+    private String purpose;
     @Column(name = "code_hash", nullable = false, length = 255)
     private String codeHash;
     @Column(name = "expires_at", nullable = false)
@@ -26,8 +28,9 @@ public class EmailVerification {
 
     protected EmailVerification() {}
 
-    EmailVerification(String email, String codeHash, Instant expiresAt) {
+    EmailVerification(String email, String purpose, String codeHash, Instant expiresAt) {
         this.email = email;
+        this.purpose = purpose;
         this.codeHash = codeHash;
         this.expiresAt = expiresAt;
     }

@@ -51,6 +51,21 @@ public final class AuthDtos {
 
     public record UsernameAvailability(boolean available) {}
 
+    public record FindUsernameRequest(@Email @NotBlank String email) {}
+
+    public record PasswordResetCodeRequest(
+            @NotBlank String username,
+            @Email @NotBlank String email
+    ) {}
+
+    public record PasswordResetRequest(
+            @NotBlank String username,
+            @Email @NotBlank String email,
+            @NotBlank @Pattern(regexp = "\\d{6}") String code,
+            @NotBlank @Pattern(regexp = "(?=.*[A-Za-z])(?=.*\\d)[\\x21-\\x7E]{8,15}",
+                    message = "비밀번호는 영문과 숫자를 포함한 8~15자여야 합니다.") String newPassword
+    ) {}
+
     public record UserSummary(Long id, String username, String email, String nickname) {
     }
 }

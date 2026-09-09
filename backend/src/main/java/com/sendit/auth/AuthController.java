@@ -8,6 +8,9 @@ import com.sendit.auth.AuthDtos.TokenResponse;
 import com.sendit.auth.AuthDtos.EmailRequest;
 import com.sendit.auth.AuthDtos.EmailOtpRequest;
 import com.sendit.auth.AuthDtos.UsernameAvailability;
+import com.sendit.auth.AuthDtos.FindUsernameRequest;
+import com.sendit.auth.AuthDtos.PasswordResetCodeRequest;
+import com.sendit.auth.AuthDtos.PasswordResetRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,10 +27,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final EmailVerificationService emailVerificationService;
+    private final AuthRecoveryService recoveryService;
 
-    public AuthController(AuthService authService, EmailVerificationService emailVerificationService) {
+    public AuthController(AuthService authService, EmailVerificationService emailVerificationService,
+            AuthRecoveryService recoveryService) {
         this.authService = authService;
         this.emailVerificationService = emailVerificationService;
+        this.recoveryService = recoveryService;
     }
 
     @GetMapping("/usernames/{username}/availability")
@@ -45,6 +51,25 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void verifyEmailOtp(@Valid @RequestBody EmailOtpRequest request) {
         emailVerificationService.verify(request.email(), request.code(), false);
+    }
+
+    @PostMapping("/recovery/username")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void findUsername(@Valid @RequestBody FindUsernameRequest request) {
+        recoveryService.sendUsername(request.email());
+    }
+
+    @PostMapping("/recovery/password/code")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void sendPasswordResetCode(@Valid @RequestBody PasswordResetCodeRequest request) {
+        recoveryService.sendPasswordResetCode(request.username(), request.email());
+    }
+
+    @PostMapping("/recovery/password/reset")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+        recoveryService.resetPassword(request.username(), request.email(),
+                request.code(), request.newPassword());
     }
 
     @PostMapping("/signup")

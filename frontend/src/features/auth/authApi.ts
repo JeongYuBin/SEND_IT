@@ -25,6 +25,23 @@ export async function verifyEmailOtp(email: string, code: string) {
   await http.post('/auth/email-otp/verify', { email, code })
 }
 
+export async function requestUsername(email: string) {
+  await http.post('/auth/recovery/username', { email })
+}
+
+export async function requestPasswordResetCode(username: string, email: string) {
+  await http.post('/auth/recovery/password/code', { username, email })
+}
+
+export async function resetPassword(
+  username: string,
+  email: string,
+  code: string,
+  newPassword: string,
+) {
+  await http.post('/auth/recovery/password/reset', { username, email, code, newPassword })
+}
+
 export async function logout(refreshToken: string) {
   await http.post('/auth/logout', { refreshToken })
 }

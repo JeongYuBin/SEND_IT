@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthPage } from './features/auth/AuthPage'
+import { AccountRecoveryPage } from './features/auth/AccountRecoveryPage'
 import { HomePage } from './features/home/HomePage'
 import { ItinerariesPage } from './features/itinerary/ItinerariesPage'
 import { ItineraryDetailPage } from './features/itinerary/ItineraryDetailPage'
@@ -28,6 +29,8 @@ export function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
+      <Route path="/find-id" element={<AccountRecoveryPage mode="username" />} />
+      <Route path="/reset-password" element={<AccountRecoveryPage mode="password" />} />
       <Route path="/share-target" element={<ShareTargetPage />} />
       <Route path="/shares/:shareId" element={<ProtectedRoute><ShareResultPage /></ProtectedRoute>} />
       <Route path="/shares" element={<ProtectedRoute><SharedContentsPage /></ProtectedRoute>} />

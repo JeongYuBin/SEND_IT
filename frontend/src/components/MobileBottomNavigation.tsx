@@ -23,7 +23,7 @@ const icons: Record<IconName, ReactNode> = {
 export function MobileBottomNavigation() {
   const authenticated = useAuthStore((state) => Boolean(state.accessToken))
   const { pathname } = useLocation()
-  if (!authenticated || pathname === '/login' || pathname === '/signup' || pathname === '/share-target') return null
+  if (!authenticated || ['/login', '/signup', '/find-id', '/reset-password', '/share-target'].includes(pathname)) return null
 
   return (
     <nav className="mobile-bottom-nav" aria-label="주요 메뉴">
