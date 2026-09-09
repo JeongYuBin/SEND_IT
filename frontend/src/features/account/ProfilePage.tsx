@@ -105,6 +105,10 @@ export function ProfilePage() {
           <span>저장한 장소</span>
         </Link>
       </section>
+      <section className="profile-quick-links" aria-label="계정 메뉴">
+        <Link to="/notifications"><span>알림</span><span aria-hidden="true">›</span></Link>
+        <Link to="/settings"><span>설정</span><span aria-hidden="true">›</span></Link>
+      </section>
     </main>
   )
 }

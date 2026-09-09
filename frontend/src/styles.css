@@ -358,6 +358,115 @@ h1 {
   font-weight: 500;
 }
 
+/* 각 화면에 남아 있는 이전 메뉴는 공통 고정 메뉴로 대체한다. */
+main > .top-nav {
+  display: none;
+}
+
+.desktop-site-nav {
+  position: fixed;
+  z-index: 1000;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  min-height: 58px;
+  padding: 0 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 76%);
+  box-shadow: 0 12px 38px rgb(35 42 39 / 10%);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  font-family: inherit;
+}
+
+.desktop-site-brand {
+  flex: 0 0 auto;
+  color: #1d1d1f;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-decoration: none;
+}
+
+.desktop-site-links {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(12px, 1.7vw, 25px);
+  white-space: nowrap;
+}
+
+.desktop-site-links a,
+.desktop-site-links button {
+  padding: 8px 0;
+  border: 0;
+  color: #4a4a4f;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.desktop-site-links a:hover,
+.desktop-site-links button:hover,
+.desktop-site-links a.active {
+  color: #0066cc;
+}
+
+.desktop-site-links a.active {
+  font-weight: 750;
+}
+
+.desktop-site-links .desktop-site-cta {
+  padding: 9px 15px;
+  border-radius: 999px;
+  color: white;
+  background: #176b52;
+}
+
+.desktop-site-nav-spacer {
+  height: 86px;
+  background: #f5f5f7;
+}
+
+@media (max-width: 760px) {
+  .desktop-site-nav,
+  .desktop-site-nav-spacer {
+    display: none;
+  }
+}
+
+@media (min-width: 761px) {
+  .notification-shortcut {
+    display: none;
+  }
+}
+
+@media (max-width: 1080px) and (min-width: 761px) {
+  .desktop-site-nav {
+    gap: 12px;
+  }
+
+  .desktop-site-brand {
+    display: none;
+  }
+
+  .desktop-site-links {
+    width: 100%;
+    justify-content: center;
+    gap: 16px;
+  }
+}
+
 .settings-list .settings-action {
   display: grid;
   gap: 5px;
@@ -1569,6 +1678,29 @@ h1 {
 
 .recovery-card h1 {
   font-size: clamp(2.35rem, 6vw, 3.75rem);
+}
+
+.profile-quick-links {
+  display: grid;
+  overflow: hidden;
+  margin-top: 18px;
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 18px;
+  background: rgb(255 255 255 / 78%);
+}
+
+.profile-quick-links a {
+  display: flex;
+  min-height: 54px;
+  padding: 0 18px;
+  align-items: center;
+  justify-content: space-between;
+  color: #1d1d1f;
+  text-decoration: none;
+}
+
+.profile-quick-links a + a {
+  border-top: 1px solid rgb(0 0 0 / 7%);
 }
 
 .auth-inline-field {

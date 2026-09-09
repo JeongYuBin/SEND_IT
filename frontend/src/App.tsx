@@ -16,6 +16,7 @@ import { ShareTargetPage } from './features/share/ShareTargetPage'
 import { SharedContentsPage } from './features/share/SharedContentsPage'
 import { NotificationsPage } from './features/notification/NotificationsPage'
 import { NotificationShortcut } from './components/NotificationShortcut'
+import { DesktopSiteNavigation } from './components/DesktopSiteNavigation'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => Boolean(state.accessToken))
@@ -25,6 +26,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <>
+      <DesktopSiteNavigation />
       <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
