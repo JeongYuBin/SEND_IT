@@ -1,0 +1,36 @@
+UPDATE places SET address = regexp_replace(address, '^서울(시)?(\s|$)', '서울특별시\2') WHERE address ~ '^서울(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^서울(시)?(\s|$)', '서울특별시\2') WHERE road_address ~ '^서울(시)?(\s|$)';
+
+UPDATE places SET address = regexp_replace(address, '^부산(시)?(\s|$)', '부산광역시\2') WHERE address ~ '^부산(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^부산(시)?(\s|$)', '부산광역시\2') WHERE road_address ~ '^부산(시)?(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^대구(시)?(\s|$)', '대구광역시\2') WHERE address ~ '^대구(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^대구(시)?(\s|$)', '대구광역시\2') WHERE road_address ~ '^대구(시)?(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^인천(시)?(\s|$)', '인천광역시\2') WHERE address ~ '^인천(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^인천(시)?(\s|$)', '인천광역시\2') WHERE road_address ~ '^인천(시)?(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^광주(시)?(\s|$)', '광주광역시\2') WHERE address ~ '^광주(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^광주(시)?(\s|$)', '광주광역시\2') WHERE road_address ~ '^광주(시)?(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^대전(시)?(\s|$)', '대전광역시\2') WHERE address ~ '^대전(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^대전(시)?(\s|$)', '대전광역시\2') WHERE road_address ~ '^대전(시)?(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^울산(시)?(\s|$)', '울산광역시\2') WHERE address ~ '^울산(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^울산(시)?(\s|$)', '울산광역시\2') WHERE road_address ~ '^울산(시)?(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^세종(시)?(\s|$)', '세종특별자치시\2') WHERE address ~ '^세종(시)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^세종(시)?(\s|$)', '세종특별자치시\2') WHERE road_address ~ '^세종(시)?(\s|$)';
+
+UPDATE places SET address = regexp_replace(address, '^경기(\s|$)', '경기도\1') WHERE address ~ '^경기(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^경기(\s|$)', '경기도\1') WHERE road_address ~ '^경기(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^강원(도)?(\s|$)', '강원특별자치도\2') WHERE address ~ '^강원(도)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^강원(도)?(\s|$)', '강원특별자치도\2') WHERE road_address ~ '^강원(도)?(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^충북(\s|$)', '충청북도\1') WHERE address ~ '^충북(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^충북(\s|$)', '충청북도\1') WHERE road_address ~ '^충북(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^충남(\s|$)', '충청남도\1') WHERE address ~ '^충남(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^충남(\s|$)', '충청남도\1') WHERE road_address ~ '^충남(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^(전북|전라북도)(\s|$)', '전북특별자치도\2') WHERE address ~ '^(전북|전라북도)(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^(전북|전라북도)(\s|$)', '전북특별자치도\2') WHERE road_address ~ '^(전북|전라북도)(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^전남(\s|$)', '전라남도\1') WHERE address ~ '^전남(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^전남(\s|$)', '전라남도\1') WHERE road_address ~ '^전남(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^경북(\s|$)', '경상북도\1') WHERE address ~ '^경북(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^경북(\s|$)', '경상북도\1') WHERE road_address ~ '^경북(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^경남(\s|$)', '경상남도\1') WHERE address ~ '^경남(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^경남(\s|$)', '경상남도\1') WHERE road_address ~ '^경남(\s|$)';
+UPDATE places SET address = regexp_replace(address, '^제주(도)?(\s|$)', '제주특별자치도\2') WHERE address ~ '^제주(도)?(\s|$)';
+UPDATE places SET road_address = regexp_replace(road_address, '^제주(도)?(\s|$)', '제주특별자치도\2') WHERE road_address ~ '^제주(도)?(\s|$)';

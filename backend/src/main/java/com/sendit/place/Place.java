@@ -65,8 +65,8 @@ public class Place {
         this.name = name.trim();
         this.normalizedName = normalize(name);
         this.category = category;
-        this.address = address;
-        this.roadAddress = roadAddress;
+        this.address = AddressNormalizer.normalize(address);
+        this.roadAddress = AddressNormalizer.normalize(roadAddress);
         this.latitude = latitude;
         this.longitude = longitude;
         this.description = description;
@@ -134,15 +134,15 @@ public class Place {
             normalizedName = normalize(updatedName);
         }
         if (updatedCategory != null) category = blankToNull(updatedCategory);
-        if (updatedAddress != null) address = blankToNull(updatedAddress);
-        if (updatedRoadAddress != null) roadAddress = blankToNull(updatedRoadAddress);
+        if (updatedAddress != null) address = AddressNormalizer.normalize(updatedAddress);
+        if (updatedRoadAddress != null) roadAddress = AddressNormalizer.normalize(updatedRoadAddress);
         if (updatedImageUrl != null) primaryImageUrl = blankToNull(updatedImageUrl);
         dataSource = "USER";
     }
 
     public void updateKakaoLocation(PlaceSearchDtos.Result matched) {
-        address = firstNonBlank(matched.address(), address);
-        roadAddress = firstNonBlank(matched.roadAddress(), roadAddress);
+        address = firstNonBlank(AddressNormalizer.normalize(matched.address()), address);
+        roadAddress = firstNonBlank(AddressNormalizer.normalize(matched.roadAddress()), roadAddress);
         latitude = matched.latitude();
         longitude = matched.longitude();
         phone = firstNonBlank(matched.phone(), phone);
@@ -163,8 +163,8 @@ public class Place {
             String incomingKakaoPlaceUrl
     ) {
         category = firstNonBlank(incomingCategory, category);
-        address = firstNonBlank(incomingAddress, address);
-        roadAddress = firstNonBlank(incomingRoadAddress, roadAddress);
+        address = firstNonBlank(AddressNormalizer.normalize(incomingAddress), address);
+        roadAddress = firstNonBlank(AddressNormalizer.normalize(incomingRoadAddress), roadAddress);
         description = firstNonBlank(incomingDescription, description);
         if (incomingImageUrl != null && !incomingImageUrl.isBlank()) {
             primaryImageUrl = incomingImageUrl;

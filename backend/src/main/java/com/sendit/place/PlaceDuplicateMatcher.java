@@ -28,12 +28,12 @@ public class PlaceDuplicateMatcher {
         }
         if (hasText(request.roadAddress())) {
             var matched = places.findFirstByNormalizedNameAndRoadAddress(
-                    normalizedName, request.roadAddress());
+                    normalizedName, AddressNormalizer.normalize(request.roadAddress()));
             if (matched.isPresent()) return matched;
         }
         if (hasText(request.address())) {
             var matched = places.findFirstByNormalizedNameAndAddress(
-                    normalizedName, request.address());
+                    normalizedName, AddressNormalizer.normalize(request.address()));
             if (matched.isPresent()) return matched;
         }
         return places.findFirstByNormalizedNameAndLatitudeAndLongitude(

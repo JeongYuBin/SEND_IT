@@ -18,7 +18,7 @@ class PlaceMergeTest {
 
         assertThat(place.getCategory()).isEqualTo("음식점");
         assertThat(place.getDescription()).isEqualTo("기존 설명");
-        assertThat(place.getRoadAddress()).isEqualTo("서울 송파구 백제고분로17길 43");
+        assertThat(place.getRoadAddress()).isEqualTo("서울특별시 송파구 백제고분로17길 43");
         assertThat(place.getPhone()).isEqualTo("02-123-4567");
         assertThat(place.getKakaoPlaceId()).isEqualTo("12345");
         assertThat(place.getLatitude()).isEqualTo(37.509465);
