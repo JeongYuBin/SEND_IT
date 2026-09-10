@@ -59,10 +59,12 @@ export function PlaceScheduleEditor({
         </span>
         <small id={`stay-minutes-help-${item.savedPlaceId}`}>15분부터 720분까지 입력할 수 있습니다.</small>
       </label>
-      <button type="button" onClick={onCancel}>취소</button>
-      <button type="submit" className="primary-button" disabled={pending}>
-        {pending ? '적용 중…' : '적용'}
-      </button>
+      <div className="schedule-form-actions">
+        <button type="button" onClick={onCancel}>취소</button>
+        <button type="submit" className="primary-button" disabled={pending}>
+          {pending ? '적용 중…' : '적용'}
+        </button>
+      </div>
       {errorMessage && <div className="form-error schedule-form-error">{errorMessage}</div>}
     </form>
   )

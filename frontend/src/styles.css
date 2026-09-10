@@ -487,6 +487,12 @@ main > .top-nav {
 
 .settings-list .account-delete-toggle {
   border-top: 1px solid #e5e9e6;
+  color: #c9342b;
+  background: #fffafa;
+}
+
+.settings-list .account-delete-toggle:hover {
+  background: #fff0ee;
 }
 
 .settings-list .account-delete-form {
@@ -557,6 +563,12 @@ main > .top-nav {
   padding: 11px 15px;
   border: 1px solid #d9c7c2;
   border-radius: 9px;
+}
+
+.settings-list .account-delete-form button[type='submit'] {
+  color: #fff;
+  border-color: #c9342b;
+  background: #c9342b;
 }
 
 .share-target-shell {
@@ -1650,6 +1662,21 @@ main > .top-nav {
   border: 1px solid #c6d0cb;
   border-radius: 10px;
   background: white;
+}
+
+.place-add-slot {
+  width: min(100%, 1100px);
+  margin: 30px auto 0;
+  scroll-margin-top: 92px;
+}
+
+.place-add-slot:empty {
+  margin: 0 auto;
+}
+
+.place-add-slot .place-add-panel {
+  width: 100%;
+  margin: 0;
 }
 
 .auth-recovery-links {
@@ -3395,6 +3422,30 @@ main > .top-nav {
   background: #176b52;
 }
 
+.schedule-form-actions {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.schedule-form-actions button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #b8c7c0;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+}
+
+.schedule-form-actions .primary-button {
+  color: white;
+  border-color: #176b52;
+  background: #176b52;
+}
+
 .stay-minutes-input {
   position: relative;
   display: block;
@@ -3589,6 +3640,17 @@ main > .top-nav {
 
 .timeline-draggable.dragging {
   opacity: .4;
+  pointer-events: none;
+}
+
+.timeline-draggable.touch-drop-target .timeline-card-shell {
+  border-radius: 16px;
+  outline: 3px solid #4f7fe8;
+  outline-offset: 4px;
+}
+
+.itinerary-day.touch-drop-target {
+  background: #eef4ff;
 }
 
 .card-drag-handle {
@@ -3939,6 +4001,32 @@ main > .top-nav {
   font-weight: 700;
 }
 
+.itinerary-place-filters {
+  display: grid;
+  padding: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  border: 1px solid #d7ddd8;
+  border-radius: 16px;
+  background: rgb(247 250 248 / 90%);
+}
+
+.itinerary-place-filters label {
+  display: grid;
+  gap: 6px;
+  color: #64766f;
+  font-size: .78rem;
+  font-weight: 750;
+}
+
+.itinerary-place-filter-summary {
+  padding-bottom: 12px;
+  color: #64766f;
+  font-size: .85rem;
+  white-space: nowrap;
+}
+
 .itinerary-place-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3967,6 +4055,26 @@ main > .top-nav {
 .itinerary-place-options > button:disabled {
   cursor: not-allowed;
   opacity: .45;
+}
+
+.itinerary-option-image {
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.itinerary-option-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.itinerary-option-copy > small:first-child {
+  margin: 0;
+  color: #176b52;
+  font-size: .72rem;
+  font-weight: 750;
 }
 
 .itinerary-place-options button > span:last-child,
@@ -4553,7 +4661,10 @@ main > .top-nav {
   .itinerary-layout { grid-template-columns: 1fr; }
   .itinerary-list { position: static; }
   .itinerary-place-options { grid-template-columns: 1fr; }
+  .itinerary-place-filters { grid-template-columns: 1fr 1fr; }
+  .itinerary-place-filter-summary { padding: 0; align-self: center; }
   .place-schedule-form { grid-template-columns: 1fr 1fr; }
+  .place-schedule-form > label:nth-child(3) { grid-column: 1 / -1; }
 }
 
 @media (max-width: 500px) {
@@ -4859,6 +4970,28 @@ main > .top-nav {
   box-shadow: 0 10px 28px rgba(26, 58, 45, 0.12);
   text-decoration: none;
   font-size: 25px;
+}
+
+.timeline-draggable {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .timeline-draggable {
+    touch-action: none;
+  }
+
+  .itinerary-place-filters { grid-template-columns: 1fr; }
+
+  .itinerary-place-options > button { padding: 10px; }
+
+  .itinerary-option-image {
+    width: 66px;
+    height: 66px;
+    flex-basis: 66px;
+  }
 }
 
 .place-source-section > div:first-child {

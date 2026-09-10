@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { getItineraries } from '../itinerary/itineraryApi'
@@ -7,6 +7,7 @@ import { getSavedPlaces } from '../saved/savedApi'
 import { getProfile, updateProfile } from './accountApi'
 
 export function ProfilePage() {
+  const queryClient = useQueryClient()
   const { user, updateUser } = useAuthStore()
   const [editing, setEditing] = useState(false)
   const [nickname, setNickname] = useState(user?.nickname ?? '')
@@ -17,6 +18,7 @@ export function ProfilePage() {
   const updateMutation = useMutation({
     mutationFn: updateProfile,
     onSuccess: (updated) => {
+      queryClient.setQueryData(['profile'], updated)
       updateUser(updated)
       setNickname(updated.nickname)
       setEditing(false)

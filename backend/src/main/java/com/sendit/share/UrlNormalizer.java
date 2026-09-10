@@ -71,6 +71,9 @@ public class UrlNormalizer {
                 || host.equals("m.map.naver.com")) {
             return SourceType.MAP;
         }
+        if (host.equals("share.google")) {
+            return SourceType.MAP;
+        }
         if (host.contains("map.") || host.contains("maps.")) {
             return SourceType.MAP;
         }

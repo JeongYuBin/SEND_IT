@@ -20,7 +20,7 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
   const queryClient = useQueryClient()
   const [selectedStay, setSelectedStay] = useState<TourismAccommodation | null>(null)
   const [stayIndex, setStayIndex] = useState(0)
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const lastPlace = day.items.at(-1)
   const coordinateAvailable = lastPlace?.latitude !== null

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import { useAuthStore } from '../../stores/authStore'
 import { deleteAccount, updatePassword } from './accountApi'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -12,6 +13,7 @@ export function SettingsPage() {
   const [deletePassword, setDeletePassword] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -48,15 +50,21 @@ export function SettingsPage() {
     }
   }
 
-  const handleDeleteAccount = async (event: FormEvent) => {
+  const handleDeleteAccount = (event: FormEvent) => {
     event.preventDefault()
+    if (deletePassword) setShowDeleteConfirm(true)
+  }
+
+  const confirmDeleteAccount = async () => {
     setDeleting(true)
     setDeleteError('')
     try {
       await deleteAccount(deletePassword)
+      setShowDeleteConfirm(false)
       clearSession()
       navigate('/', { replace: true })
     } catch {
+      setShowDeleteConfirm(false)
       setDeleteError('계정을 삭제하지 못했습니다. 현재 비밀번호를 확인해 주세요.')
     } finally {
       setDeleting(false)
@@ -134,6 +142,15 @@ export function SettingsPage() {
           </form>
         )}
       </section>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="계정을 영구 삭제할까요?"
+        description="저장한 장소, 여행 계획, 받은 콘텐츠와 계정 데이터가 모두 삭제되며 복구할 수 없습니다."
+        confirmLabel="계정 영구 삭제"
+        pending={deleting}
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDeleteAccount}
+      />
     </main>
   )
 }

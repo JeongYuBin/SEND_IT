@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
@@ -58,12 +59,18 @@ export function SavedPlacesPage() {
   const [regionFilter, setRegionFilter] = useState('all')
   const [districtFilter, setDistrictFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const addPlaceSlotRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setRegionFilter('all')
     setDistrictFilter('all')
     setCategoryFilter('all')
   }, [selectedCollectionId, showUncategorized])
+
+  useEffect(() => {
+    if (!showForm) return
+    addPlaceSlotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [showForm])
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
@@ -238,6 +245,8 @@ export function SavedPlacesPage() {
         </div>
       </header>
 
+      <div ref={addPlaceSlotRef} className="place-add-slot" />
+
       <section className="saved-itinerary-overview">
         <div className="saved-section-heading">
           <div>
@@ -276,7 +285,7 @@ export function SavedPlacesPage() {
         <strong>아래 장소 카드를 열면 상세 화면 하단에서 반경 5km 추천 장소를 볼 수 있습니다.</strong>
       </aside>
 
-      {showForm && (
+      {showForm && addPlaceSlotRef.current && createPortal((
         <section className="place-add-panel">
           <header>
             <div>
@@ -376,7 +385,7 @@ export function SavedPlacesPage() {
           )}
           {createMutation.isError && <div className="form-error">장소를 저장하지 못했습니다.</div>}
         </section>
-      )}
+      ), addPlaceSlotRef.current)}
 
       <section className="collection-bar">
         <div className="filter-chips">

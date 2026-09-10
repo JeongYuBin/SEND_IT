@@ -113,6 +113,12 @@ export function HomePage() {
       </nav>
 
       <section className="hero">
+        {!accessToken && (
+          <nav className="home-mobile-auth" aria-label="회원 메뉴">
+            <Link to="/login">로그인</Link>
+            <Link className="home-mobile-auth-primary" to="/signup">회원가입</Link>
+          </nav>
+        )}
         <span className="eyebrow">SEND IT</span>
         <h1>발견한 여행지를<br />진짜 여행으로.</h1>
         <p>

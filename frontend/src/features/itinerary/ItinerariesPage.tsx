@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getSavedPlaces } from '../saved/savedApi'
 import { createItinerary } from './itineraryApi'
 import type { TransportType } from './types'
+import { PlaceImage } from '../../components/PlaceImage'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -32,11 +33,44 @@ export function ItinerariesPage() {
   const [endDateTime, setEndDateTime] = useState(`${localDate(1)}T18:00`)
   const [transportType, setTransportType] = useState<TransportType>('PUBLIC_TRANSIT')
   const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [regionFilter, setRegionFilter] = useState('all')
+  const [districtFilter, setDistrictFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const placesById = useMemo(
     () => new Map((placesQuery.data ?? []).map((place) => [place.savedPlaceId, place])),
     [placesQuery.data],
+  )
+  const categoryOptions = useMemo(
+    () => [...new Set((placesQuery.data ?? []).map((place) => place.category).filter(Boolean) as string[])].sort(),
+    [placesQuery.data],
+  )
+  const regionOptions = useMemo(
+    () => [...new Set((placesQuery.data ?? []).map((place) => {
+      const address = place.roadAddress ?? place.address
+      return address?.trim().split(/\s+/)[0] ?? null
+    }).filter(Boolean) as string[])].sort(),
+    [placesQuery.data],
+  )
+  const districtOptions = useMemo(
+    () => [...new Set((placesQuery.data ?? []).map((place) => {
+      const parts = (place.roadAddress ?? place.address)?.trim().split(/\s+/) ?? []
+      if (regionFilter !== 'all' && parts[0] !== regionFilter) return null
+      return parts.slice(1).find((part) => /(?:시|군|구)$/.test(part)) ?? null
+    }).filter(Boolean) as string[])].sort(),
+    [placesQuery.data, regionFilter],
+  )
+  const filteredPlaces = useMemo(
+    () => (placesQuery.data ?? []).filter((place) => {
+      const parts = (place.roadAddress ?? place.address)?.trim().split(/\s+/) ?? []
+      const region = parts[0] ?? null
+      const district = parts.slice(1).find((part) => /(?:시|군|구)$/.test(part)) ?? null
+      return (regionFilter === 'all' || region === regionFilter)
+        && (districtFilter === 'all' || district === districtFilter)
+        && (categoryFilter === 'all' || place.category === categoryFilter)
+    }),
+    [categoryFilter, districtFilter, placesQuery.data, regionFilter],
   )
   const createMutation = useMutation({
     mutationFn: createItinerary,
@@ -130,6 +164,38 @@ export function ItinerariesPage() {
             {selectedIds.length > 0 && <button type="button" onClick={() => setSelectedIds([])}>선택 해제</button>}
           </div>
 
+          {(placesQuery.data?.length ?? 0) > 0 && (
+            <section className="itinerary-place-filters" aria-label="장소 선택 필터">
+              <label>
+                지역
+                <select value={regionFilter} onChange={(event) => {
+                  setRegionFilter(event.target.value)
+                  setDistrictFilter('all')
+                }}>
+                  <option value="all">전체 지역</option>
+                  {regionOptions.map((region) => <option key={region} value={region}>{region}</option>)}
+                </select>
+              </label>
+              <label>
+                시·군·구
+                <select value={districtFilter} onChange={(event) => setDistrictFilter(event.target.value)}>
+                  <option value="all">전체 시·군·구</option>
+                  {districtOptions.map((district) => <option key={district} value={district}>{district}</option>)}
+                </select>
+              </label>
+              <label>
+                카테고리
+                <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+                  <option value="all">전체 카테고리</option>
+                  {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
+                </select>
+              </label>
+              <div className="itinerary-place-filter-summary">
+                {(placesQuery.data?.length ?? 0)}개 중 {filteredPlaces.length}개
+              </div>
+            </section>
+          )}
+
           {placesQuery.isLoading && <div className="empty-state">저장 장소를 불러오고 있습니다.</div>}
           {!placesQuery.isLoading && (placesQuery.data?.length ?? 0) === 0 && (
             <div className="empty-state">
@@ -138,7 +204,7 @@ export function ItinerariesPage() {
             </div>
           )}
           <div className="itinerary-place-options">
-            {placesQuery.data?.map((place) => {
+            {filteredPlaces.map((place) => {
               const order = selectedIds.indexOf(place.savedPlaceId)
               const selected = order >= 0
               return (
@@ -150,14 +216,19 @@ export function ItinerariesPage() {
                   onClick={() => togglePlace(place.savedPlaceId)}
                 >
                   <span className="selection-order">{selected ? order + 1 : '+'}</span>
-                  <span>
+                  <PlaceImage src={place.imageUrl} alt={`${place.name} 대표 이미지`} className="itinerary-option-image" />
+                  <span className="itinerary-option-copy">
+                    <small>{place.category ?? '미분류'}</small>
                     <strong>{place.name}</strong>
-                    <small>{place.roadAddress ?? place.address ?? place.category ?? '장소 정보 없음'}</small>
+                    <small>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</small>
                   </span>
                 </button>
               )
             })}
           </div>
+          {!placesQuery.isLoading && (placesQuery.data?.length ?? 0) > 0 && filteredPlaces.length === 0 && (
+            <div className="empty-state">선택한 필터에 맞는 장소가 없습니다.</div>
+          )}
 
           {selectedIds.length > 0 && (
             <ol className="selected-place-order">
