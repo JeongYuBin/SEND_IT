@@ -246,9 +246,8 @@ export function SavedPlacesPage() {
           </button>
         </div>
       </header>
-      <FeedDiscovery />
-
       <div ref={addPlaceSlotRef} className="place-add-slot" />
+      <FeedDiscovery />
 
       <details className="saved-itinerary-overview">
         <summary>내 여행 계획 · {itinerariesQuery.data?.length ?? 0}개</summary>
@@ -332,6 +331,12 @@ export function SavedPlacesPage() {
               {placeSearchQuery.isError && <div className="form-error">카카오 장소 검색을 완료하지 못했습니다.</div>}
               {placeSearchQuery.data && placeSearchQuery.data.places.length === 0 && (
                 <div className="empty-state">검색 결과가 없습니다. 검색어를 바꾸거나 직접 입력해 주세요.</div>
+              )}
+              {placeSearchQuery.data && placeSearchQuery.data.places.length > 0 && (
+                <div className="place-results-heading">
+                  <strong>검색 결과</strong>
+                  <span>{placeSearchQuery.data.places.length}곳</span>
+                </div>
               )}
               <div className="kakao-place-results">
                 {placeSearchQuery.data?.places.map((result) => {
