@@ -72,6 +72,34 @@
 @media(min-width:1200px) { .feed-shell .place-grid { grid-template-columns: repeat(5,minmax(0,1fr)); } }
 
 .feed-discovery { width: min(100%, 1180px); margin: 20px auto; }
+.tourism-cluster { width: 56px; height: 56px; border: 2px solid #ffffffb0; border-radius: 50%; background: #776a9dcc; color: white; font-size: 19px; font-weight: 750; box-shadow: 0 3px 14px #30284b24; cursor: pointer; }
+.tourism-map-toolbar { position: absolute; top: 14px; left: 12px; right: 12px; display: flex; gap: 6px; z-index: 5; }
+.tourism-map-toolbar button { padding: 10px 12px; border: 1px solid #eee; border-radius: 24px; background: #fffffff2; color: #655c76; font-size: 12px; box-shadow: 0 2px 10px #00000010; }
+.tourism-map-toolbar button[aria-pressed="true"] { background: #776a9d; color: white; }
+.tourism-map-status { position: absolute; top: 66px; left: 12px; max-width: calc(100% - 24px); padding: 10px 14px; border-radius: 16px; background: #fffffff0; z-index: 4; font-size: 12px; color: #655c76; pointer-events: none; }
+.tourism-map-status small { display: block; margin-top: 4px; font-size: 10px; }
+.tourism-map-status button { pointer-events: auto; }
+.tourism-map-detail { position: absolute; bottom: 70px; left: 12px; right: 12px; max-width: 500px; margin: auto; display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 24px; background: #fffffff5; box-shadow: 0 8px 30px #30284b25; z-index: 5; }
+.tourism-map-detail > .place-image-skeleton { width: 90px; height: 110px; border-radius: 14px; flex-shrink: 0; overflow: hidden; }
+.tourism-map-detail > div { min-width: 0; padding-right: 10px; }
+.tourism-map-detail strong { display: block; margin: 4px 0; font-size: 16px; }
+.tourism-map-detail p, .tourism-map-detail small { font-size: 11px; margin: 5px 0; color: #787180; }
+.tourism-map-detail button { padding: 8px 12px; border-radius: 12px; font-size: 12px; }
+.tourism-map-detail .tourism-detail-close { position: absolute; right: 6px; top: 6px; background: transparent; }
+.tourism-explore .tourism-map-detail { padding: 20px; gap: 16px; border: 1px solid #ffffffc9; background: #fffffff2; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 12px 44px #3430441c; border-radius: 28px; }
+.tourism-explore .tourism-detail-body { flex: 1; padding-right: 12px; }
+.tourism-explore .tourism-detail-body strong { letter-spacing: -.4px; line-height: 1.4; }
+.tourism-explore .tourism-detail-body p { line-height: 1.5; margin-bottom: 12px; }
+.tourism-explore .tourism-save-button { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 11px 19px; overflow: hidden; border: 1px solid #ffffffd9; border-radius: 999px; background: linear-gradient(135deg, #fffdf5bd 0%, #f1eaffb8 48%, #dcecffb8 100%); color: #55427f; font: inherit; font-size: 13px; font-weight: 700; letter-spacing: -.2px; box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 #b9a9dc38, 0 8px 22px #7661a62b, 0 2px 5px #50506414; backdrop-filter: blur(18px) saturate(165%); -webkit-backdrop-filter: blur(18px) saturate(165%); cursor: pointer; transition: color .18s, box-shadow .18s, transform .15s; }
+.tourism-explore .tourism-save-button::before { content: ''; position: absolute; inset: 1px 10% auto; height: 48%; border-radius: inherit; background: linear-gradient(180deg, #ffffffc9, #ffffff08); pointer-events: none; z-index: -1; }
+.tourism-explore .tourism-save-button svg { width: 18px; height: 18px; flex-shrink: 0; filter: drop-shadow(0 1px 0 #fff); }
+.tourism-explore .tourism-save-button:hover { color: #49356f; box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 #ac98d74d, 0 10px 28px #7661a63b, 0 2px 6px #50506418; }
+.tourism-explore .tourism-save-button:active { transform: scale(.97); box-shadow: inset 0 2px 5px #7661a622, 0 3px 10px #7661a625; }
+.tourism-explore .tourism-save-button:disabled { opacity: .55; cursor: wait; transform: none; }
+.tourism-explore .tourism-save-button:focus-visible { outline: 3px solid #ad96d4a8; outline-offset: 3px; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .tourism-explore .tourism-save-button { background: #eee8f8; } }
+.tourism-explore .tourism-detail-close { right: 10px; top: 10px; width: 32px; height: 32px; min-height: 32px; padding: 0; border: 0; border-radius: 50%; background: #f0eef3; color: #817a8b; font-size: 21px; line-height: 1; }
+@media(prefers-reduced-motion: reduce) { .tourism-explore .tourism-save-button { transition: none; } }
 .discovery-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .discovery-shortcuts > button { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; padding: 22px; border: 1px solid transparent; border-radius: 24px; background: #eee9f7; color: #514466; font-size: clamp(16px, 2vw, 22px); line-height: 1.5; font-weight: 700; }
 .discovery-shortcuts > button:nth-child(2) { background: #f8eae5; color: #915e55; }

@@ -20,9 +20,11 @@ import org.springframework.http.HttpStatus;
 public class TourismController {
 
     private final TourApiClient tourApiClient;
+    private final TourismCatalog catalog;
 
-    public TourismController(TourApiClient tourApiClient) {
+    public TourismController(TourApiClient tourApiClient, TourismCatalog catalog) {
         this.tourApiClient = tourApiClient;
+        this.catalog = catalog;
     }
 
     @GetMapping("/nearby")
@@ -32,6 +34,27 @@ public class TourismController {
             @RequestParam(defaultValue = "5000") @Min(100) @Max(20000) int radius
     ) {
         return tourApiClient.nearby(latitude, longitude, radius);
+    }
+
+    @GetMapping("/discover")
+    TourismCatalog.Snapshot discover(@RequestParam String mode,
+            @RequestParam @DecimalMin("-180") @DecimalMax("180") double west,
+            @RequestParam @DecimalMin("-90") @DecimalMax("90") double south,
+            @RequestParam @DecimalMin("-180") @DecimalMax("180") double east,
+            @RequestParam @DecimalMin("-90") @DecimalMax("90") double north,
+            @RequestParam @Min(1) @Max(14) int level) {
+        if (!List.of("nearby", "festival").contains(mode)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "지원하지 않는 탐색입니다.");
+        }
+        if (!Double.isFinite(west + east + south + north) || west >= east || south >= north)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "지도 범위를 확인해 주세요.");
+        return catalog.viewport(mode, west, south, east, north, level);
+    }
+
+    @GetMapping("/discover/{contentId}")
+    TourApiClient.MapPlace catalogDetail(@RequestParam String mode,
+            @org.springframework.web.bind.annotation.PathVariable String contentId) {
+        return catalog.detail(mode, contentId);
     }
 
     @GetMapping("/operating-info")

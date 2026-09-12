@@ -8,7 +8,10 @@ export type KakaoMapPoint = {
   longitude: number
   label?: string
   category?: string | null
+  count?: number
 }
+
+export type MapViewport = { west: number; south: number; east: number; north: number; level: number }
 
 export type KakaoMapRoute = {
   id: number | string
@@ -23,6 +26,9 @@ type KakaoMapProps = {
   onSelect?: (point: KakaoMapPoint) => void
   initialCenter?: { latitude: number; longitude: number }
   fitPoints?: boolean
+  cluster?: boolean
+  initialLevel?: number
+  onViewportChange?: (viewport: MapViewport) => void
 }
 
 const EMPTY_ROUTES: KakaoMapRoute[] = []
@@ -31,6 +37,8 @@ type MarkerVisual = { color: string; paths: string[] }
 
 function markerVisual(category?: string | null): MarkerVisual {
   const value = category?.toLowerCase() ?? ''
+  if (/축제|행사|공연/.test(value)) return { color: '#b66bc7', paths: ['M12 3v4M12 17v4M3 12h4M17 12h4M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3', 'm12 9 1 2 2 1-2 1-1 2-1-2-2-1 2-1Z'] }
+  if (/관광|여행|자연/.test(value)) return { color: '#419c85', paths: ['m3 19 6-12 4 7 3-5 5 10H3Z', 'm7 11 2 2 2-2', 'M16 4h.01'] }
   if (/카페|커피|디저트|coffee|cafe/.test(value)) return {
     color: '#9b6b4a', paths: ['M5 8h11v5a5 5 0 0 1-5 5H9a4 4 0 0 1-4-4V8Z', 'M16 10h1.5a2.5 2.5 0 0 1 0 5H16', 'M7 4c0 1 1 1 1 2', 'M11 4c0 1 1 1 1 2'],
   }
@@ -69,15 +77,21 @@ export function KakaoMap({
   onSelect,
   initialCenter,
   fitPoints = true,
+  cluster = false,
+  initialLevel,
+  onViewportChange,
 }: KakaoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<KakaoMapInstance | null>(null)
   const appliedCenter = useRef<typeof initialCenter>(undefined)
   const [error, setError] = useState<string | null>(null)
+  const viewportCallback = useRef(onViewportChange)
+  viewportCallback.current = onViewportChange
 
   useEffect(() => {
     let disposed = false
     const overlays: KakaoOverlay[] = []
+    const markerOverlays: KakaoOverlay[] = []
     const cleanupCallbacks: Array<() => void> = []
 
     loadKakaoMaps()
@@ -88,13 +102,41 @@ export function KakaoMap({
           initialCenter?.latitude ?? points[0]?.latitude ?? 37.5665,
           initialCenter?.longitude ?? points[0]?.longitude ?? 126.978,
         )
-        const map = mapRef.current ?? new maps.Map(containerRef.current, { center, level: initialCenter ? 5 : 7 })
+        const map = mapRef.current ?? new maps.Map(containerRef.current, { center, level: initialLevel ?? (initialCenter ? 5 : 7) })
         mapRef.current = map
         const bounds = new maps.LatLngBounds()
         const markerElements: HTMLButtonElement[] = []
 
-        points.forEach((point) => {
+        points.forEach((point) => bounds.extend(new maps.LatLng(point.latitude, point.longitude)))
+        const drawMarkers = () => {
+        markerOverlays.splice(0).forEach((overlay) => overlay.setMap(null))
+        markerElements.length = 0
+        const groups = new Map<string, KakaoMapPoint[]>()
+        const level = map.getLevel()
+        const cell = 0.003 * 2 ** (level - 3)
+        points.forEach((point, index) => {
+          const key = cluster && level >= 6 ? `${Math.floor(point.latitude / cell)}:${Math.floor(point.longitude / cell)}` : String(index)
+          const group = groups.get(key)
+          if (group) group.push(point)
+          else groups.set(key, [point])
+        })
+        groups.forEach((group) => {
+          const point = group[0]
+          if (group.length > 1 || (point.count ?? 1) > 1) {
+            const position = new maps.LatLng(group.reduce((sum, p) => sum + p.latitude, 0) / group.length, group.reduce((sum, p) => sum + p.longitude, 0) / group.length)
+            if (!map.getBounds().contain(position)) return
+            const button = document.createElement('button')
+            button.className = 'tourism-cluster'
+            button.type = 'button'
+            const count = group.reduce((sum, p) => sum + (p.count ?? 1), 0)
+            button.textContent = String(count)
+            button.setAttribute('aria-label', `${count}곳 확대해서 보기`)
+            button.onclick = () => { map.setCenter(position); map.setLevel(Math.max(1, level - 2)) }
+            markerOverlays.push(new maps.CustomOverlay({ map, position, content: button, yAnchor: 0.5 }))
+            return
+          }
           const position = new maps.LatLng(point.latitude, point.longitude)
+          if (cluster && !map.getBounds().contain(position)) return
           bounds.extend(position)
           const label = document.createElement('button')
           label.type = 'button'
@@ -110,15 +152,17 @@ export function KakaoMap({
           if (onSelect) {
             const handleClick = () => onSelect(point)
             label.addEventListener('click', handleClick)
-            cleanupCallbacks.push(() => label.removeEventListener('click', handleClick))
           }
-          overlays.push(new maps.CustomOverlay({
+          markerOverlays.push(new maps.CustomOverlay({
             map,
             position,
             content: label,
             yAnchor: 0.5,
           }))
         })
+
+        }
+        drawMarkers()
 
         routes.forEach((route) => {
           if (route.points.length < 2) return
@@ -146,6 +190,7 @@ export function KakaoMap({
           map.setBounds(bounds)
         }
         const resizeMarkers = () => {
+          if (cluster) drawMarkers()
           const level = map.getLevel()
           const scale = Math.max(0.56, Math.min(1, 1.08 - (level - 1) * 0.07))
           markerElements.forEach((marker) => {
@@ -156,7 +201,22 @@ export function KakaoMap({
         resizeMarkers()
         maps.event.addListener(map, 'zoom_changed', resizeMarkers)
         cleanupCallbacks.push(() => maps.event.removeListener(map, 'zoom_changed', resizeMarkers))
-        const timer = window.setTimeout(() => map.relayout(), 0)
+        if (cluster) {
+          maps.event.addListener(map, 'idle', resizeMarkers)
+          cleanupCallbacks.push(() => maps.event.removeListener(map, 'idle', resizeMarkers))
+        }
+        let viewportTimer: number | undefined
+        const reportViewport = () => {
+          window.clearTimeout(viewportTimer)
+          viewportTimer = window.setTimeout(() => {
+            const bounds = map.getBounds()
+            const sw = bounds.getSouthWest(), ne = bounds.getNorthEast()
+            viewportCallback.current?.({ west: sw.getLng(), south: sw.getLat(), east: ne.getLng(), north: ne.getLat(), level: map.getLevel() })
+          }, 300)
+        }
+        maps.event.addListener(map, 'idle', reportViewport)
+        cleanupCallbacks.push(() => { maps.event.removeListener(map, 'idle', reportViewport); window.clearTimeout(viewportTimer) })
+        const timer = window.setTimeout(() => { map.relayout(); reportViewport() }, 0)
         cleanupCallbacks.push(() => window.clearTimeout(timer))
       })
       .catch((reason: Error) => {
@@ -167,8 +227,9 @@ export function KakaoMap({
       disposed = true
       cleanupCallbacks.forEach((cleanup) => cleanup())
       overlays.forEach((overlay) => overlay.setMap(null))
+      markerOverlays.forEach((overlay) => overlay.setMap(null))
     }
-  }, [fitPoints, initialCenter, onSelect, points, routes])
+  }, [cluster, initialLevel, fitPoints, initialCenter, onSelect, points, routes])
 
   if (error) {
     return <div className="map-error" role="alert">{error}</div>

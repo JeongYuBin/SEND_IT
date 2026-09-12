@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { logout } from '../auth/authApi'
 import type { ApiError } from '../auth/types'
 import { createShare } from '../share/shareApi'
@@ -12,6 +12,7 @@ import type { TransportType } from '../itinerary/types'
 import { PlaceImage } from '../../components/PlaceImage'
 import { eventPeriodState } from '../saved/eventPeriod'
 import { HomePlacesMap } from './HomePlacesMap'
+import { TourismExploreMap } from './TourismExploreMap'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -20,6 +21,8 @@ const transportLabels: Record<TransportType, string> = {
 }
 
 export function HomePage() {
+  const [params] = useSearchParams()
+  const explore = params.get('explore')
   const { accessToken, refreshToken, user, clearSession } = useAuthStore()
   const navigate = useNavigate()
   const [url, setUrl] = useState('')
@@ -112,7 +115,9 @@ export function HomePage() {
         </div>
       </nav>
 
-      {accessToken && <HomePlacesMap places={savedPlacesQuery.data ?? []} />}
+      {accessToken && (explore === 'nearby' || explore === 'festival'
+        ? <TourismExploreMap key={explore} mode={explore} />
+        : <HomePlacesMap places={savedPlacesQuery.data ?? []} />)}
       {!accessToken && <section className="hero">
         {!accessToken && (
           <nav className="home-mobile-auth" aria-label="회원 메뉴">

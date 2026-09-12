@@ -9,10 +9,14 @@ interface KakaoMapInstance {
   setLevel(level: number): void
   relayout(): void
   getLevel(): number
+  getBounds(): KakaoLatLngBounds
 }
 
 interface KakaoLatLngBounds {
+  getSouthWest(): KakaoLatLng
+  getNorthEast(): KakaoLatLng
   extend(position: KakaoLatLng): void
+  contain(position: KakaoLatLng): boolean
 }
 
 interface KakaoOverlay {

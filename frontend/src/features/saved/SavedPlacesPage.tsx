@@ -246,7 +246,7 @@ export function SavedPlacesPage() {
           </button>
         </div>
       </header>
-      <FeedDiscovery places={placesQuery.data ?? []} />
+      <FeedDiscovery />
 
       <div ref={addPlaceSlotRef} className="place-add-slot" />
 

@@ -155,6 +155,41 @@ public class TourApiClient {
         return result;
     }
 
+    public record MapPlace(String contentId, String contentTypeId, String name, String category,
+            String address, double latitude, double longitude, String imageUrl,
+            LocalDate eventStartDate, LocalDate eventEndDate) {}
+    public record MapPage(List<MapPlace> places, boolean hasMore) {}
+    private record MapCache(MapPage page, Instant expires) {}
+    private final ConcurrentHashMap<String, MapCache> mapCache = new ConcurrentHashMap<>();
+
+    public MapPage discover(String mode, LocalDate month, int page) {
+        String key = mode + month.withDayOfMonth(1) + ":" + page;
+        MapCache cached = mapCache.get(key);
+        if (cached != null && cached.expires().isAfter(Instant.now())) return cached.page();
+        if (serviceKey.isBlank()) throw new IllegalStateException("TourAPI is not configured");
+        try {
+            Map<String, String> params = new java.util.HashMap<>(Map.of(
+                    "numOfRows", "200", "pageNo", Integer.toString(page), "arrange", "A"));
+            boolean festival = "festival".equals(mode);
+            if (festival) {
+                params.put("eventStartDate", month.withDayOfMonth(1).format(DateTimeFormatter.BASIC_ISO_DATE));
+                params.put("eventEndDate", month.withDayOfMonth(month.lengthOfMonth()).format(DateTimeFormatter.BASIC_ISO_DATE));
+            } else params.put("contentTypeId", "12");
+            var raw = items(get(festival ? "/searchFestival2" : "/areaBasedList2", params));
+            var places = raw.stream().filter(item -> item.latitude() != null && item.longitude() != null)
+                    .map(item -> new MapPlace(item.contentId(), item.contentTypeId(), item.title(),
+                            categoryLabel(item.contentTypeId()), fullAddress(item), item.latitude(), item.longitude(),
+                            item.firstImage(), parseDate(item.eventStartDate()), parseDate(item.eventEndDate())))
+                    .toList();
+            MapPage result = new MapPage(places, raw.size() >= 200);
+            mapCache.entrySet().removeIf(entry -> entry.getValue().expires().isBefore(Instant.now()));
+            mapCache.put(key, new MapCache(result, Instant.now().plusSeconds(600)));
+            return result;
+        } catch (Exception ex) {
+            throw new IllegalStateException("TourAPI discovery failed", ex);
+        }
+    }
+
     public List<NearbyPlace> nearby(
             double latitude,
             double longitude,
