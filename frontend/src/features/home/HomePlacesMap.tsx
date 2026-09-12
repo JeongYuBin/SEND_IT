@@ -61,7 +61,7 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
       <div className="home-map-summary">
         <span>MY PLACES</span>
         <strong>저장한 장소 {points.length}곳</strong>
-        <button type="button" onClick={() => navigate('/saved')}>목록으로 보기</button>
+        <button type="button" onClick={() => navigate('/saved')}>게시물 보기</button>
       </div>
     </section>
   )

@@ -13,7 +13,6 @@ import {
   updateSavedPlace,
 } from './savedApi'
 import type { KakaoPlaceSearchResult, SavedPlace } from './types'
-import { SavedPlacesMap } from './SavedPlacesMap'
 import { getItineraries } from '../itinerary/itineraryApi'
 import type { TransportType } from '../itinerary/types'
 import { PlaceImage } from '../../components/PlaceImage'
@@ -55,7 +54,7 @@ export function SavedPlacesPage() {
   const [memo, setMemo] = useState('')
   const [collectionId, setCollectionId] = useState<number | undefined>()
   const [newCollection, setNewCollection] = useState('')
-  const [view, setView] = useState<'list' | 'map'>('list')
+  const [search, setSearch] = useState('')
   const [regionFilter, setRegionFilter] = useState('all')
   const [districtFilter, setDistrictFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -159,10 +158,12 @@ export function SavedPlacesPage() {
       const region = addressParts[0] ?? null
       const district = addressParts.slice(1).find((part) => /(?:시|군|구)$/.test(part)) ?? null
       return (regionFilter === 'all' || region === regionFilter)
+        && [place.name, place.address, place.roadAddress, place.category, place.collectionName, place.memo]
+          .filter(Boolean).join(' ').toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
         && (districtFilter === 'all' || district === districtFilter)
         && (categoryFilter === 'all' || place.category === categoryFilter)
     }),
-    [categoryFilter, collectionPlaces, districtFilter, regionFilter],
+    [categoryFilter, collectionPlaces, districtFilter, regionFilter, search],
   )
   const filtersActive = regionFilter !== 'all'
     || districtFilter !== 'all'
@@ -214,7 +215,7 @@ export function SavedPlacesPage() {
   ) ?? false
 
   return (
-    <main className="saved-shell">
+    <main className="saved-shell feed-shell">
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
@@ -228,7 +229,7 @@ export function SavedPlacesPage() {
       <header className="saved-header">
         <div>
           <span className="eyebrow">MY PLACES</span>
-          <h1>{showUncategorized ? '컬렉션 없는 장소' : (selectedCollection?.name ?? '저장한 장소')}</h1>
+          <h1>{showUncategorized ? '컬렉션 없는 장소' : (selectedCollection?.name ?? '나의 게시물')}</h1>
           <p>
             {showUncategorized
               ? '아직 컬렉션을 지정하지 않은 장소입니다.'
@@ -247,7 +248,8 @@ export function SavedPlacesPage() {
 
       <div ref={addPlaceSlotRef} className="place-add-slot" />
 
-      <section className="saved-itinerary-overview">
+      <details className="saved-itinerary-overview">
+        <summary>내 여행 계획 · {itinerariesQuery.data?.length ?? 0}개</summary>
         <div className="saved-section-heading">
           <div>
             <span className="eyebrow">MY TRIPS</span>
@@ -278,12 +280,8 @@ export function SavedPlacesPage() {
             </Link>
           ))}
         </div>
-      </section>
+      </details>
 
-      <aside className="saved-recommendation-tip">
-        <span>주변 관광지를 찾고 싶나요?</span>
-        <strong>아래 장소 카드를 열면 상세 화면 하단에서 반경 5km 추천 장소를 볼 수 있습니다.</strong>
-      </aside>
 
       {showForm && addPlaceSlotRef.current && createPortal((
         <section className="place-add-panel">
@@ -400,6 +398,7 @@ export function SavedPlacesPage() {
             </button>
           ))}
         </div>
+        <details className="feed-collection-manage"><summary>컬렉션 관리</summary>
         <form onSubmit={(e) => { e.preventDefault(); if (newCollection.trim()) collectionMutation.mutate(newCollection) }}>
           <input value={newCollection} onChange={(e) => setNewCollection(e.target.value)} placeholder="새 컬렉션" />
           <button disabled={collectionMutation.isPending}>추가</button>
@@ -412,9 +411,15 @@ export function SavedPlacesPage() {
             삭제
           </button>
         </form>
+        </details>
       </section>
 
-      <section className="place-filters" aria-label="저장 장소 필터">
+      <div className="feed-search">
+        <input type="search" aria-label="저장한 장소 검색" placeholder="장소, 지역, 메모 검색" value={search} onChange={(event) => setSearch(event.target.value)} />
+        <span aria-live="polite">{places.length}개</span>
+      </div>
+      <details className="place-filters" aria-label="저장 장소 필터">
+        <summary>상세 필터{filtersActive ? ' · 적용 중' : ''}</summary>
         <div>
           <label>
             지역
@@ -454,7 +459,7 @@ export function SavedPlacesPage() {
           <span>{collectionPlaces.length}개 중 {places.length}개 장소</span>
           {filtersActive && <button type="button" onClick={clearFilters}>필터 초기화</button>}
         </div>
-      </section>
+      </details>
 
       {placesQuery.isLoading && <div className="empty-state">장소를 불러오고 있습니다.</div>}
       {placesQuery.isError && <div className="form-error">저장한 장소를 불러오지 못했습니다.</div>}
@@ -471,14 +476,6 @@ export function SavedPlacesPage() {
         <div className="form-error">존재하지 않거나 접근할 수 없는 컬렉션입니다.</div>
       )}
       {places.length > 0 && (
-        <div className="view-switcher" aria-label="장소 보기 방식">
-          <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>목록</button>
-          <button className={view === 'map' ? 'active' : ''} onClick={() => setView('map')}>지도</button>
-        </div>
-      )}
-      {places.length > 0 && (view === 'map' ? (
-        <SavedPlacesMap places={places} />
-      ) : (
         <section className="place-grid">
           {places.map((place) => (
             <article
@@ -534,6 +531,8 @@ export function SavedPlacesPage() {
                 <h2>{place.name}</h2>
                 <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
                 {place.memo && <p className="place-memo">{place.memo}</p>}
+                <details className="feed-card-manage" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+                <summary>관리</summary>
                 <label
                   className="place-collection-control"
                   onClick={(event) => event.stopPropagation()}
@@ -561,11 +560,12 @@ export function SavedPlacesPage() {
                 <div className="place-actions" onClick={(event) => event.stopPropagation()}>
                   <button onClick={() => deleteMutation.mutate(place.savedPlaceId)}>삭제</button>
                 </div>
+                </details>
               </div>
             </article>
           ))}
         </section>
-      ))}
+      )}
       <ConfirmDialog
         open={showCollectionDeleteConfirm && selectedCollection !== undefined}
         title="컬렉션을 삭제할까요?"

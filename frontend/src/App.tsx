@@ -14,7 +14,6 @@ import { ProfilePage } from './features/account/ProfilePage'
 import { SettingsPage } from './features/account/SettingsPage'
 import { ShareTargetPage } from './features/share/ShareTargetPage'
 import { NotificationsPage } from './features/notification/NotificationsPage'
-import { NotificationShortcut } from './components/NotificationShortcut'
 import { DesktopSiteNavigation } from './components/DesktopSiteNavigation'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -77,7 +76,6 @@ export function App() {
       <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <MobileBottomNavigation />
-      <NotificationShortcut />
     </>
   )
 }

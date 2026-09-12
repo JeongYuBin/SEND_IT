@@ -5,11 +5,11 @@ import { useAuthStore } from '../stores/authStore'
 const hiddenPaths = ['/login', '/signup', '/find-id', '/reset-password', '/share-target']
 
 const items = [
-  { to: '/', label: '장소 지도', end: true },
-  { to: '/saved', label: '저장한 장소' },
+  { to: '/saved', label: '게시물' },
+  { to: '/', label: '지도', end: true },
   { to: '/itineraries', label: '여행 계획' },
   { to: '/notifications', label: '알림' },
-  { to: '/profile', label: '내 정보' },
+  { to: '/profile', label: '프로필' },
   { to: '/settings', label: '설정' },
 ]
 

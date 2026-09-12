@@ -5,10 +5,10 @@ import { useAuthStore } from '../stores/authStore'
 type IconName = 'map' | 'route' | 'bookmark' | 'person'
 
 const items: Array<{ to: string; label: string; icon: IconName }> = [
+  { to: '/saved', label: '게시물', icon: 'bookmark' },
   { to: '/', label: '지도', icon: 'map' },
-  { to: '/saved', label: '저장', icon: 'bookmark' },
   { to: '/itineraries', label: '여행', icon: 'route' },
-  { to: '/profile', label: '내 정보', icon: 'person' },
+  { to: '/profile', label: '프로필', icon: 'person' },
 ]
 
 const icons: Record<IconName, ReactNode> = {
