@@ -1,0 +1,124 @@
+/* Shared warm-white surfaces and lavender accents. */
+:root {
+  --ink: #302c39;
+  --muted: #77717f;
+  --green: #7560a6;
+  --green-dark: #614b92;
+  --accent: #7560a6;
+  --accent-hover: #614b92;
+  --accent-soft: #efe9f8;
+  --surface: #fffefd;
+  --surface-soft: #f7f5f8;
+  --line: #e8e3ec;
+  --shadow-card: 0 8px 32px rgb(67 46 83 / 5%);
+}
+html, body, .shell, .saved-shell, .itinerary-shell, .result-shell,
+.place-detail-shell, .account-shell, .auth-shell, .notification-page,
+.desktop-site-nav-spacer { background: var(--surface-soft); color: var(--ink); }
+.desktop-site-nav, .auth-card, .profile-card, .settings-list,
+.place-card, .save-panel, .place-filters, .place-add-panel,
+.saved-itinerary-overview, .notification-list > *, .itinerary-accommodations {
+  border-color: var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.nav-cta, .primary-button, .share-form button, .auth-form > button,
+.result-form > button, .desktop-site-links .desktop-site-cta,
+.home-mobile-auth .home-mobile-auth-primary,
+.share-target-card .share-sheet-actions button {
+  color: white !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+.nav-cta:hover, .primary-button:hover, .share-form button:hover,
+.auth-form > button:hover, .result-form > button:hover {
+  background: var(--accent-hover) !important;
+}
+.desktop-site-links a.active, .desktop-site-links a:hover,
+.home-map-summary button, .share-sheet-actions a {
+  color: var(--accent);
+}
+.home-map-summary button, .share-sheet-actions a { background: var(--accent-soft); }
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible { outline-color: #b8a5d7; }
+.home-map-filters { right: 10px; }
+.home-map-filters button {
+  background: rgb(255 254 253 / 94%);
+  color: #5e566a;
+  border-color: rgb(117 96 166 / 12%);
+  box-shadow: 0 3px 12px rgb(52 32 72 / 8%);
+}
+.home-map-filters button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.home-map-summary {
+  background: rgb(255 254 253 / 93%);
+  border-color: var(--line);
+  box-shadow: var(--shadow-card);
+}
+.mobile-menu-sheet { display: none; }
+@media (max-width: 760px) {
+  .mobile-menu-sheet {
+    display: block;
+    position: fixed;
+    z-index: 1000;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 14px max(8px, env(safe-area-inset-bottom));
+    border: 1px solid rgb(255 255 255 / 90%);
+    border-bottom: 0;
+    border-radius: 26px 26px 0 0;
+    background: rgb(255 254 253 / 96%);
+    box-shadow: 0 -8px 36px rgb(57 39 76 / 9%);
+    backdrop-filter: blur(24px);
+  }
+  .mobile-menu-handle {
+    display: flex;
+    width: 100%;
+    height: 46px;
+    padding: 10px 0 4px;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+    border: 0;
+    background: transparent;
+    touch-action: none;
+    cursor: grab;
+  }
+  .mobile-menu-handle > span {
+    width: 42px;
+    height: 4px;
+    border-radius: 99px;
+    background: #c4bacf;
+  }
+  .mobile-menu-handle small { color: #756b82; font-size: 10px; }
+  .mobile-menu-sheet .mobile-bottom-nav {
+    position: static;
+    display: grid;
+    height: 86px;
+    margin: 0;
+    padding: 8px 0 14px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .mobile-menu-sheet .mobile-bottom-nav[hidden] { display: none; }
+  .mobile-menu-sheet .mobile-bottom-nav a { color: #81778d; border-radius: 18px; }
+  .mobile-menu-sheet .mobile-bottom-nav a.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .shell:has(.home-map) { padding: 0; }
+  .home-map, .home-map .kakao-map { height: 100dvh; min-height: 100dvh; }
+  .home-map-filters { top: max(12px, env(safe-area-inset-top)); }
+  .home-map-summary { bottom: calc(66px + env(safe-area-inset-bottom)); }
+  body:has(.mobile-menu-sheet.expanded) .home-map-summary {
+    bottom: calc(152px + env(safe-area-inset-bottom));
+  }
+}

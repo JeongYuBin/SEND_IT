@@ -1,5 +1,6 @@
 package com.sendit.share;
 
+import com.sendit.collection.Collection;
 import com.sendit.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -95,6 +96,10 @@ public class SharedContent {
     @Column(name = "extracted_longitude")
     private Double extractedLongitude;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_collection_id")
+    private Collection targetCollection;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -188,6 +193,8 @@ public class SharedContent {
     public String getExtractedAddress() { return extractedAddress; }
     public Double getExtractedLatitude() { return extractedLatitude; }
     public Double getExtractedLongitude() { return extractedLongitude; }
+    public Collection getTargetCollection() { return targetCollection; }
+    public void selectTargetCollection(Collection collection) { this.targetCollection = collection; }
 
     public void queueForAnalysis() {
         analysisStatus = AnalysisStatus.PENDING;

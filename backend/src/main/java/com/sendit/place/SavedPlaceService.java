@@ -102,7 +102,8 @@ public class SavedPlaceService {
                                 candidate.getName(), candidate.getCategory(), candidate.getAddress(),
                                 candidate.getAddress(), candidate.getLatitude(), candidate.getLongitude(),
                                 null, candidate.getImageUrl(),
-                                null, null, null, null, sharedContentId, null,
+                                null, null, null, null, sharedContentId,
+                                share.getTargetCollection() == null ? null : share.getTargetCollection().getId(),
                                 null, 0, null, null, null));
                 candidate.markSaved(saved.savedPlaceId());
             }
@@ -125,7 +126,7 @@ public class SavedPlaceService {
                 null,
                 null,
                 sharedContentId,
-                null,
+                share.getTargetCollection() == null ? null : share.getTargetCollection().getId(),
                 null,
                 0,
                 null,

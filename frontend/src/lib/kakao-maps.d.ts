@@ -8,6 +8,7 @@ interface KakaoMapInstance {
   setCenter(position: KakaoLatLng): void
   setLevel(level: number): void
   relayout(): void
+  getLevel(): number
 }
 
 interface KakaoLatLngBounds {
@@ -44,6 +45,10 @@ interface KakaoMapsApi {
     strokeOpacity: number
     strokeStyle: string
   }) => KakaoOverlay
+  event: {
+    addListener(target: KakaoMapInstance, type: string, handler: () => void): void
+    removeListener(target: KakaoMapInstance, type: string, handler: () => void): void
+  }
 }
 
 interface Window {

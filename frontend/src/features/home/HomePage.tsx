@@ -11,6 +11,7 @@ import { useAuthStore } from '../../stores/authStore'
 import type { TransportType } from '../itinerary/types'
 import { PlaceImage } from '../../components/PlaceImage'
 import { eventPeriodState } from '../saved/eventPeriod'
+import { HomePlacesMap } from './HomePlacesMap'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -96,7 +97,6 @@ export function HomePage() {
           {accessToken ? (
             <>
               <span>{user?.nickname}님</span>
-              <Link to="/shares">받은 콘텐츠</Link>
               <Link to="/saved">저장한 장소</Link>
               <Link to="/profile">내 정보</Link>
               <Link to="/settings">설정</Link>
@@ -112,7 +112,8 @@ export function HomePage() {
         </div>
       </nav>
 
-      <section className="hero">
+      {accessToken && <HomePlacesMap places={savedPlacesQuery.data ?? []} />}
+      {!accessToken && <section className="hero">
         {!accessToken && (
           <nav className="home-mobile-auth" aria-label="회원 메뉴">
             <Link to="/login">로그인</Link>
@@ -142,7 +143,6 @@ export function HomePage() {
             </button>
           </div>
           <small id="url-help">Instagram, YouTube, TikTok, 네이버 블로그와 일반 웹페이지를 지원합니다.</small>
-          {accessToken && <Link className="shared-content-shortcut" to="/shares">SNS에서 보낸 콘텐츠 보기 →</Link>}
           {shareMutation.isSuccess && (
             <div className="share-feedback success" role="status">
               {shareMutation.data.duplicate ? '이미 저장한 콘텐츠예요.' : '저장했어요! 장소를 분석하고 있습니다.'}
@@ -155,7 +155,7 @@ export function HomePage() {
             </div>
           )}
         </form>
-      </section>
+      </section>}
       {accessToken && (
         <section className="home-dashboard" aria-label="내 여행 대시보드">
           <div className="home-dashboard-heading">

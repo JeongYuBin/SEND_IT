@@ -6,6 +6,7 @@ import { App } from './App'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import './styles.css'
 import './design-system.css'
+import './soft-theme.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

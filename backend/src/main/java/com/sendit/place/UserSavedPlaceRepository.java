@@ -11,4 +11,5 @@ public interface UserSavedPlaceRepository extends JpaRepository<UserSavedPlace, 
     boolean existsByUserIdAndPlaceId(Long userId, Long placeId);
     Optional<UserSavedPlace> findByUserIdAndPlaceId(Long userId, Long placeId);
     boolean existsByUserIdAndSharedContentId(Long userId, Long sharedContentId);
+    List<UserSavedPlace> findByUserIdAndSharedContentId(Long userId, Long sharedContentId);
 }

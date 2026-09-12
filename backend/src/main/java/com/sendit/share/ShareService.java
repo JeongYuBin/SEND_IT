@@ -6,6 +6,9 @@ import com.sendit.share.ShareDtos.ShareDetailResponse;
 import com.sendit.user.User;
 import com.sendit.user.UserRepository;
 import com.sendit.notification.NotificationService;
+import com.sendit.collection.CollectionRepository;
+import com.sendit.collection.ResourceNotFoundException;
+import com.sendit.place.UserSavedPlaceRepository;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,8 @@ public class ShareService {
     private final MediaStorageCleaner mediaStorageCleaner;
     private final NotificationService notificationService;
     private final SharedContentPlaceRepository extractedPlaces;
+    private final CollectionRepository collections;
+    private final UserSavedPlaceRepository savedPlaces;
 
     public ShareService(
             UserRepository userRepository,
@@ -32,7 +37,9 @@ public class ShareService {
             UrlNormalizer urlNormalizer,
             MediaStorageCleaner mediaStorageCleaner,
             NotificationService notificationService,
-            SharedContentPlaceRepository extractedPlaces
+            SharedContentPlaceRepository extractedPlaces,
+            CollectionRepository collections,
+            UserSavedPlaceRepository savedPlaces
     ) {
         this.userRepository = userRepository;
         this.sharedContentRepository = sharedContentRepository;
@@ -41,6 +48,8 @@ public class ShareService {
         this.mediaStorageCleaner = mediaStorageCleaner;
         this.notificationService = notificationService;
         this.extractedPlaces = extractedPlaces;
+        this.collections = collections;
+        this.savedPlaces = savedPlaces;
     }
 
     public ShareAcceptedResponse create(String email, CreateShareRequest request) {
@@ -102,6 +111,15 @@ public class ShareService {
         content.queueForAnalysis();
         analysisJobRepository.save(new AnalysisJob(content));
         return accepted(content, false, "콘텐츠 재분석을 요청했습니다.");
+    }
+
+    public void selectCollection(String email, Long shareId, Long collectionId) {
+        SharedContent content = findOwnedContent(email, shareId);
+        var collection = collections.findByIdAndUserEmail(collectionId, email)
+                .orElseThrow(() -> new ResourceNotFoundException("저장 분류를 찾을 수 없습니다."));
+        content.selectTargetCollection(collection);
+        savedPlaces.findByUserIdAndSharedContentId(content.getUser().getId(), shareId)
+                .forEach(saved -> saved.update(null, null, collection));
     }
 
     public void delete(String email, Long shareId) {

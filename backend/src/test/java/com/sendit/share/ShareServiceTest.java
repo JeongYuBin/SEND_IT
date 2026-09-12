@@ -9,6 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.sendit.notification.NotificationService;
+import com.sendit.collection.CollectionRepository;
+import com.sendit.place.UserSavedPlaceRepository;
 import com.sendit.user.UserRepository;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +31,8 @@ class ShareServiceTest {
                 7L, List.of(JobStatus.PENDING, JobStatus.PROCESSING))).thenReturn(true);
         ShareService service = new ShareService(users, contents, jobs,
                 mock(UrlNormalizer.class), mock(MediaStorageCleaner.class),
-                mock(NotificationService.class), mock(SharedContentPlaceRepository.class));
+                mock(NotificationService.class), mock(SharedContentPlaceRepository.class),
+                mock(CollectionRepository.class), mock(UserSavedPlaceRepository.class));
 
         ShareDtos.ShareAcceptedResponse response = service.reanalyze(
                 "user@example.com", 7L);
@@ -59,7 +62,8 @@ class ShareServiceTest {
                 .thenReturn(List.of(first, second));
         ShareService service = new ShareService(users, contents, jobs,
                 mock(UrlNormalizer.class), cleaner, notifications,
-                mock(SharedContentPlaceRepository.class));
+                mock(SharedContentPlaceRepository.class), mock(CollectionRepository.class),
+                mock(UserSavedPlaceRepository.class));
 
         service.deleteAll("user@example.com");
 

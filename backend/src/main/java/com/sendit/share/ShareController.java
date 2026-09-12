@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 @RestController
 @RequestMapping("/api/v1/shares")
@@ -59,6 +60,13 @@ public class ShareController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     ShareAcceptedResponse reanalyze(Principal principal, @PathVariable Long shareId) {
         return shareService.reanalyze(principal.getName(), shareId);
+    }
+
+    @PatchMapping("/{shareId}/collection/{collectionId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void selectCollection(Principal principal, @PathVariable Long shareId,
+                          @PathVariable Long collectionId) {
+        shareService.selectCollection(principal.getName(), shareId, collectionId);
     }
 
     @DeleteMapping("/{shareId}")

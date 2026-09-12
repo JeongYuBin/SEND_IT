@@ -13,6 +13,7 @@ export function SavedPlacesMap({ places }: { places: SavedPlace[] }) {
         name: place.name,
         latitude: place.latitude!,
         longitude: place.longitude!,
+        category: place.category,
       })),
     [places],
   )

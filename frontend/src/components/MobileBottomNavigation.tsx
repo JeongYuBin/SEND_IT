@@ -1,20 +1,18 @@
-import type { ReactNode } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 
-type IconName = 'home' | 'inbox' | 'route' | 'bookmark' | 'person'
+type IconName = 'map' | 'route' | 'bookmark' | 'person'
 
 const items: Array<{ to: string; label: string; icon: IconName }> = [
-  { to: '/', label: 'URL', icon: 'home' },
-  { to: '/shares', label: '콘텐츠', icon: 'inbox' },
+  { to: '/', label: '지도', icon: 'map' },
   { to: '/saved', label: '저장', icon: 'bookmark' },
   { to: '/itineraries', label: '여행', icon: 'route' },
   { to: '/profile', label: '내 정보', icon: 'person' },
 ]
 
 const icons: Record<IconName, ReactNode> = {
-  home: <><path d="M3.5 10.5 12 3l8.5 7.5" /><path d="M5.5 9.5v10h13v-10M9.5 19.5v-6h5v6" /></>,
-  inbox: <><path d="M4 5h16v14H4z" /><path d="M4 14h4l2 2h4l2-2h4" /></>,
+  map: <><path d="m3.5 5.5 5-2 7 2 5-2v15l-5 2-7-2-5 2z" /><path d="M8.5 3.5v15M15.5 5.5v15" /></>,
   route: <><circle cx="6" cy="18" r="2.5" /><circle cx="18" cy="6" r="2.5" /><path d="M8.5 18h2.25a3 3 0 0 0 3-3v-6a3 3 0 0 1 3-3h.75" /></>,
   bookmark: <path d="M6 3.5h12v17l-6-3.8-6 3.8z" />,
   person: <><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></>,
@@ -23,10 +21,36 @@ const icons: Record<IconName, ReactNode> = {
 export function MobileBottomNavigation() {
   const authenticated = useAuthStore((state) => Boolean(state.accessToken))
   const { pathname } = useLocation()
+  const [expanded, setExpanded] = useState(false)
+  const dragStart = useRef<number | null>(null)
+  const dragged = useRef(false)
+  useEffect(() => { setExpanded(false) }, [pathname])
   if (!authenticated || ['/login', '/signup', '/find-id', '/reset-password', '/share-target'].includes(pathname)) return null
 
   return (
-    <nav className="mobile-bottom-nav" aria-label="주요 메뉴">
+    <section className={`mobile-menu-sheet ${expanded ? 'expanded' : ''}`} aria-label="메뉴 패널">
+      <button className="mobile-menu-handle" type="button" aria-expanded={expanded}
+        aria-controls="mobile-menu-links" aria-label={expanded ? '메뉴 접기' : '메뉴 펼치기'}
+        onClick={() => { if (!dragged.current) setExpanded((value) => !value) }}
+        onKeyDown={(event) => { if (event.key === 'Escape') setExpanded(false) }}
+        onPointerDown={(event) => {
+          dragStart.current = event.clientY
+          dragged.current = false
+          event.currentTarget.setPointerCapture(event.pointerId)
+        }}
+        onPointerMove={(event) => {
+          if (dragStart.current === null) return
+          const delta = event.clientY - dragStart.current
+          if (Math.abs(delta) > 18) {
+            dragged.current = true
+            setExpanded(delta < 0)
+          }
+        }}
+        onPointerUp={() => { dragStart.current = null }}
+        onPointerCancel={() => { dragStart.current = null }}>
+        <span /><small>{expanded ? '아래로 내려 접기' : '메뉴 열기'}</small>
+      </button>
+    <nav id="mobile-menu-links" className="mobile-bottom-nav" aria-label="주요 메뉴" hidden={!expanded}>
       {items.map((item) => (
         <NavLink
           key={item.to}
@@ -39,5 +63,6 @@ export function MobileBottomNavigation() {
         </NavLink>
       ))}
     </nav>
+    </section>
   )
 }

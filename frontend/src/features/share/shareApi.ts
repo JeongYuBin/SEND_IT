@@ -30,6 +30,10 @@ export async function reanalyzeShare(shareId: number) {
   return response.data
 }
 
+export async function selectShareCollection(shareId: number, collectionId: number) {
+  await http.patch(`/shares/${shareId}/collection/${collectionId}`)
+}
+
 export async function deleteShare(shareId: number) {
   await http.delete(`/shares/${shareId}`)
 }

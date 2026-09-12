@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import type { ApiError } from '../auth/types'
-import { createShare, type CreateShareInput } from './shareApi'
+import { createCollection, getCollections } from '../saved/savedApi'
+import { createShare, selectShareCollection, type CreateShareInput } from './shareApi'
 
 const PENDING_SHARE_KEY = 'sendit-pending-share'
 
@@ -43,11 +44,31 @@ function readPendingShare(searchParams: URLSearchParams): CreateShareInput | nul
 
 export function ShareTargetPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const accessToken = useAuthStore((state) => state.accessToken)
   const started = useRef(false)
   const [request] = useState(() => readPendingShare(searchParams))
+  const [newCategory, setNewCategory] = useState('')
+  const [showNewCategory, setShowNewCategory] = useState(false)
   const mutation = useMutation({ mutationFn: createShare })
+  const collectionsQuery = useQuery({
+    queryKey: ['collections'],
+    queryFn: getCollections,
+    enabled: Boolean(accessToken && mutation.isSuccess),
+  })
+  const selectCategoryMutation = useMutation({
+    mutationFn: (collectionId: number) => selectShareCollection(mutation.data!.shareId, collectionId),
+  })
+  const createCategoryMutation = useMutation({
+    mutationFn: createCollection,
+    onSuccess: async (collection) => {
+      await queryClient.invalidateQueries({ queryKey: ['collections'] })
+      setNewCategory('')
+      setShowNewCategory(false)
+      selectCategoryMutation.mutate(collection.id)
+    },
+  })
 
   useEffect(() => {
     if (started.current || !request) return
@@ -72,7 +93,7 @@ export function ShareTargetPage() {
   const apiError = (mutation.error as AxiosError<ApiError> | null)?.response?.data
 
   return (
-    <main className="share-target-shell">
+    <main className={`share-target-shell ${mutation.isSuccess ? 'share-target-sheet-page' : ''}`}>
       <Link className="brand-link" to="/">SEND IT</Link>
       <section className="share-target-card">
         {!request ? (
@@ -89,15 +110,46 @@ export function ShareTargetPage() {
             <p>URL을 저장하고 장소 분석을 요청하는 중입니다.</p>
           </>
         ) : mutation.isSuccess ? (
-          <>
-            <span className="share-target-mark" aria-hidden="true">✓</span>
-            <h1>{mutation.data.duplicate ? '이미 보관한 게시물입니다.' : '게시물을 저장했습니다.'}</h1>
-            <p>장소 분석은 백그라운드에서 계속됩니다. 이제 SNS로 돌아가도 괜찮습니다.</p>
-            <div className="share-target-actions">
-              <Link className="share-target-primary" to={`/shares/${mutation.data.shareId}`}>분석 내용 보기</Link>
-              <button type="button" onClick={() => navigate('/', { replace: true })}>나중에 보기</button>
+          <div className="share-category-sheet" role="dialog" aria-labelledby="share-category-title">
+            <span className="share-sheet-handle" aria-hidden="true" />
+            <header>
+              <span className="share-target-mark" aria-hidden="true">✓</span>
+              <div>
+                <small>저장 완료</small>
+                <h1 id="share-category-title">어디에 담을까요?</h1>
+              </div>
+            </header>
+            <p>분석은 백그라운드에서 계속됩니다. 저장할 분류를 선택해 주세요.</p>
+            <div className="share-category-list">
+              <button className="share-category-add" type="button" onClick={() => setShowNewCategory(true)}>
+                <span>＋</span><b>새 분류 추가</b>
+              </button>
+              {collectionsQuery.data?.map((collection) => (
+                <button
+                  type="button"
+                  key={collection.id}
+                  className={selectCategoryMutation.variables === collection.id && selectCategoryMutation.isSuccess ? 'selected' : ''}
+                  onClick={() => selectCategoryMutation.mutate(collection.id)}
+                >
+                  <span>★</span><b>{collection.name}</b>
+                </button>
+              ))}
             </div>
-          </>
+            {showNewCategory && (
+              <form className="share-new-category" onSubmit={(event) => {
+                event.preventDefault()
+                if (newCategory.trim()) createCategoryMutation.mutate(newCategory.trim())
+              }}>
+                <input autoFocus maxLength={100} value={newCategory} onChange={(event) => setNewCategory(event.target.value)} placeholder="새 분류 이름" />
+                <button disabled={!newCategory.trim() || createCategoryMutation.isPending}>추가</button>
+              </form>
+            )}
+            {(selectCategoryMutation.isError || createCategoryMutation.isError) && <div className="form-error">분류를 저장하지 못했습니다. 다시 시도해 주세요.</div>}
+            <div className="share-sheet-actions">
+              <button type="button" onClick={() => navigate('/', { replace: true })}>완료</button>
+              <Link to={`/shares/${mutation.data.shareId}`}>분석 보기</Link>
+            </div>
+          </div>
         ) : (
           <>
             <span className="share-target-mark error" aria-hidden="true">!</span>

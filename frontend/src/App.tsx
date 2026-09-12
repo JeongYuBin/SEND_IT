@@ -13,7 +13,6 @@ import { MobileBottomNavigation } from './components/MobileBottomNavigation'
 import { ProfilePage } from './features/account/ProfilePage'
 import { SettingsPage } from './features/account/SettingsPage'
 import { ShareTargetPage } from './features/share/ShareTargetPage'
-import { SharedContentsPage } from './features/share/SharedContentsPage'
 import { NotificationsPage } from './features/notification/NotificationsPage'
 import { NotificationShortcut } from './components/NotificationShortcut'
 import { DesktopSiteNavigation } from './components/DesktopSiteNavigation'
@@ -35,7 +34,7 @@ export function App() {
       <Route path="/reset-password" element={<AccountRecoveryPage mode="password" />} />
       <Route path="/share-target" element={<ShareTargetPage />} />
       <Route path="/shares/:shareId" element={<ProtectedRoute><ShareResultPage /></ProtectedRoute>} />
-      <Route path="/shares" element={<ProtectedRoute><SharedContentsPage /></ProtectedRoute>} />
+      <Route path="/shares" element={<Navigate to="/" replace />} />
       <Route
         path="/itineraries/:itineraryId"
         element={<ProtectedRoute><ItineraryDetailPage /></ProtectedRoute>}

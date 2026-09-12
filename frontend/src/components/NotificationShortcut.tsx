@@ -9,11 +9,11 @@ export function NotificationShortcut() {
   const countQuery = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: getUnreadNotificationCount,
-    enabled: authenticated,
+    enabled: authenticated && pathname !== '/',
     refetchInterval: 15000,
   })
 
-  if (!authenticated || ['/login', '/signup', '/find-id', '/reset-password', '/share-target', '/notifications'].includes(pathname)) return null
+  if (!authenticated || ['/', '/login', '/signup', '/find-id', '/reset-password', '/share-target', '/notifications'].includes(pathname)) return null
   const count = countQuery.data ?? 0
   return (
     <Link className="notification-shortcut" to="/notifications" aria-label={`알림 ${count}개`}>
