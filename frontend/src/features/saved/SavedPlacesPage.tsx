@@ -18,6 +18,7 @@ import type { TransportType } from '../itinerary/types'
 import { PlaceImage } from '../../components/PlaceImage'
 import { eventPeriodState } from './eventPeriod'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { FeedDiscovery } from './FeedDiscovery'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -245,6 +246,7 @@ export function SavedPlacesPage() {
           </button>
         </div>
       </header>
+      <FeedDiscovery places={placesQuery.data ?? []} />
 
       <div ref={addPlaceSlotRef} className="place-add-slot" />
 
@@ -483,18 +485,18 @@ export function SavedPlacesPage() {
               key={place.savedPlaceId}
               role="link"
               tabIndex={0}
-              onClick={() => navigate(`/saved/places/${place.savedPlaceId}`)}
+              onClick={() => navigate(place.latitude != null && place.longitude != null ? `/?place=${place.savedPlaceId}` : `/saved/places/${place.savedPlaceId}`)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault()
-                  navigate(`/saved/places/${place.savedPlaceId}`)
+                  navigate(place.latitude != null && place.longitude != null ? `/?place=${place.savedPlaceId}` : `/saved/places/${place.savedPlaceId}`)
                 }
               }}
             >
               <div className="place-image">
-                {place.imageUrl ? (
+                {place.imageUrl || place.sources.some((source) => source.thumbnailUrl) ? (
                   <PlaceImage
-                    src={place.imageUrl}
+                    src={place.sources.find((source) => source.thumbnailUrl)?.thumbnailUrl ?? place.imageUrl}
                     alt={`${place.name} 대표 이미지`}
                     className="saved-place-image-skeleton"
                   />

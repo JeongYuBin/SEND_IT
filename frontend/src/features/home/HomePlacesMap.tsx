@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { KakaoMap, type KakaoMapPoint } from '../../components/KakaoMap'
 import type { SavedPlace } from '../saved/types'
 
@@ -13,17 +13,21 @@ const filters = [
 
 export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const focused = places.find((place) => place.savedPlaceId === Number(params.get('place')))
+  const focusedCenter = useMemo(() => focused?.latitude != null && focused.longitude != null
+    ? { latitude: focused.latitude, longitude: focused.longitude } : null, [focused?.latitude, focused?.longitude])
   const [filter, setFilter] = useState('전체')
   const [currentLocation, setCurrentLocation] = useState({ latitude: 37.5665, longitude: 126.978 })
 
   useEffect(() => {
-    if (!navigator.geolocation) return
+    if (params.has('place') || !navigator.geolocation) return
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => setCurrentLocation({ latitude: coords.latitude, longitude: coords.longitude }),
       () => undefined,
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 },
     )
-  }, [])
+  }, [params])
   const points = useMemo<KakaoMapPoint[]>(() => {
     const selected = filters.find((item) => item.label === filter) ?? filters[0]
     return places
@@ -54,14 +58,14 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
       <KakaoMap
         ariaLabel={`${filter} 저장 장소 ${points.length}곳`}
         points={points}
-        initialCenter={currentLocation}
+        initialCenter={focusedCenter ?? currentLocation}
         fitPoints={false}
         onSelect={(point) => navigate(`/saved/places/${point.id}`)}
       />
       <div className="home-map-summary">
         <span>MY PLACES</span>
-        <strong>저장한 장소 {points.length}곳</strong>
-        <button type="button" onClick={() => navigate('/saved')}>게시물 보기</button>
+        <strong>{focused?.name ?? `저장한 장소 ${points.length}곳`}</strong>
+        <button type="button" onClick={() => navigate(focused ? `/saved/places/${focused.savedPlaceId}` : '/saved')}>{focused ? '장소 상세' : '게시물 보기'}</button>
       </div>
     </section>
   )

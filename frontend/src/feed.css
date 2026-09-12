@@ -43,10 +43,11 @@
 .feed-shell .place-filters select { width: 100%; min-width: 0; min-height: 36px; padding: 6px; font-size: 12px; }
 .feed-shell .filter-summary { margin-top: 10px; font-size: 12px; }
 .feed-shell .place-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-top: 16px; }
-.feed-shell .place-card { display: block; min-width: 0; border-radius: 16px; overflow: hidden; }
-.feed-shell .place-image { width: 100%; height: auto; aspect-ratio: 1; border-radius: 0; }
+.feed-shell .place-card { display: block; min-width: 0; border: 0; background: transparent; box-shadow: none; border-radius: 0; overflow: hidden; padding: 0; }
+.feed-shell .place-image { width: 100%; height: auto; aspect-ratio: 3 / 5; border-radius: 20px; overflow: hidden; }
 .feed-shell .place-image img, .feed-shell .place-image > span { display: block; width: 100%; height: 100%; object-fit: cover; min-height: 0; }
-.feed-shell .place-content { padding: 10px; }
+.feed-shell .place-content { padding: 10px 2px 18px; }
+.feed-shell .place-memo { display: none; }
 .feed-shell .place-content h2 { font-size: 14px; line-height: 1.35; margin: 5px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .feed-shell .place-content p { font-size: 11px; margin: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .feed-shell .place-meta { display: block; font-size: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -69,3 +70,27 @@
   .itinerary-saved-grid { grid-template-columns: 1fr; }
 }
 @media(min-width:1200px) { .feed-shell .place-grid { grid-template-columns: repeat(5,minmax(0,1fr)); } }
+
+.feed-discovery { width: min(100%, 1180px); margin: 20px auto; }
+.discovery-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.discovery-shortcuts > button { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; padding: 22px; border: 1px solid transparent; border-radius: 24px; background: #eee9f7; color: #514466; font-size: clamp(16px, 2vw, 22px); line-height: 1.5; font-weight: 700; }
+.discovery-shortcuts > button:nth-child(2) { background: #f8eae5; color: #915e55; }
+.discovery-shortcuts > button[aria-pressed="true"] { border-color: currentColor; }
+.discovery-shortcuts > button > span:last-child { font-size: 36px; }
+.discovery-results { margin-top: 12px; padding: 18px; background: #fff; border: 1px solid var(--line); border-radius: 22px; }
+.discovery-results header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.discovery-results p, .discovery-results label { font-size: 12px; color: var(--muted); }
+.discovery-results label { display: grid; gap: 8px; }
+.discovery-results select { width: 100%; min-width: 0; padding: 10px; border-radius: 12px; }
+.discovery-results button { padding: 8px 12px; border-radius: 12px; font-size: 12px; }
+.discovery-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.discovery-grid article { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.discovery-grid .place-image-skeleton { width: 100%; height: auto; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; }
+.discovery-grid strong { font-size: 14px; }
+.discovery-grid small { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.discovery-grid button { margin-top: auto; background: #eee9f7; color: #514466; }
+.feed-shell .place-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 20px; }
+@media(max-width:760px) {
+  .discovery-shortcuts > button { padding: 18px 14px; border-radius: 20px; }
+  .discovery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}

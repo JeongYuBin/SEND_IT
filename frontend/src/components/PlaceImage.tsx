@@ -31,6 +31,8 @@ export function PlaceImage({
         <img
           className="place-image-content"
           src={visibleSrc}
+          loading="lazy"
+          decoding="async"
           alt=""
           referrerPolicy="no-referrer"
           onError={() => setFailedUrl(visibleSrc)}
