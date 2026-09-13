@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
@@ -20,9 +20,65 @@ function localDate(offset = 0) {
   return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 10)
 }
 
+function addDays(dateValue: string, offset: number) {
+  const date = new Date(`${dateValue}T12:00:00`)
+  date.setDate(date.getDate() + offset)
+  const timezoneOffset = date.getTimezoneOffset() * 60_000
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 10)
+}
+
 function errorMessage(error: unknown) {
   const response = (error as AxiosError<{ message?: string }>).response
   return response?.data?.message ?? '여행 계획을 만들지 못했습니다. 입력 내용을 확인해 주세요.'
+}
+
+type Period = 'AM' | 'PM'
+
+function DirectTimeInput({ value, onChange, label }: { value: string; onChange: (value: string) => void; label: string }) {
+  const [valueHour = '10', valueMinute = '00'] = value.split(':')
+  const toDisplayHour = (hour: string) => String((Number(hour) % 12) || 12).padStart(2, '0')
+  const [hour, setHour] = useState(toDisplayHour(valueHour))
+  const [minute, setMinute] = useState(valueMinute)
+  const [period, setPeriod] = useState<Period>(Number(valueHour) >= 12 ? 'PM' : 'AM')
+
+  useEffect(() => {
+    setHour(toDisplayHour(valueHour))
+    setMinute(valueMinute)
+    setPeriod(Number(valueHour) >= 12 ? 'PM' : 'AM')
+  }, [valueHour, valueMinute])
+
+  const commit = (nextHour = hour, nextMinute = minute, nextPeriod = period) => {
+    const safeHour = Math.min(12, Math.max(1, Number(nextHour) || 1))
+    const safeMinute = Math.min(59, Math.max(0, Number(nextMinute) || 0))
+    const hour24 = nextPeriod === 'AM' ? safeHour % 12 : (safeHour % 12) + 12
+    const normalizedHour = String(safeHour).padStart(2, '0')
+    const normalizedMinute = String(safeMinute).padStart(2, '0')
+    setHour(normalizedHour)
+    setMinute(normalizedMinute)
+    onChange(`${String(hour24).padStart(2, '0')}:${normalizedMinute}`)
+  }
+
+  const digitsOnly = (input: string) => input.replace(/\D/g, '').slice(0, 2)
+
+  return (
+    <div className="trip-direct-time" aria-label={label}>
+      <div className="trip-period" aria-label="오전 또는 오후">
+        {(['AM', 'PM'] as Period[]).map((item) => (
+          <button key={item} type="button" aria-pressed={period === item} onClick={() => {
+            setPeriod(item)
+            commit(hour, minute, item)
+          }}>{item === 'AM' ? '오전' : '오후'}</button>
+        ))}
+      </div>
+      <label><span className="sr-only">시</span><input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={2}
+        value={hour} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setHour(digitsOnly(event.target.value))}
+        onBlur={() => commit()} aria-label={`${label} 시`} /></label>
+      <span aria-hidden="true">:</span>
+      <label><span className="sr-only">분</span><input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={2}
+        value={minute} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setMinute(digitsOnly(event.target.value))}
+        onBlur={() => commit()} aria-label={`${label} 분`} /></label>
+    </div>
+  )
 }
 
 export function ItinerariesPage() {
@@ -36,6 +92,20 @@ export function ItinerariesPage() {
   const [regionFilter, setRegionFilter] = useState('all')
   const [districtFilter, setDistrictFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  const [startDate, startTime] = startDateTime.split('T')
+  const [endDate, endTime] = endDateTime.split('T')
+  const dateRangeIsValid = new Date(endDateTime).getTime() > new Date(startDateTime).getTime()
+
+  const updateStartDateTime = (nextDate: string, nextTime: string) => {
+    const nextStart = `${nextDate}T${nextTime}`
+    setStartDateTime(nextStart)
+    if (new Date(nextStart).getTime() >= new Date(endDateTime).getTime()) {
+      setEndDateTime(`${addDays(nextDate, 1)}T${endTime}`)
+    }
+  }
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const placesById = useMemo(
@@ -69,8 +139,9 @@ export function ItinerariesPage() {
       return (regionFilter === 'all' || region === regionFilter)
         && (districtFilter === 'all' || district === districtFilter)
         && (categoryFilter === 'all' || place.category === categoryFilter)
+        && `${place.name} ${place.roadAddress ?? place.address ?? ''} ${place.category ?? ''}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
     }),
-    [categoryFilter, districtFilter, placesQuery.data, regionFilter],
+    [categoryFilter, districtFilter, placesQuery.data, regionFilter, search],
   )
   const createMutation = useMutation({
     mutationFn: createItinerary,
@@ -84,13 +155,13 @@ export function ItinerariesPage() {
   const togglePlace = (id: number) => {
     setSelectedIds((current) => current.includes(id)
       ? current.filter((savedId) => savedId !== id)
-      : [...current, id])
+      : current.length < 20 ? [...current, id] : current)
   }
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    const [startDate, dailyStartTime] = startDateTime.split('T')
-    const [endDate, dailyEndTime] = endDateTime.split('T')
+    const [, dailyStartTime] = startDateTime.split('T')
+    const [, dailyEndTime] = endDateTime.split('T')
     createMutation.mutate({
       title,
       startDate,
@@ -103,14 +174,13 @@ export function ItinerariesPage() {
   }
 
   return (
-    <main className="itinerary-shell">
+    <main className="itinerary-shell trip-create">
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
           <Link to="/saved">저장한 장소</Link>
           <Link to="/profile">내 정보</Link>
           <Link to="/settings">설정</Link>
-          <Link to="/notifications">알림</Link>
           <Link to="/">URL 저장하기</Link>
         </div>
       </nav>
@@ -118,53 +188,74 @@ export function ItinerariesPage() {
       <header className="itinerary-header">
         <span className="eyebrow">TRIP PLANNER</span>
         <h1>여행 계획 만들기</h1>
-        <p>저장한 장소를 고르고 기본 일정을 정해 보세요. 장소는 선택한 순서대로 계획에 담깁니다.</p>
+        <p>가고 싶은 곳을 모아, 나만의 여행으로.</p>
       </header>
 
       <div className="itinerary-layout itinerary-create-layout">
         <form className="itinerary-form" onSubmit={handleSubmit}>
-          <h2>기본 일정</h2>
+          <section className="trip-basics">
+          <h2><span className="trip-step">01</span> 어떤 여행을 떠날까요?</h2>
           <label>
             계획 이름
             <input required maxLength={150} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="예: 서울 주말 나들이" />
           </label>
-          <div className="itinerary-field-row">
-            <label>
-              여행 시작 일시
-              <input
-                required
-                type="datetime-local"
-                value={startDateTime}
-                onChange={(event) => setStartDateTime(event.target.value)}
-              />
-            </label>
-            <label>
-              여행 종료 일시
-              <input
-                required
-                type="datetime-local"
-                min={startDateTime}
-                value={endDateTime}
-                onChange={(event) => setEndDateTime(event.target.value)}
-              />
-            </label>
+          <div className="itinerary-field-row trip-schedule">
+            <fieldset className="trip-date-block">
+              <legend><span>출발</span> 여행 시작</legend>
+              <div className="trip-date-time-grid">
+                <label><span>날짜</span><input required aria-label="여행 시작 날짜" type="date" value={startDate}
+                  onChange={(event) => updateStartDateTime(event.target.value, startTime)} /></label>
+                <div className="trip-time-field"><span>시간 직접 입력</span><DirectTimeInput label="여행 시작 시간" value={startTime}
+                  onChange={(time) => updateStartDateTime(startDate, time)} /></div>
+              </div>
+            </fieldset>
+            <fieldset className="trip-date-block">
+              <legend><span>도착</span> 여행 종료</legend>
+              <div className="trip-date-time-grid">
+                <label><span>날짜</span><input required aria-label="여행 종료 날짜" type="date" min={startDate} value={endDate}
+                  onChange={(event) => setEndDateTime(`${event.target.value}T${endTime}`)} /></label>
+                <div className="trip-time-field"><span>시간 직접 입력</span><DirectTimeInput label="여행 종료 시간" value={endTime}
+                  onChange={(time) => setEndDateTime(`${endDate}T${time}`)} /></div>
+              </div>
+            </fieldset>
+            {!dateRangeIsValid && <p className="trip-date-error" role="alert">종료 일시는 시작 일시보다 늦게 선택해 주세요.</p>}
           </div>
-          <label>
-            이동 수단
-            <select value={transportType} onChange={(event) => setTransportType(event.target.value as TransportType)}>
-              {Object.entries(transportLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
-          </label>
+          <fieldset className="trip-transport">
+            <legend>이동 수단</legend>
+            <div>{Object.entries(transportLabels).map(([value, label]) => (
+              <button type="button" key={value} aria-pressed={transportType === value}
+                onClick={() => setTransportType(value as TransportType)}>{label}</button>
+            ))}</div>
+          </fieldset>
+          </section>
 
+          <section className="trip-places">
           <div className="itinerary-place-heading">
             <div>
-              <h2>장소 선택</h2>
-              <p>최대 20개 · 현재 {selectedIds.length}개 선택</p>
+              <h2><span className="trip-step">02</span> 어디로 갈까요?</h2>
+              <p>선택한 순서로 담겨요 · {selectedIds.length}/20곳</p>
             </div>
             {selectedIds.length > 0 && <button type="button" onClick={() => setSelectedIds([])}>선택 해제</button>}
           </div>
+          {selectedIds.length > 0 && (
+            <ol className="trip-selected" aria-label="선택한 장소 순서">
+              {selectedIds.map((id, index) => <li key={id}>
+                <button type="button" onClick={() => togglePlace(id)} aria-label={`${placesById.get(id)?.name} 선택 해제`}>
+                  <span>{index + 1}</span>{placesById.get(id)?.name}<span aria-hidden="true">×</span>
+                </button>
+              </li>)}
+            </ol>
+          )}
 
           {(placesQuery.data?.length ?? 0) > 0 && (
+            <div className="trip-search-tools">
+            <label className="trip-search"><span className="sr-only">저장한 장소 검색</span>
+              <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="장소 이름, 지역으로 검색" />
+            </label>
+            <button className="trip-filter-toggle" type="button" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(open => !open)}>
+              {filtersOpen ? '필터 닫기' : '필터'}{[regionFilter, districtFilter, categoryFilter].filter(value => value !== 'all').length > 0 ? ' · 적용 중' : ''}
+            </button>
+            {filtersOpen && (
             <section className="itinerary-place-filters" aria-label="장소 선택 필터">
               <label>
                 지역
@@ -194,10 +285,14 @@ export function ItinerariesPage() {
                 {(placesQuery.data?.length ?? 0)}개 중 {filteredPlaces.length}개
               </div>
             </section>
+            )}
+            <span className="trip-result-count">저장한 장소 {filteredPlaces.length}곳</span>
+            </div>
           )}
 
+          {placesQuery.isError && <div className="empty-state" role="alert">장소를 불러오지 못했어요. <button type="button" onClick={() => void placesQuery.refetch()}>다시 시도</button></div>}
           {placesQuery.isLoading && <div className="empty-state">저장 장소를 불러오고 있습니다.</div>}
-          {!placesQuery.isLoading && (placesQuery.data?.length ?? 0) === 0 && (
+          {!placesQuery.isLoading && !placesQuery.isError && (placesQuery.data?.length ?? 0) === 0 && (
             <div className="empty-state">
               <strong>먼저 장소를 저장해 주세요.</strong>
               <Link to="/">URL로 장소 찾기</Link>
@@ -213,6 +308,7 @@ export function ItinerariesPage() {
                   disabled={!selected && selectedIds.length >= 20}
                   key={place.savedPlaceId}
                   type="button"
+                  aria-pressed={selected}
                   onClick={() => togglePlace(place.savedPlaceId)}
                 >
                   <span className="selection-order">{selected ? order + 1 : '+'}</span>
@@ -230,15 +326,14 @@ export function ItinerariesPage() {
             <div className="empty-state">선택한 필터에 맞는 장소가 없습니다.</div>
           )}
 
-          {selectedIds.length > 0 && (
-            <ol className="selected-place-order">
-              {selectedIds.map((id) => <li key={id}>{placesById.get(id)?.name}</li>)}
-            </ol>
-          )}
+          </section>
+          <footer className="trip-create-footer">
+          <p aria-live="polite">{selectedIds.length ? `${selectedIds.length}곳을 담았어요` : '함께할 장소를 선택해 주세요'}</p>
           {createMutation.isError && <div className="form-error">{errorMessage(createMutation.error)}</div>}
-          <button className="primary-button itinerary-submit" disabled={createMutation.isPending || selectedIds.length === 0}>
+          <button className="primary-button itinerary-submit" disabled={createMutation.isPending || selectedIds.length === 0 || !dateRangeIsValid}>
             {createMutation.isPending ? '계획 만드는 중…' : '여행 계획 만들기'}
           </button>
+          </footer>
         </form>
 
       </div>

@@ -65,7 +65,6 @@ export function ItineraryListPage() {
           <Link to="/saved">저장한 장소</Link>
           <Link to="/profile">내 정보</Link>
           <Link to="/settings">설정</Link>
-          <Link to="/notifications">알림</Link>
           <Link to="/">URL 저장하기</Link>
         </div>
       </nav>
@@ -74,9 +73,7 @@ export function ItineraryListPage() {
         <div>
           <span className="eyebrow">MY TRIPS</span>
           <h1>전체 여행 계획</h1>
-          <p>지금까지 저장한 여행 계획을 날짜순으로 확인하고 이어서 편집해 보세요.</p>
         </div>
-        <Link className="primary-button" to="/itineraries/new">+ 계획 추가</Link>
       </header>
 
       <section className="itinerary-saved-list">
@@ -90,6 +87,7 @@ export function ItineraryListPage() {
             <Link className="primary-button" to="/itineraries/new">첫 계획 만들기</Link>
           </div>
         )}
+        <div className="itinerary-list-toolbar">
         {(itinerariesQuery.data?.length ?? 0) > 0 && (
           <div className="itinerary-list-filters" aria-label="여행 계획 상태 필터">
             {(Object.keys(filterLabels) as TripFilter[]).map((value) => (
@@ -100,11 +98,13 @@ export function ItineraryListPage() {
                 onClick={() => setFilter(value)}
                 key={value}
               >
-                {filterLabels[value]} <span>{counts[value]}</span>
+                {filterLabels[value]} <span data-zero={counts[value] === 0}>{counts[value]}</span>
               </button>
             ))}
           </div>
         )}
+        <Link className="primary-button itinerary-add-button" to="/itineraries/new"><span aria-hidden="true">+</span> 계획 추가</Link>
+        </div>
         {!itinerariesQuery.isLoading
           && itineraries.length > 0
           && visibleItineraries.length === 0 && (

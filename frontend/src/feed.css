@@ -73,19 +73,42 @@
 .feed-card-delete { flex: 0 0 auto; min-height: 27px; margin: 0; padding: 4px 9px; border: 1px solid rgb(193 77 93 / 13%); border-radius: 999px; color: #b05262; background: rgb(255 248 249 / 78%); font-size: 9px; font-weight: 650; }
 .feed-card-delete:hover { background: #fff0f2; }
 .feed-card-delete:disabled { color: #b8b2bb; cursor: wait; opacity: .65; }
-.itinerary-list-header { margin: 24px auto; padding-top: 0; }
-.itinerary-list-header h1 { font-size: 30px; }
+.itinerary-list-header { display: block; margin: 20px auto 0; padding-top: 0; text-align: left; }
+.itinerary-list-header > div { width: 100%; }
+.itinerary-list-header .eyebrow { display: block; margin-bottom: 16px; }
+.itinerary-list-header h1 { margin: 0; font-size: 30px; }
 .itinerary-list-header p { font-size: 13px; }
+.itinerary-saved-list { margin-top: 16px; }
+.itinerary-list-toolbar { display: flex; width: 100%; margin-bottom: 20px; align-items: center; gap: 10px; flex-wrap: nowrap; }
+.itinerary-list-toolbar .itinerary-list-filters { min-width: 0; margin: 0; gap: 7px; flex-wrap: nowrap; }
+.itinerary-list-toolbar .itinerary-list-filters button { min-height: 40px; padding: 7px 11px; gap: 5px; font-size: 13px; white-space: nowrap; }
+.itinerary-list-toolbar .itinerary-list-filters button span { min-width: 19px; height: 19px; padding: 0 5px; font-size: 10px; }
+.itinerary-list-toolbar .itinerary-add-button { display: inline-flex; min-height: 40px; margin-left: auto; padding: 8px 13px; align-items: center; gap: 4px; flex: 0 0 auto; border-radius: 13px; font-size: 13px; white-space: nowrap; }
+.itinerary-list-toolbar .itinerary-add-button span { font-size: 16px; line-height: 1; }
 .itinerary-saved-grid { gap: 12px; }
-.itinerary-saved-card { padding: 16px; min-height: 0; gap: 8px; border-radius: 18px; }
-.itinerary-saved-card strong { font-size: 19px; }
+.itinerary-saved-card { position: relative; padding: 12px; min-height: 108px; gap: 4px; border-radius: 16px; }
+.itinerary-saved-card strong { margin-top: 1px; font-size: 17px; line-height: 1.35; }
 .itinerary-saved-card small, .itinerary-saved-card > div { font-size: 12px; }
+.itinerary-saved-card > div b { padding: 3px 7px; font-size: 10px; }
+.itinerary-saved-card > small { padding-right: 66px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.itinerary-saved-card .itinerary-card-action { position: absolute; right: 12px; bottom: 12px; margin: 0; font-size: 11px; }
 @media(max-width:760px) {
   .feed-shell { padding: 16px 12px 100px; }
   .feed-shell .place-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
   .feed-shell .saved-header { align-items: flex-start; }
   .feed-shell .saved-header-actions { flex-direction: row; flex-wrap: wrap; }
   .itinerary-saved-grid { grid-template-columns: 1fr; }
+}
+@media(max-width:420px) {
+  .itinerary-list-toolbar { gap: 4px; justify-content: flex-start; }
+  .itinerary-list-toolbar .itinerary-list-filters { flex: 0 0 auto; justify-content: flex-start; gap: 4px; }
+  .itinerary-list-toolbar .itinerary-list-filters button { min-height: 36px; padding: 5px 6px; gap: 2px; font-size: 11px; }
+  .itinerary-list-toolbar .itinerary-list-filters button span { min-width: 16px; height: 16px; padding: 0 2px; font-size: 8px; }
+  .itinerary-list-toolbar .itinerary-list-filters button span[data-zero='true'] { display: none; }
+  .itinerary-list-toolbar .itinerary-add-button { min-height: 36px; margin-left: 0; padding: 6px 8px; gap: 2px; font-size: 11px; }
+}
+@media(max-width:360px) {
+  .itinerary-list-toolbar .itinerary-list-filters button span { display: none; }
 }
 @media(min-width:1200px) { .feed-shell .place-grid { grid-template-columns: repeat(5,minmax(0,1fr)); } }
 

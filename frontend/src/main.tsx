@@ -8,6 +8,8 @@ import './styles.css'
 import './design-system.css'
 import './soft-theme.css'
 import './feed.css'
+import '@fontsource-variable/noto-sans-kr'
+import './trip-create.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
