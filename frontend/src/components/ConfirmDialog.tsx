@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 type Props = {
   open: boolean
@@ -24,17 +25,23 @@ export function ConfirmDialog({
   useEffect(() => {
     if (!open) return
 
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !pending) onCancel()
     }
 
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+    }
   }, [open, pending, onCancel])
 
   if (!open) return null
 
-  return (
+  return createPortal((
     <div className="confirm-dialog-backdrop" role="presentation" onMouseDown={() => !pending && onCancel()}>
       <section
         className="confirm-dialog"
@@ -55,5 +62,5 @@ export function ConfirmDialog({
         </div>
       </section>
     </div>
-  )
+  ), document.body)
 }

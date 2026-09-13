@@ -29,12 +29,26 @@
 .feed-shell .saved-itinerary-cards strong { font-size: 15px; }
 .feed-shell .saved-itinerary-cards span, .feed-shell .saved-itinerary-cards small { font-size: 11px; }
 .feed-shell .collection-bar { display: block; padding: 0; margin: 12px auto; background: none; }
-.feed-shell .filter-chips { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding-bottom: 6px; }
+.feed-shell .collection-toolbar { display: flex; align-items: center; gap: 8px; }
+.feed-shell .filter-chips { display: flex; min-width: 0; flex: 1 1 auto; flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 3px 0; scrollbar-width: none; }
+.feed-shell .filter-chips::-webkit-scrollbar { display: none; }
 .feed-shell .filter-chips button { flex: 0 0 auto; min-height: 34px; padding: 7px 14px; font-size: 12px; }
-.feed-collection-manage { padding: 8px 0; }
-.feed-shell .collection-bar form { display: flex; margin-top: 8px; gap: 8px; }
+.feed-shell .collection-quick-actions { display: flex; flex: 0 0 auto; gap: 5px; }
+.feed-shell .collection-quick-actions button { min-height: 34px; padding: 7px 11px; border: 1px solid rgb(107 86 133 / 12%); border-radius: 999px; color: #6d5988; background: rgb(255 255 255 / 76%); box-shadow: 0 3px 12px rgb(62 42 78 / 7%); font-size: 11px; font-weight: 650; white-space: nowrap; }
+.feed-shell .collection-quick-actions .collection-delete-button { color: #c14d5d; }
+.feed-shell .collection-quick-actions .collection-delete-button:disabled { color: #b8b2bb; background: rgb(245 243 246 / 72%); box-shadow: none; cursor: default; }
+.feed-shell .collection-inline-create { display: flex; width: min(100%, 460px); margin-top: 9px; gap: 6px; }
 .feed-shell .collection-bar input { min-width: 0; width: auto; flex: 1; min-height: 38px; padding: 8px; }
 .feed-shell .collection-bar form button { padding: 8px 12px; font-size: 12px; }
+.feed-shell .collection-inline-create input { border-color: rgb(110 90 135 / 14%); border-radius: 13px; background: rgb(255 255 255 / 78%); }
+.feed-shell .collection-inline-create button { min-height: 38px; border: 1px solid rgb(110 90 135 / 12%); border-radius: 12px; color: #6b5787; background: #f2edf8; }
+.feed-shell .collection-inline-create button[type="button"] { color: #847d89; background: #fff; }
+@media(max-width:460px) {
+  .feed-shell .collection-toolbar { align-items: flex-start; }
+  .feed-shell .collection-quick-actions button { width: 34px; padding: 0; overflow: hidden; font-size: 0; }
+  .feed-shell .collection-quick-actions button span { font-size: 18px; }
+  .feed-shell .collection-quick-actions .collection-delete-button::before { content: '−'; font-size: 18px; }
+}
 .feed-search { width: min(100%, 1180px); margin: 12px auto; display: flex; align-items: center; gap: 12px; }
 .feed-search input { width: 100%; min-width: 0; height: 42px; padding: 0 14px; border: 1px solid var(--line); border-radius: 14px; background: white; }
 .feed-search span { flex-shrink: 0; color: var(--muted); font-size: 12px; }
@@ -51,10 +65,14 @@
 .feed-shell .place-content h2 { font-size: 14px; line-height: 1.35; margin: 5px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .feed-shell .place-content p { font-size: 11px; margin: 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .feed-shell .place-meta { display: block; font-size: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.feed-shell .place-meta > :last-child { display: none; }
-.feed-card-manage { margin-top: 8px; }
-.feed-card-manage summary { font-size: 11px; }
-.feed-card-manage select { width: 100%; min-width: 0; font-size: 12px; }
+.feed-card-tools { display: flex; min-width: 0; margin-top: 8px; align-items: flex-start; justify-content: space-between; gap: 5px; }
+.feed-card-collection { display: inline-flex; min-width: 0; height: 27px; align-items: center; gap: 4px; padding: 2px 3px 2px 7px; border: 1px solid rgb(111 91 137 / 12%); border-radius: 999px; color: #79698a; background: rgb(246 242 250 / 82%); font-size: 9px; font-weight: 650; }
+.feed-card-collection span { flex: 0 0 auto; }
+.feed-card-collection select { width: min(78px, 24vw); min-width: 0; height: 23px; min-height: 23px; padding: 1px 18px 1px 5px; border: 0; border-radius: 999px; color: #564564; background-color: rgb(255 255 255 / 78%); font-size: 9px; text-overflow: ellipsis; }
+.feed-card-collection select:focus { outline: 2px solid rgb(153 130 184 / 22%); }
+.feed-card-delete { flex: 0 0 auto; min-height: 27px; margin: 0; padding: 4px 9px; border: 1px solid rgb(193 77 93 / 13%); border-radius: 999px; color: #b05262; background: rgb(255 248 249 / 78%); font-size: 9px; font-weight: 650; }
+.feed-card-delete:hover { background: #fff0f2; }
+.feed-card-delete:disabled { color: #b8b2bb; cursor: wait; opacity: .65; }
 .itinerary-list-header { margin: 24px auto; padding-top: 0; }
 .itinerary-list-header h1 { font-size: 30px; }
 .itinerary-list-header p { font-size: 13px; }

@@ -3473,7 +3473,7 @@ main > .top-nav {
 
 .confirm-dialog-backdrop {
   position: fixed;
-  z-index: 1000;
+  z-index: 3000;
   inset: 0;
   display: grid;
   place-items: center;
@@ -3556,7 +3556,7 @@ main > .top-nav {
 @media (max-width: 520px) {
   .confirm-dialog-backdrop {
     align-items: end;
-    padding: 12px;
+    padding: 12px 12px max(18px, env(safe-area-inset-bottom));
   }
 
   .collection-bar form {
@@ -3566,7 +3566,9 @@ main > .top-nav {
 
   .confirm-dialog {
     width: 100%;
+    max-height: calc(100dvh - max(36px, env(safe-area-inset-bottom)));
     padding: 24px 20px 20px;
+    overflow-y: auto;
     border-radius: 24px;
   }
 }

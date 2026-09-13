@@ -55,6 +55,7 @@ export function SavedPlacesPage() {
   const [memo, setMemo] = useState('')
   const [collectionId, setCollectionId] = useState<number | undefined>()
   const [newCollection, setNewCollection] = useState('')
+  const [showCollectionAdd, setShowCollectionAdd] = useState(false)
   const [search, setSearch] = useState('')
   const [regionFilter, setRegionFilter] = useState('all')
   const [districtFilter, setDistrictFilter] = useState('all')
@@ -111,6 +112,7 @@ export function SavedPlacesPage() {
       queryClient.invalidateQueries({ queryKey: ['collections'] })
       setCollectionId(collection.id)
       setNewCollection('')
+      setShowCollectionAdd(false)
     },
   })
   const deleteCollectionMutation = useMutation({
@@ -393,32 +395,41 @@ export function SavedPlacesPage() {
       ), addPlaceSlotRef.current)}
 
       <section className="collection-bar">
-        <div className="filter-chips">
-          <button className={selectedCollectionId === null ? 'active' : ''} onClick={() => navigate('/saved')}>전체</button>
-          {collectionsQuery.data?.map((item) => (
+        <div className="collection-toolbar">
+          <div className="filter-chips" aria-label="컬렉션 목록">
+            <button className={selectedCollectionId === null ? 'active' : ''} onClick={() => navigate('/saved')}>전체</button>
+            {collectionsQuery.data?.map((item) => (
+              <button
+                key={item.id}
+                className={selectedCollectionId === item.id ? 'active' : ''}
+                onClick={() => navigate(`/saved/collections/${item.id}`)}
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
+          <div className="collection-quick-actions">
             <button
-              key={item.id}
-              className={selectedCollectionId === item.id ? 'active' : ''}
-              onClick={() => navigate(`/saved/collections/${item.id}`)}
-            >
-              {item.name}
-            </button>
-          ))}
+              type="button"
+              aria-expanded={showCollectionAdd}
+              onClick={() => setShowCollectionAdd((open) => !open)}
+            ><span aria-hidden="true">＋</span> 추가</button>
+            <button
+              className="collection-delete-button"
+              type="button"
+              disabled={!selectedCollection}
+              title={selectedCollection ? `${selectedCollection.name} 컬렉션 삭제` : '삭제할 컬렉션을 먼저 선택해 주세요'}
+              onClick={() => setShowCollectionDeleteConfirm(true)}
+            >삭제</button>
+          </div>
         </div>
-        <details className="feed-collection-manage"><summary>컬렉션 관리</summary>
-        <form onSubmit={(e) => { e.preventDefault(); if (newCollection.trim()) collectionMutation.mutate(newCollection) }}>
-          <input value={newCollection} onChange={(e) => setNewCollection(e.target.value)} placeholder="새 컬렉션" />
-          <button disabled={collectionMutation.isPending}>추가</button>
-          <button
-            className="collection-delete-button"
-            type="button"
-            disabled={!selectedCollection}
-            onClick={() => setShowCollectionDeleteConfirm(true)}
-          >
-            삭제
-          </button>
-        </form>
-        </details>
+        {showCollectionAdd && (
+          <form className="collection-inline-create" onSubmit={(e) => { e.preventDefault(); if (newCollection.trim()) collectionMutation.mutate(newCollection) }}>
+            <input autoFocus maxLength={40} value={newCollection} onChange={(e) => setNewCollection(e.target.value)} placeholder="새 컬렉션 이름" aria-label="새 컬렉션 이름" />
+            <button disabled={!newCollection.trim() || collectionMutation.isPending}>{collectionMutation.isPending ? '추가 중…' : '완료'}</button>
+            <button type="button" onClick={() => { setShowCollectionAdd(false); setNewCollection('') }}>취소</button>
+          </form>
+        )}
       </section>
 
       <div className="feed-search">
@@ -520,54 +531,41 @@ export function SavedPlacesPage() {
               <div className="place-content">
                 <div className="place-meta">
                   <span>{place.category ?? '미분류'}</span>
-                  {place.collectionId && place.collectionName ? (
-                    <button
-                      className="collection-link"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        navigate(`/saved/collections/${place.collectionId}`)
-                      }}
-                    >
-                      {place.collectionName}
-                    </button>
-                  ) : (
-                    <span>컬렉션 없음</span>
-                  )}
                 </div>
                 <SavedEventBadge place={place} />
                 <h2>{place.name}</h2>
                 <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
                 {place.memo && <p className="place-memo">{place.memo}</p>}
-                <details className="feed-card-manage" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
-                <summary>관리</summary>
-                <label
-                  className="place-collection-control"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  컬렉션
-                  <select
-                    value={place.collectionId ?? 'none'}
-                    disabled={updateMutation.isPending}
-                    onChange={(event) => {
-                      const value = event.target.value
-                      updateMutation.mutate({
-                        id: place.savedPlaceId,
-                        request: value === 'none'
-                          ? { clearCollection: true }
-                          : { collectionId: Number(value) },
-                      })
-                    }}
-                  >
-                    <option value="none">컬렉션 없음</option>
-                    {collectionsQuery.data?.map((item) => (
-                      <option key={item.id} value={item.id}>{item.name}</option>
-                    ))}
-                  </select>
-                </label>
-                <div className="place-actions" onClick={(event) => event.stopPropagation()}>
-                  <button onClick={() => deleteMutation.mutate(place.savedPlaceId)}>삭제</button>
+                <div className="feed-card-tools" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+                  <label className="feed-card-collection">
+                    <span>컬렉션</span>
+                    <select
+                      aria-label={`${place.name} 컬렉션`}
+                      value={place.collectionId ?? 'none'}
+                      disabled={updateMutation.isPending}
+                      onChange={(event) => {
+                        const value = event.target.value
+                        updateMutation.mutate({
+                          id: place.savedPlaceId,
+                          request: value === 'none'
+                            ? { clearCollection: true }
+                            : { collectionId: Number(value) },
+                        })
+                      }}
+                    >
+                      <option value="none">없음</option>
+                      {collectionsQuery.data?.map((item) => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    className="feed-card-delete"
+                    type="button"
+                    disabled={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(place.savedPlaceId)}
+                  >삭제</button>
                 </div>
-                </details>
               </div>
             </article>
           ))}
