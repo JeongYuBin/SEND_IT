@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createSavedPlace,
@@ -20,8 +20,7 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
   const queryClient = useQueryClient()
   const [selectedStay, setSelectedStay] = useState<TourismAccommodation | null>(null)
   const [stayIndex, setStayIndex] = useState(0)
-  const [expanded, setExpanded] = useState(false)
-  const touchStartX = useRef<number | null>(null)
+  const [expanded, setExpanded] = useState(true)
   const lastPlace = day.items.at(-1)
   const coordinateAvailable = lastPlace?.latitude !== null
     && lastPlace?.latitude !== undefined
@@ -95,12 +94,6 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
     ? routeSavedPlaceIds.has(selectedSavedPlace.savedPlaceId)
     : false
   const stays = accommodationQuery.data ?? []
-  const visibleIndex = stays.length === 0 ? 0 : Math.min(stayIndex, stays.length - 1)
-  const visibleStay = stays[visibleIndex]
-  const showPrevious = () => setStayIndex((current) =>
-    current === 0 ? stays.length - 1 : current - 1)
-  const showNext = () => setStayIndex((current) =>
-    current >= stays.length - 1 ? 0 : current + 1)
 
   if (!lastPlace || !coordinateAvailable) return null
 
@@ -138,35 +131,8 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
         {accommodationQuery.data?.length === 0 && (
           <div className="empty-state">반경 10km 안에 관광공사 등록 숙소가 없습니다.</div>
         )}
-        {visibleStay && (
-          <div
-            className="stay-slideshow"
-            aria-label={`DAY ${day.dayNumber} 주변 숙소`}
-            onTouchStart={(event) => {
-              touchStartX.current = event.touches[0]?.clientX ?? null
-            }}
-            onTouchEnd={(event) => {
-              if (touchStartX.current === null) return
-              const endX = event.changedTouches[0]?.clientX ?? touchStartX.current
-              const distance = endX - touchStartX.current
-              touchStartX.current = null
-              if (Math.abs(distance) < 45) return
-              if (distance < 0) showNext()
-              else showPrevious()
-            }}
-          >
-            <button
-              className="stay-slide-arrow previous"
-              type="button"
-              aria-label="이전 숙소"
-              onClick={showPrevious}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M15 5 8 12l7 7" />
-              </svg>
-            </button>
-            {(() => {
-                    const stay = visibleStay
+        <div className="trip-stay-grid">
+          {stays.slice(stayIndex * 4, stayIndex * 4 + 4).map((stay) => {
                     const savedPlace = savedByContentId.get(stay.contentId)
                     const included = savedPlace
                       ? routeSavedPlaceIds.has(savedPlace.savedPlaceId)
@@ -215,30 +181,14 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
                         </div>
                       </article>
                     )
-            })()}
-            <button
-              className="stay-slide-arrow next"
-              type="button"
-              aria-label="다음 숙소"
-              onClick={showNext}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m9 5 7 7-7 7" />
-              </svg>
-            </button>
-            <div className="stay-slide-dots" aria-label={`${stays.length}개 숙소 중 ${visibleIndex + 1}번째`}>
-              {stays.map((stay, index) => (
-                <button
-                  className={index === visibleIndex ? 'active' : ''}
-                  type="button"
-                  key={stay.contentId}
-                  aria-label={`${index + 1}번째 숙소 보기`}
-                  onClick={() => setStayIndex(index)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+
+          })}
+        </div>
+        {stays.length > 4 && <div className="trip-recommendation-pages">
+          <button type="button" disabled={stayIndex === 0} onClick={() => setStayIndex(index => index - 1)}>이전</button>
+          <span>{stayIndex + 1} / {Math.ceil(stays.length / 4)}</span>
+          <button type="button" disabled={(stayIndex + 1) * 4 >= stays.length} onClick={() => setStayIndex(index => index + 1)}>다음</button>
+        </div>}
       </article>}
       {selectedStay && (
         <div

@@ -39,7 +39,7 @@ export function PlaceScheduleEditor({
       </label>
       <label>
         방문 시작
-        <input required type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} />
+        <input required type="text" inputMode="text" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="14:40" title="24시간 형식으로 입력해 주세요. 예: 14:40" value={startTime} onChange={(event) => setStartTime(event.target.value)} />
       </label>
       <label>
         체류 시간

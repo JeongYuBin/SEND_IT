@@ -10,6 +10,7 @@ import './soft-theme.css'
 import './feed.css'
 import '@fontsource-variable/noto-sans-kr'
 import './trip-create.css'
+import './trip-detail.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

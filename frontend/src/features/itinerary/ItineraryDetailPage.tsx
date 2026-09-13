@@ -20,6 +20,7 @@ import { ItineraryAccommodations } from './ItineraryAccommodations'
 import { PlaceScheduleEditor } from './PlaceScheduleEditor'
 import { TransitRouteGuide } from './TransitRouteGuide'
 import { PlaceImage } from '../../components/PlaceImage'
+import { TripReminders } from './TripReminders'
 import type {
   ItineraryStatus,
   TransportType,
@@ -70,7 +71,6 @@ export function ItineraryDetailPage() {
   const [touchDropTarget, setTouchDropTarget] = useState<string | null>(null)
   const [editingPlaceId, setEditingPlaceId] = useState<number | null>(null)
   const [addingToDate, setAddingToDate] = useState<string | null>(null)
-  const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pointerDragRef = useRef<{ placeId: number; date: string; index: number } | null>(null)
   const pointerTargetRef = useRef<{ date: string; index: number } | null>(null)
@@ -98,9 +98,7 @@ export function ItineraryDetailPage() {
     onSuccess: (data) => {
       refresh(data)
       setEditingPlan(false)
-      setSaveMessage('여행 계획 변경사항을 저장했습니다.')
     },
-    onMutate: () => setSaveMessage(null),
   })
   const scheduleMutation = useMutation({
     mutationFn: ({
@@ -113,9 +111,7 @@ export function ItineraryDetailPage() {
     onSuccess: (data) => {
       refresh(data)
       setEditingPlaceId(null)
-      setSaveMessage('방문 일정과 체류 시간을 저장했습니다.')
     },
-    onMutate: () => setSaveMessage(null),
   })
   const deleteMutation = useMutation({
     mutationFn: () => deleteItinerary(id),
@@ -131,10 +127,6 @@ export function ItineraryDetailPage() {
       setEditingOrder(false)
       setOrderDraft(null)
       setDraggingPlaceId(null)
-      setSaveMessage('날짜와 방문 순서를 저장했습니다.')
-    },
-    onMutate: () => {
-      setSaveMessage(null)
     },
     onError: () => {
       setEditingOrder(false)
@@ -152,10 +144,8 @@ export function ItineraryDetailPage() {
     }) => updateItineraryItemTransport(id, savedPlaceId, transportType),
     onSuccess: (data) => {
       refresh(data)
-      setSaveMessage('이동수단을 변경했습니다.')
     },
     onMutate: async ({ savedPlaceId, transportType }) => {
-      setSaveMessage(null)
       await queryClient.cancelQueries({ queryKey: ['itineraries', id] })
       const previous = queryClient.getQueryData<Awaited<ReturnType<typeof getItinerary>>>(
         ['itineraries', id],
@@ -193,18 +183,14 @@ export function ItineraryDetailPage() {
     onSuccess: (data) => {
       refresh(data)
       setAddingToDate(null)
-      setSaveMessage('저장한 장소를 여행 경로에 추가했습니다.')
     },
-    onMutate: () => setSaveMessage(null),
   })
   const removePlaceMutation = useMutation({
     mutationFn: (savedPlaceId: number) => removeItineraryItem(id, savedPlaceId),
     onSuccess: (data) => {
       refresh(data)
       setEditingPlaceId(null)
-      setSaveMessage('장소를 여행 경로에서 제거했습니다. 저장한 장소에는 그대로 남아 있습니다.')
     },
-    onMutate: () => setSaveMessage(null),
   })
 
   const handleDelete = () => {
@@ -237,8 +223,6 @@ export function ItineraryDetailPage() {
     activeDragRef.current = false
     stopAutoScroll()
     setDraggingPlaceId(null)
-    setEditingOrder(false)
-    saveOrder(next)
   }
 
   const beginOrderChange = () => {
@@ -300,22 +284,19 @@ export function ItineraryDetailPage() {
   }
 
   const startPointerDrag = (event: ReactPointerEvent<HTMLLIElement>, placeId: number, date: string, index: number) => {
-    if (event.pointerType === 'mouse' || reorderMutation.isPending) return
+    if (!editingOrder || event.pointerType === 'mouse' || reorderMutation.isPending) return
     if ((event.target as HTMLElement).closest('button, input, select, textarea')) return
     clearLongPressTimer()
     event.currentTarget.setPointerCapture(event.pointerId)
     pointerOriginRef.current = { x: event.clientX, y: event.clientY }
     pointerPositionRef.current = { x: event.clientX, y: event.clientY }
     pointerTargetRef.current = { date, index }
-    longPressTimerRef.current = setTimeout(() => {
       pointerDragRef.current = { placeId, date, index }
       activeDragRef.current = true
-      beginOrderChange()
       setDraggingPlaceId(placeId)
       setTouchDropTarget(`${date}:${index}`)
       navigator.vibrate?.(35)
       longPressTimerRef.current = null
-    }, 450)
   }
 
   const movePointerDrag = (event: ReactPointerEvent<HTMLLIElement>) => {
@@ -350,8 +331,6 @@ export function ItineraryDetailPage() {
     if (target) moveCard(dragged.placeId, target.date, target.index)
     else {
       setDraggingPlaceId(null)
-      setEditingOrder(false)
-      setOrderDraft(null)
     }
   }
 
@@ -365,8 +344,6 @@ export function ItineraryDetailPage() {
     stopAutoScroll()
     setTouchDropTarget(null)
     setDraggingPlaceId(null)
-    setEditingOrder(false)
-    setOrderDraft(null)
   }
 
   const saveOrder = (days: ItineraryDay[]) => {
@@ -389,7 +366,7 @@ export function ItineraryDetailPage() {
   }
 
   return (
-    <main className="itinerary-shell">
+    <main className={`itinerary-shell trip-detail-page ${editingOrder ? 'trip-order-editing' : ''}`}>
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
@@ -434,22 +411,27 @@ export function ItineraryDetailPage() {
               onSave={(request) => updateMutation.mutate(request)}
             />
           )}
+          <TripReminders itinerary={itineraryQuery.data} />
           <section className="inline-order-notice">
-            <strong>카드를 길게 누른 채 원하는 순서나 날짜로 옮겨 주세요.</strong>
-            <span>{reorderMutation.isPending ? '변경 내용을 저장하고 있습니다…' : '카드를 놓으면 바로 저장됩니다.'}</span>
+            {editingOrder ? <>
+              <span>카드를 끌어 날짜와 순서를 바꿔 주세요.</span>
+              <button type="button" disabled={reorderMutation.isPending} onClick={() => { cancelPointerDrag(); setEditingOrder(false); setOrderDraft(null) }}>취소</button>
+              <button type="button" disabled={reorderMutation.isPending} onClick={() => saveOrder(orderDraft ?? itineraryQuery.data.days)}>{reorderMutation.isPending ? '저장 중…' : '수정 완료'}</button>
+            </> : <><strong>방문 일정</strong><button type="button" onClick={beginOrderChange}>순서 수정</button></>}
             {reorderMutation.isError && <div className="form-error">{reorderErrorMessage}</div>}
           </section>
-          {saveMessage && <div className="form-success">{saveMessage}</div>}
           {(mutationErrorMessage || deleteMutation.isError) && (
             <div className="form-error">
               {mutationErrorMessage ?? '여행 계획을 삭제하지 못했습니다.'}
             </div>
           )}
+          <details className="trip-route-details"><summary>전체 경로 지도 보기</summary>
           <section className="itinerary-notice">
             카카오 API가 제공하는 이동수단별 실제 경로와 예상 시간입니다.
             교통 상황과 대중교통 운행 정보에 따라 실제 이동 시간은 달라질 수 있습니다.
           </section>
           <ItineraryRouteMap days={itineraryQuery.data.days} />
+          </details>
           <div className="itinerary-days">
             {(orderDraft ?? itineraryQuery.data.days).map((day) => (
               <section
@@ -505,7 +487,7 @@ export function ItineraryDetailPage() {
                         key={item.savedPlaceId}
                         data-drop-date={day.date}
                         data-drop-index={itemIndex}
-                        draggable={!reorderMutation.isPending}
+                        draggable={editingOrder && !reorderMutation.isPending}
                         className={`timeline-draggable ${draggingPlaceId === item.savedPlaceId ? 'dragging' : ''} ${touchDropTarget === `${day.date}:${itemIndex}` ? 'touch-drop-target' : ''}`}
                         onDragStart={(event) => {
                           event.dataTransfer.effectAllowed = 'move'
@@ -540,8 +522,8 @@ export function ItineraryDetailPage() {
                         <span className="timeline-number">{editingOrder ? itemIndex + 1 : item.daySequence}</span>
                         <div className="timeline-stop">
                           {editingOrder && <div className="card-drag-handle">⠿ 카드 이동</div>}
-                          {(
-                            <>
+                          {(itemIndex > 0 || item.crossDayTransfer) && !editingOrder && (
+                            <details className="trip-transfer-details"><summary>{transportLabels[item.transportTypeFromPrevious]} · {item.travelMinutesFromPrevious > 0 ? `이동 ${item.travelMinutesFromPrevious}분` : '경로 확인'} <span>상세</span></summary>
                               {item.crossDayTransfer && (
                                 <div className="cross-day-transfer-label">
                                   전날 마지막 장소에서 오늘 첫 장소로 이동
@@ -602,7 +584,7 @@ export function ItineraryDetailPage() {
                                   </span>
                                 </div>
                               )}
-                            </>
+                            </details>
                           )}
                           {item.visitWarning && (
                             <div className="schedule-warning">
@@ -611,7 +593,7 @@ export function ItineraryDetailPage() {
                             </div>
                           )}
                           <div className="timeline-card-shell">
-                            <Link to={`/saved/places/${item.savedPlaceId}`}>
+                            <Link draggable={false} onClick={(event) => { if (editingOrder) event.preventDefault() }} to={`/saved/places/${item.savedPlaceId}`}>
                               <PlaceImage
                                 src={item.imageUrl}
                                 alt={`${item.name} 대표 이미지`}
@@ -673,11 +655,11 @@ export function ItineraryDetailPage() {
                     ))}
                   </ol>
                 )}
-                <ItineraryAccommodations itinerary={itineraryQuery.data} day={day} />
+                {!editingOrder && <details className="trip-route-details"><summary>이 날짜 주변 숙소 보기</summary><ItineraryAccommodations itinerary={itineraryQuery.data} day={day} /></details>}
               </section>
             ))}
           </div>
-          <ItineraryFestivals itinerary={itineraryQuery.data} />
+          <details className="trip-route-details"><summary>여행 중 주변 축제 보기</summary><ItineraryFestivals itinerary={itineraryQuery.data} /></details>
           {addingToDate && (
             <div
               className="place-picker-backdrop"

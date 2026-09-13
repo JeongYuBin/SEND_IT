@@ -16,6 +16,12 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = new URL(event.notification.data?.url || '/itineraries', self.location.origin)
+  if (url.origin === self.location.origin) event.waitUntil(self.clients.openWindow(url.href))
+})
+
 self.addEventListener('fetch', (event) => {
   const request = event.request
   const url = new URL(request.url)

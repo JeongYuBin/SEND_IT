@@ -1,0 +1,98 @@
+.trip-detail-page .itinerary-detail { margin-top: 18px; padding: 18px; border: 0; background: transparent; box-shadow: none; }
+.trip-detail-page .itinerary-detail > header .eyebrow { margin: 0 0 8px; font-size: 10px; }
+.trip-detail-page .itinerary-detail h1 { font-size: 26px; margin: 0; }
+.trip-detail-page .itinerary-detail > header p { font-size: 12px; gap: 4px 10px; margin: 10px 0; }
+.trip-detail-page .itinerary-header-actions { margin: 12px 0; }
+.trip-detail-page .itinerary-header-actions button { font-size: 12px; padding: 8px 12px; min-height: 38px; }
+.trip-detail-page .inline-order-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0; padding: 10px 12px; border-radius: 14px; background: #eee8f5; font-size: 12px; }
+.trip-detail-page .inline-order-notice button { padding: 8px 12px; border: 0; border-radius: 10px; color: #695383; background: white; font-size: 12px; }
+.trip-detail-page .inline-order-notice > :first-child { margin-right: auto; }
+.trip-route-details { margin: 10px 0; border: 1px solid #e7e0ee; border-radius: 14px; padding: 10px 12px; background: #ffffffb8; }
+.trip-route-details > summary { cursor: pointer; font-size: 12px; color: #7a6890; }
+.trip-detail-page .itinerary-notice { margin: 8px 0; padding: 8px; font-size: 11px; }
+.trip-detail-page .itinerary-days { gap: 14px; margin-top: 14px; }
+.trip-detail-page .itinerary-day { min-width: 0; padding: 12px; border-radius: 18px; background: #ffffffc9; }
+.trip-detail-page .itinerary-day-header { margin-bottom: 12px; gap: 8px; padding: 0; }
+.trip-detail-page .itinerary-day-header h2 { font-size: 16px; margin: 3px 0; }
+.trip-detail-page .itinerary-day-header span, .trip-detail-page .itinerary-day-header small { font-size: 11px; }
+.trip-detail-page .itinerary-timeline { margin: 0; padding: 0; gap: 10px; }
+.trip-detail-page .itinerary-timeline > li { grid-template-columns: 22px minmax(0, 1fr); gap: 6px; padding: 0; min-height: 0; }
+.trip-detail-page .timeline-number { width: 22px; height: 22px; font-size: 10px; }
+.trip-detail-page .timeline-stop { min-width: 0; }
+.trip-transfer-details { margin: 0 0 5px; font-size: 11px; }
+.trip-transfer-details > summary { cursor: pointer; color: #8b7a99; padding: 5px 0; }
+.trip-transfer-details > summary span { float: right; font-size: 10px; }
+.trip-detail-page .timeline-card-shell { min-height: 0; border-radius: 12px; }
+.trip-detail-page .timeline-card-shell > a { display: flex; min-width: 0; min-height: 0; padding: 8px 26px 8px 8px; gap: 9px; }
+.trip-detail-page .timeline-placeholder { width: 48px; height: 48px; min-height: 0; flex: 0 0 48px; border-radius: 9px; }
+.trip-detail-page .timeline-card-shell > a > span:last-child { min-width: 0; }
+.trip-detail-page .timeline-card-shell strong { display: block; font-size: 14px; margin: 2px 0; }
+.trip-detail-page .timeline-card-shell small { font-size: 10px; }
+.trip-detail-page .timeline-card-shell > a > span > span { display: block; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trip-detail-page .timeline-remove-button { width: 24px; height: 24px; min-height: 0; font-size: 16px; top: 6px; right: 5px; }
+.trip-detail-page .schedule-edit-button { margin: 3px 0 0; padding: 5px 8px; min-height: 28px; font-size: 10px; color: #816895; background: #f3eff8; border: 0; border-radius: 8px; }
+.trip-detail-page .place-operating-info, .trip-detail-page .schedule-warning { margin: 5px 0; padding: 6px 8px; font-size: 10px; }
+.trip-detail-page .segment-transport-control, .trip-detail-page .travel-estimate, .trip-detail-page .transit-unavailable { padding: 8px; margin: 5px 0; font-size: 11px; }
+.trip-detail-page :is(.itinerary-edit-form, .place-schedule-form) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0; padding: 14px; border: 1px solid #e6deee; border-radius: 16px; background: #faf7fd; font-family: var(--app-font); }
+.trip-detail-page :is(.itinerary-edit-form, .place-schedule-form) label { min-width: 0; font-size: 11px; font-weight: 550; color: #554c60; gap: 5px; }
+.trip-detail-page :is(.itinerary-edit-form, .place-schedule-form) :is(input, select) { width: 100%; min-width: 0; min-height: 40px; padding: 8px; font-family: var(--app-font); font-size: 14px; font-weight: 450; letter-spacing: -.02em; border: 1px solid #e4daed; border-radius: 10px; background: white; }
+.trip-detail-page :is(.itinerary-edit-form, .place-schedule-form) small { font-size: 10px; }
+.trip-detail-page :is(.itinerary-field-row, .edit-actions, .schedule-form-actions, .form-error) { grid-column: 1 / -1; }
+.trip-detail-page :is(.edit-actions, .schedule-form-actions) button { font-family: var(--app-font); font-size: 12px; font-weight: 600; padding: 8px 13px; border-radius: 10px; }
+.trip-detail-page .primary-button { background: #8974a5; }
+.trip-order-editing .timeline-draggable { touch-action: none; user-select: none; cursor: grab; }
+.trip-order-editing .timeline-card-shell a { pointer-events: none; }
+.trip-order-editing .timeline-remove-button { display: none; }
+.trip-detail-page .card-drag-handle { padding: 3px 0; font-size: 10px; color: #8a729e; }
+.trip-reminders { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px; border: 1px solid #e6deee; border-radius: 14px; background: #ffffffbc; }
+.trip-reminders > div { flex: 1; }
+.trip-reminders strong { font-size: 12px; }
+.trip-reminders small { display: block; font-size: 10px; color: #8f829a; }
+.trip-reminder-limit { width: 100%; }
+.trip-reminders button { padding: 8px 14px; border: 0; border-radius: 20px; background: #eee9f3; color: #7b678b; }
+.trip-reminders button[aria-checked='true'] { background: #8974a5; color: white; }
+body:has(.trip-detail-page .nearby-detail-backdrop) .mobile-menu-sheet { visibility: hidden; pointer-events: none; }
+.trip-detail-page .nearby-detail-backdrop { z-index: 2200; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+.trip-detail-page .nearby-detail-dialog { max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom))); overscroll-behavior: contain; scroll-padding-bottom: 32px; }
+.trip-detail-page .nearby-detail-content { padding-bottom: max(32px, calc(env(safe-area-inset-bottom) + 20px)); }
+.trip-detail-page .festival-day-actions { padding-bottom: 4px; }
+@media(max-width:760px) {
+ .trip-detail-page .itinerary-detail { padding: 0; margin-top: 12px; }
+ .trip-detail-page .itinerary-days { display: block; }
+ .trip-detail-page .itinerary-day { margin-bottom: 12px; }
+ .trip-detail-page .itinerary-edit-form .itinerary-field-row { grid-template-columns: minmax(0,1fr); }
+}
+.trip-detail-page .itinerary-edit-form { grid-template-columns: minmax(0,1fr); gap: 10px; padding: 12px; }
+.trip-detail-page .itinerary-edit-form > label { width: 100%; }
+.trip-detail-page .itinerary-edit-form > label > input { min-height: 42px; font-size: 14px; font-weight: 500; }
+.trip-detail-page .itinerary-edit-form .trip-date-time-grid { grid-template-columns: minmax(0,1fr) minmax(164px,1fr); }
+.trip-detail-page .itinerary-edit-form .trip-date-block { padding: 8px 9px 9px; }
+.trip-detail-page .itinerary-edit-form .trip-date-block legend { font-family: var(--app-font); font-size: 12px; font-weight: 600; color: #5f526b; }
+.trip-detail-page .itinerary-edit-form .trip-date-time-grid > label > input { min-height: 38px; font-size: 13px; font-weight: 450; }
+.trip-detail-page .itinerary-edit-form .trip-time-field > span { font-size: 10px; font-weight: 450; }
+.trip-detail-page .itinerary-edit-form .trip-period button { font-family: var(--app-font); font-size: 10px; font-weight: 450; }
+.trip-detail-page .itinerary-edit-form .trip-period button[aria-pressed='true'] { font-weight: 650; }
+.trip-detail-page .itinerary-edit-form .trip-direct-time input { width: 32px; padding: 2px; min-height: 32px; border: 0; font-family: var(--app-font); font-size: 13px; font-weight: 550; text-align: center; }
+.trip-detail-page .itinerary-edit-form > label > select { min-height: 40px; font-size: 13px; font-weight: 500; }
+.trip-detail-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.trip-detail-page :is(.itinerary-accommodations, .itinerary-festivals) { padding: 8px 0; margin: 0; border: 0; box-shadow: none; background: transparent; }
+.trip-detail-page :is(.itinerary-accommodations, .itinerary-festivals) > header { display: block; padding: 0; margin: 0 0 10px; }
+.trip-detail-page :is(.itinerary-accommodations, .itinerary-festivals) > header .eyebrow { display: none; }
+.trip-detail-page :is(.itinerary-accommodations, .itinerary-festivals) h2 { font-size: 15px; margin: 0 0 6px; }
+.trip-detail-page :is(.itinerary-accommodations, .itinerary-festivals) > header p { font-size: 11px; margin: 0; }
+.trip-detail-page .stay-recommendation-controls { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+.trip-detail-page .stay-toggle-button { padding: 5px 8px; min-height: 30px; font-size: 10px; white-space: nowrap; }
+.trip-detail-page .overnight-stay { padding: 0; margin: 0; background: transparent; }
+.trip-detail-page .overnight-stay-heading { display: none; }
+.trip-detail-page :is(.trip-stay-grid, .itinerary-festival-grid) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.trip-detail-page :is(.trip-stay-grid .stay-card, .itinerary-festival-grid > article) { display: flex; flex-direction: column; width: 100%; min-width: 0; margin: 0; border: 1px solid #eee8f3; border-radius: 12px; overflow: hidden; box-shadow: none; background: white; }
+.trip-detail-page :is(.trip-stay-grid .stay-placeholder, .trip-stay-grid .stay-skeleton, .itinerary-festival-grid .festival-image-skeleton) { display: block; width: 100%; height: 76px; min-height: 0; aspect-ratio: auto; flex: 0 0 76px; }
+.trip-detail-page :is(.trip-stay-grid .stay-card > div:last-child, .itinerary-festival-grid > article > div:last-child) { padding: 8px; min-width: 0; }
+.trip-detail-page :is(.trip-stay-grid, .itinerary-festival-grid) h3 { font-size: 12px; line-height: 1.4; margin: 3px 0; }
+.trip-detail-page .trip-stay-grid h3 button { padding: 0; font-size: 12px; text-align: left; }
+.trip-detail-page :is(.trip-stay-grid, .itinerary-festival-grid) :is(p, small, article > div > span) { font-size: 10px; margin: 3px 0; line-height: 1.4; }
+.trip-detail-page :is(.trip-stay-grid, .itinerary-festival-grid) p { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.trip-detail-page :is(.trip-stay-grid .stay-save-button, .festival-detail-button) { width: 100%; min-height: 30px; padding: 5px; margin-top: 5px; border-radius: 9px; font-size: 10px; }
+.trip-recommendation-pages { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; font-size: 11px; }
+.trip-recommendation-pages button { padding: 7px 12px; border: 1px solid #e8dfef; border-radius: 10px; background: white; color: #80698f; }
+@media(max-width:360px) { .trip-detail-page .itinerary-edit-form .trip-date-time-grid { grid-template-columns: minmax(0,1fr); } }
