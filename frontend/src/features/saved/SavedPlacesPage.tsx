@@ -510,23 +510,13 @@ export function SavedPlacesPage() {
               }}
             >
               <div className="place-image">
-                {place.imageUrl || place.sources.some((source) => source.thumbnailUrl) ? (
                   <PlaceImage
                     src={place.sources.find((source) => source.thumbnailUrl)?.thumbnailUrl ?? place.imageUrl}
+                    fallbackSources={[place.imageUrl, ...place.sources.map((source) => source.thumbnailUrl)]}
+                    category={place.category}
                     alt={`${place.name} 대표 이미지`}
                     className="saved-place-image-skeleton"
                   />
-                ) : (
-                  <span
-                    className="place-image-skeleton saved-place-image-skeleton"
-                    role="img"
-                    aria-label="장소 이미지 준비 중"
-                  >
-                    <i className="place-image-skeleton-sun" />
-                    <i className="place-image-skeleton-mountain" />
-                    <i className="place-image-skeleton-ground" />
-                  </span>
-                )}
               </div>
               <div className="place-content">
                 <div className="place-meta">

@@ -11,6 +11,8 @@ import './feed.css'
 import '@fontsource-variable/noto-sans-kr'
 import './trip-create.css'
 import './trip-detail.css'
+import './saved-detail.css'
+import './place-image.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

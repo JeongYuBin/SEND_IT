@@ -51,6 +51,14 @@ public class TourismController {
         return catalog.viewport(mode, west, south, east, north, level);
     }
 
+    @GetMapping("/search")
+    List<TourApiClient.MapPlace> search(
+            @RequestParam @jakarta.validation.constraints.Size(min = 2, max = 100) String query,
+            @RequestParam(defaultValue = "1") @Min(1) @Max(100) int page) {
+        if (query.trim().length() < 2) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "검색어를 두 글자 이상 입력해 주세요.");
+        return catalog.search(query, page);
+    }
+
     @GetMapping("/discover/{contentId}")
     TourApiClient.MapPlace catalogDetail(@RequestParam String mode,
             @org.springframework.web.bind.annotation.PathVariable String contentId) {

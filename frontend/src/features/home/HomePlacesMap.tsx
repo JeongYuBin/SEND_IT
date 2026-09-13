@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { KakaoMap, type KakaoMapPoint } from '../../components/KakaoMap'
 import type { SavedPlace } from '../saved/types'
+import { MapPlaceSearch } from './MapPlaceSearch'
 
 const defaultFilters = [
   { label: '전체', pattern: /.*/ },
@@ -28,6 +29,8 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
   const focusedCenter = useMemo(() => focused?.latitude != null && focused.longitude != null
     ? { latitude: focused.latitude, longitude: focused.longitude } : null, [focused?.latitude, focused?.longitude])
   const [filter, setFilter] = useState('전체')
+  const [searchPoint, setSearchPoint] = useState<KakaoMapPoint | null>(null)
+  const searchCenter = useMemo(() => searchPoint ? { latitude: searchPoint.latitude, longitude: searchPoint.longitude } : null, [searchPoint])
   const [customFilters, setCustomFilters] = useState<string[]>(storedCustomFilters)
   const [addingFilter, setAddingFilter] = useState(false)
   const [newFilter, setNewFilter] = useState('')
@@ -146,16 +149,12 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
       )}
       <KakaoMap
         ariaLabel={`${filter} 저장 장소 ${points.length}곳`}
-        points={points}
-        initialCenter={focusedCenter ?? currentLocation}
+        points={searchPoint ? [searchPoint] : points}
+        initialCenter={searchCenter ?? focusedCenter ?? currentLocation}
         fitPoints={false}
-        onSelect={(point) => navigate(`/saved/places/${point.id}`)}
+        onSelect={(point) => { if (!searchPoint) navigate(`/saved/places/${point.id}`) }}
       />
-      <div className="home-map-summary">
-        <span>MY PLACES</span>
-        <strong>{focused?.name ?? `저장한 장소 ${points.length}곳`}</strong>
-        <button type="button" onClick={() => navigate(focused ? `/saved/places/${focused.savedPlaceId}` : '/saved')}>{focused ? '장소 상세' : '게시물 보기'}</button>
-      </div>
+      <MapPlaceSearch places={places} onSelect={setSearchPoint} />
     </section>
   )
 }

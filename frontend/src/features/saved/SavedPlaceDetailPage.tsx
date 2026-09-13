@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
-import { resolveImageUrl } from '../../components/imageUrl'
+import { PlaceImage } from '../../components/PlaceImage'
 import { Link, useParams } from 'react-router-dom'
 import {
   createSavedPlace,
@@ -47,11 +47,11 @@ export function SavedPlaceDetailPage() {
   const savedPlaceId = Number(savedPlaceIdParam)
   const queryClient = useQueryClient()
   const [selectedNearby, setSelectedNearby] = useState<NearbyTourismPlace | null>(null)
-  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
   const [editingDetails, setEditingDetails] = useState(false)
   const [editName, setEditName] = useState('')
   const [editCategory, setEditCategory] = useState('')
   const [editAddress, setEditAddress] = useState('')
+  const [nearbyPage, setNearbyPage] = useState(0)
   const placeQuery = useQuery({
     queryKey: ['saved-place', savedPlaceId],
     queryFn: () => getSavedPlace(savedPlaceId),
@@ -161,9 +161,11 @@ export function SavedPlaceDetailPage() {
     ?.filter((nearby) => nearby.distanceMeters >= 10)
     .filter((nearby) => !savedPlaceNames.has(nearby.name.replaceAll(/\s/g, '').toLowerCase()))
     .slice(0, 6)
+  const nearbyPageCount = Math.ceil((visibleNearbyPlaces?.length ?? 0) / 4)
+  const currentNearbyPage = Math.min(nearbyPage, Math.max(0, nearbyPageCount - 1))
 
   return (
-    <main className="place-detail-shell">
+    <main className="place-detail-shell compact-saved-detail">
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
@@ -175,26 +177,8 @@ export function SavedPlaceDetailPage() {
       </nav>
       <article className="place-detail">
         <div className="place-detail-visual">
-          {place.imageUrl && place.imageUrl !== failedImageUrl
-            ? (
-              <img
-                src={resolveImageUrl(place.imageUrl) ?? undefined}
-                alt={place.name}
-                referrerPolicy="no-referrer"
-                onError={() => setFailedImageUrl(place.imageUrl)}
-              />
-            )
-            : (
-              <div
-                className="place-image-skeleton place-detail-image-skeleton"
-                role="img"
-                aria-label="등록된 장소 이미지 없음"
-              >
-                <i className="place-image-skeleton-sun" />
-                <i className="place-image-skeleton-mountain" />
-                <i className="place-image-skeleton-ground" />
-              </div>
-            )}
+          <PlaceImage src={place.imageUrl} alt={place.name} category={place.category}
+            fallbackSources={place.sources.map((source) => source.thumbnailUrl)} className="place-detail-image-skeleton" />
           {place.latitude !== null && place.longitude !== null && (
             <section className="place-detail-location">
               <div>
@@ -300,10 +284,10 @@ export function SavedPlaceDetailPage() {
             </section>
           )}
 
-          <section>
-            <h2>장소 설명</h2>
+          <details className="saved-detail-disclosure">
+            <summary>장소 설명</summary>
             <p>{place.description ?? '저장된 설명이 없습니다.'}</p>
-          </section>
+          </details>
           <section className="place-operating-info">
             <h2>방문 정보</h2>
             {operatingInfoQuery.isLoading && !storedOperatingInfo && (
@@ -468,7 +452,7 @@ export function SavedPlaceDetailPage() {
             <div className="form-error">주변 관광지를 불러오지 못했습니다.</div>
           )}
           <div className="nearby-tourism-grid">
-            {visibleNearbyPlaces?.map((nearby) => {
+            {visibleNearbyPlaces?.slice(currentNearbyPage * 4, (currentNearbyPage + 1) * 4).map((nearby) => {
                 const isSaving = saveNearbyMutation.isPending
                   && saveNearbyMutation.variables?.contentId === nearby.contentId
                 return (
@@ -513,6 +497,14 @@ export function SavedPlaceDetailPage() {
                 )
               })}
           </div>
+          {!!visibleNearbyPlaces?.length && visibleNearbyPlaces.length > 4 && (
+            <div className="saved-nearby-pagination">
+              <button type="button" disabled={currentNearbyPage === 0} onClick={() => setNearbyPage(currentNearbyPage - 1)}>이전</button>
+              <span>{currentNearbyPage + 1} / {nearbyPageCount}</span>
+              <button type="button" disabled={currentNearbyPage >= nearbyPageCount - 1} onClick={() => setNearbyPage(currentNearbyPage + 1)}>다음</button>
+            </div>
+          )}
+          {nearbyQuery.isSuccess && visibleNearbyPlaces?.length === 0 && <p className="saved-nearby-empty">새롭게 추천할 주변 장소가 없습니다.</p>}
           {selectedNearby && (
             <div
               className="nearby-detail-backdrop"

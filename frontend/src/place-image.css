@@ -1,0 +1,9 @@
+.place-image-skeleton.place-image-refined { background: radial-gradient(ellipse at 25% 20%, #fffafc 0%, transparent 65%), #eee7f4; container-type: size; }
+.place-image-refined[data-kind="food"] { background: radial-gradient(ellipse at 25% 20%, #fffaf5 0%, transparent 65%), #f2e8e0; }
+.place-image-refined[data-kind="cafe"] { background: radial-gradient(ellipse at 25% 20%, #fffbf4 0%, transparent 65%), #eee6dc; }
+.place-image-refined[data-kind="stay"] { background: radial-gradient(ellipse at 25% 20%, #f8fbff 0%, transparent 65%), #e6e9f4; }
+.place-image-refined::after { display: none; }
+.place-image-refined .place-image-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; padding: 8px; color: #9985af; }
+.place-image-refined .place-image-fallback svg { width: clamp(24px, 22cqh, 48px); height: clamp(24px, 22cqh, 48px); flex: none; }
+.place-image-refined .place-image-fallback > span { font: inherit; font-size: 11px; font-weight: 400; color: #85758f; letter-spacing: .03em; }
+@container (max-height: 75px) { .place-image-refined .place-image-fallback > span { display: none; } }

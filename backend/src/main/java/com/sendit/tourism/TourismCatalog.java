@@ -53,6 +53,17 @@ public class TourismCatalog {
                 mode, id).stream().findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    public List<TourApiClient.MapPlace> search(String query, int page) {
+        String keyword = query.trim().toLowerCase(java.util.Locale.ROOT);
+        return jdbc.query("SELECT DISTINCT content_id, content_type_id, name, category, address, latitude, longitude, image_url, event_start_date, event_end_date FROM tourism_catalog "
+                        + "WHERE strpos(lower(name || ' ' || COALESCE(address, '') || ' ' || COALESCE(category, '')), ?) > 0 "
+                        + "ORDER BY name, content_id LIMIT 21 OFFSET ?",
+                (rs, row) -> new TourApiClient.MapPlace(rs.getString("content_id"), rs.getString("content_type_id"), rs.getString("name"),
+                        rs.getString("category"), rs.getString("address"), rs.getDouble("latitude"), rs.getDouble("longitude"),
+                        rs.getString("image_url"), rs.getObject("event_start_date", LocalDate.class), rs.getObject("event_end_date", LocalDate.class)),
+                keyword, (page - 1) * 20);
+    }
+
     @Transactional
     public void replace(String mode, LocalDate period, List<TourApiClient.MapPlace> places) {
         // Only the public catalog snapshot is replaced; user-saved places are separate and untouched.

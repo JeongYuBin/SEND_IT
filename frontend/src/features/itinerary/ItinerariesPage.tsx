@@ -265,7 +265,7 @@ export function ItinerariesPage() {
                   onClick={() => togglePlace(place.savedPlaceId)}
                 >
                   <span className="selection-order">{selected ? order + 1 : '+'}</span>
-                  <PlaceImage src={place.imageUrl} alt={`${place.name} 대표 이미지`} className="itinerary-option-image" />
+                  <PlaceImage src={place.imageUrl} alt={`${place.name} 대표 이미지`} category={place.category} className="itinerary-option-image" />
                   <span className="itinerary-option-copy">
                     <small>{place.category ?? '미분류'}</small>
                     <strong>{place.name}</strong>

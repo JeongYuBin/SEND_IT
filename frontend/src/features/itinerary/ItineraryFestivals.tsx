@@ -159,25 +159,12 @@ export function ItineraryFestivals({ itinerary }: Props) {
                 }
               }}
             >
-              {festival.imageUrl
-                ? (
                   <PlaceImage
                     src={festival.imageUrl}
+                    category="행사"
                     alt={`${festival.name} 대표 이미지`}
                     className="festival-image-skeleton"
                   />
-                )
-                : (
-                  <div
-                    className="place-image-skeleton festival-image-skeleton"
-                    role="img"
-                    aria-label="행사 이미지 준비 중"
-                  >
-                    <i className="place-image-skeleton-sun" />
-                    <i className="place-image-skeleton-mountain" />
-                    <i className="place-image-skeleton-ground" />
-                  </div>
-                )}
               <div>
                 <span>{dateRange(festival.startDate, festival.endDate)}</span>
                 <h3>{festival.name}</h3>
@@ -227,25 +214,13 @@ export function ItineraryFestivals({ itinerary }: Props) {
             )}
             {!detailQuery.isLoading && (
               <>
-                {(detailQuery.data?.imageUrl ?? selectedFestival.imageUrl)
-                  ? (
                     <PlaceImage
                       src={detailQuery.data?.imageUrl ?? selectedFestival.imageUrl}
+                      fallbackSources={[selectedFestival.imageUrl]}
+                      category="행사"
                       alt={`${selectedFestival.name} 대표 이미지`}
                       className="festival-detail-skeleton"
                     />
-                  )
-                  : (
-                    <div
-                      className="place-image-skeleton festival-detail-skeleton"
-                      role="img"
-                      aria-label="행사 이미지 준비 중"
-                    >
-                      <i className="place-image-skeleton-sun" />
-                      <i className="place-image-skeleton-mountain" />
-                      <i className="place-image-skeleton-ground" />
-                    </div>
-                  )}
                 <div className="nearby-detail-content">
                   <span className="eyebrow">FESTIVAL</span>
                   <h2 id="festival-detail-title">

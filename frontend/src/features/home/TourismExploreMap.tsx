@@ -84,7 +84,7 @@ export function TourismExploreMap({ mode }: { mode: 'nearby' | 'festival' }) {
       {detail.isPending && <p role="status">장소 정보를 불러오는 중…</p>}
       {detail.isError && <button onClick={() => detail.refetch()}>장소 정보를 불러오지 못했습니다 · 다시 시도</button>}
       {selected && <>
-        <PlaceImage src={selected.imageUrl} alt={selected.name} />
+        <PlaceImage src={selected.imageUrl} alt={selected.name} category={selected.category} />
         <div className="tourism-detail-body"><small>{selected.category}</small><strong>{selected.name}</strong><p>{selected.address}</p>
           {selected.eventStartDate && <small>{selected.eventStartDate} ~ {selected.eventEndDate}</small>}
           <button className="tourism-save-button" disabled={save.isPending} aria-busy={save.isPending} onClick={() => save.mutate(selected)}>

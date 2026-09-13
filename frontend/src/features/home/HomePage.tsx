@@ -248,25 +248,13 @@ export function HomePage() {
                     to={`/saved/places/${place.savedPlaceId}`}
                     key={place.savedPlaceId}
                   >
-                    {place.imageUrl
-                      ? (
                         <PlaceImage
                           src={place.imageUrl}
+                          fallbackSources={place.sources.map((source) => source.thumbnailUrl)}
+                          category={place.category}
                           alt={`${place.name} 대표 이미지`}
                           className="home-place-skeleton"
                         />
-                      )
-                      : (
-                        <span
-                          className="place-image-skeleton home-place-skeleton"
-                          role="img"
-                          aria-label="장소 이미지 준비 중"
-                        >
-                          <i className="place-image-skeleton-sun" />
-                          <i className="place-image-skeleton-mountain" />
-                          <i className="place-image-skeleton-ground" />
-                        </span>
-                      )}
                     <span>
                       <small>{place.category ?? '장소'}</small>
                       <strong>{place.name}</strong>
