@@ -17,6 +17,37 @@ import org.junit.jupiter.api.Test;
 class SavedPlaceServiceTest {
 
     @Test
+    void completedAnalysisDoesNotSaveBeforeCollectionConfirmation() {
+        Fixture fixture = new Fixture();
+        var share = mock(com.sendit.share.SharedContent.class);
+        when(fixture.shares.findForSaving(7L)).thenReturn(Optional.of(share));
+        when(share.getAnalysisStatus()).thenReturn(com.sendit.share.AnalysisStatus.COMPLETED);
+        fixture.service.autoSaveAnalyzedShare(7L);
+        org.mockito.Mockito.verifyNoInteractions(fixture.extracted, fixture.places);
+    }
+
+    @Test
+    void rejectsMissingCollectionBeforeResolvingOrSavingPlace() {
+        Fixture fixture = new Fixture();
+        var user = mock(com.sendit.user.User.class);
+        when(fixture.users.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> fixture.service.create("user@example.com", new SavedPlaceDtos.CreateRequest(
+                "카페", "카페", null, null, null, null, null, null, null, null, null, null, null, null, null, 0, null, null, null)))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("컬렉션");
+        org.mockito.Mockito.verifyNoInteractions(fixture.places, fixture.collections);
+    }
+
+    private static class Fixture {
+        final UserRepository users = mock(UserRepository.class);
+        final PlaceRepository places = mock(PlaceRepository.class);
+        final CollectionRepository collections = mock(CollectionRepository.class);
+        final SharedContentRepository shares = mock(SharedContentRepository.class);
+        final SharedContentPlaceRepository extracted = mock(SharedContentPlaceRepository.class);
+        final SavedPlaceService service = new SavedPlaceService(users, places, mock(UserSavedPlaceRepository.class), collections, shares,
+                mock(TourApiClient.class), mock(UserSavedPlaceSourceRepository.class), extracted, mock(PlaceDuplicateMatcher.class), mock(PlaceLocationResolver.class));
+    }
+
+    @Test
     void updatesNameWithoutRequiringAnAddress() {
         UserRepository users = mock(UserRepository.class);
         PlaceRepository places = mock(PlaceRepository.class);

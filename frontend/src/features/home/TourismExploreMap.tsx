@@ -5,6 +5,7 @@ import { http } from '../../api/http'
 import { KakaoMap, type KakaoMapPoint, type MapViewport } from '../../components/KakaoMap'
 import { PlaceImage } from '../../components/PlaceImage'
 import { createSavedPlace } from '../saved/savedApi'
+import { CollectionChoiceCancelled } from '../saved/collectionChoice'
 import type { CreateSavedPlace } from '../saved/types'
 
 type MapPlace = {
@@ -91,7 +92,7 @@ export function TourismExploreMap({ mode }: { mode: 'nearby' | 'festival' }) {
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4h10a1 1 0 0 1 1 1v16l-6-4-6 4V5a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M9 10h6m-3-3v6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
             {save.isPending ? '저장하는 중' : '내 장소에 저장'}
           </button>
-          {save.isError && <small role="alert">저장하지 못했습니다. 다시 시도해 주세요.</small>}
+          {save.isError && !(save.error instanceof CollectionChoiceCancelled) && <small role="alert">저장하지 못했습니다. 다시 시도해 주세요.</small>}
         </div>
       </>}
     </div>}

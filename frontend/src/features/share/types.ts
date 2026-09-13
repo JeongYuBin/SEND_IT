@@ -13,6 +13,8 @@ export type ShareAcceptedResponse = {
 }
 
 export type ShareDetail = {
+  collectionId: number | null
+  collectionName: string | null
   shareId: number
   originalUrl: string
   sourceType: 'INSTAGRAM' | 'TIKTOK' | 'YOUTUBE' | 'NAVER_BLOG' | 'MAP' | 'WEB'

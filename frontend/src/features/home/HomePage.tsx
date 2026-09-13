@@ -68,7 +68,7 @@ export function HomePage() {
     shareMutation.mutate(url, {
       onSuccess: (result) => {
         setUrl('')
-        navigate(`/shares/${result.shareId}`)
+        navigate(`/share-target?share=${result.shareId}`)
       },
     })
   }
@@ -251,12 +251,12 @@ export function HomePage() {
                         <PlaceImage
                           src={place.imageUrl}
                           fallbackSources={place.sources.map((source) => source.thumbnailUrl)}
-                          category={place.category}
+                          category={place.collectionName}
                           alt={`${place.name} 대표 이미지`}
                           className="home-place-skeleton"
                         />
                     <span>
-                      <small>{place.category ?? '장소'}</small>
+                      <small>{place.collectionName ?? '장소'}</small>
                       <strong>{place.name}</strong>
                       <span>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</span>
                     </span>

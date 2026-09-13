@@ -1,0 +1,9 @@
+android/.gradle/
+android/local.properties
+android/**/build/
+ios/*.xcodeproj/
+ios/App/Info.plist
+ios/App/*.entitlements
+ios/ShareExtension/Info.plist
+ios/ShareExtension/*.entitlements
+ios/build/

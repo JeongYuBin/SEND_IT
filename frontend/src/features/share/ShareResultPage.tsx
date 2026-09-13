@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getCollections, createSavedPlace } from '../saved/savedApi'
-import { getShare, reanalyzeShare } from './shareApi'
+import { createSavedPlace } from '../saved/savedApi'
+import { getShare, reanalyzeShare, selectShareCollection } from './shareApi'
+
+import { CollectionPicker } from '../saved/CollectionPicker'
+import { CollectionChoiceCancelled } from '../saved/collectionChoice'
+import { PlaceImage } from '../../components/PlaceImage'
 
 const processingStatuses = new Set(['PENDING', 'ANALYZING'])
 
@@ -14,7 +18,6 @@ export function ShareResultPage() {
   const [category, setCategory] = useState('')
   const [address, setAddress] = useState('')
   const [memo, setMemo] = useState('')
-  const [collectionId, setCollectionId] = useState<number | undefined>()
   const initialized = useRef(false)
 
   const shareQuery = useQuery({
@@ -24,7 +27,6 @@ export function ShareResultPage() {
     refetchInterval: (query) =>
       processingStatuses.has(query.state.data?.status ?? '') ? 1500 : false,
   })
-  const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
 
   useEffect(() => {
     const share = shareQuery.data
@@ -58,7 +60,6 @@ export function ShareResultPage() {
       category: category || undefined,
       address: address || undefined,
       memo: memo || undefined,
-      collectionId,
       sharedContentId: shareQuery.data.shareId,
       imageUrl: shareQuery.data.thumbnailUrl ?? undefined,
       latitude: shareQuery.data.extractedLatitude ?? undefined,
@@ -91,7 +92,7 @@ export function ShareResultPage() {
       <section className="result-layout">
         <div className="result-preview">
           <span className="eyebrow">ANALYSIS RESULT</span>
-          {share.thumbnailUrl ? <img src={share.thumbnailUrl} alt="" /> : <div className="preview-placeholder">SEND IT</div>}
+          <PlaceImage src={share.thumbnailUrl} category={share.extractedCategory} className="preview-placeholder" />
           <div className="source-badge">{share.sourceType}</div>
           <h1>{share.title ?? '장소 정보를 찾는 중이에요.'}</h1>
           <p>{share.description ?? '원본 콘텐츠에서 설명을 가져오지 못했습니다.'}</p>
@@ -146,6 +147,9 @@ export function ShareResultPage() {
                   </li>
                 ))}
               </ol>
+              <CollectionPicker category={share.extractedCategory} collectionId={share.collectionId ?? undefined} onConfirm={async (id) => {
+                await selectShareCollection(shareId, id); await shareQuery.refetch()
+              }} />
             </section>
           )}
           {canSave && share.extractedPlaces.length === 0 && (
@@ -155,14 +159,9 @@ export function ShareResultPage() {
                 <div className="auto-fill-notice">구조화된 장소 정보를 자동으로 채웠습니다. 저장 전에 내용을 확인해 주세요.</div>
               )}
               <label>장소명 *<input required value={name} onChange={(e) => setName(e.target.value)} placeholder="실제 장소명을 입력하세요" /></label>
-              <label>카테고리<input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="관광지, 음식점, 카페..." /></label>
               <label>주소<input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="방문할 주소를 입력하세요" /></label>
-              <label>컬렉션<select value={collectionId ?? ''} onChange={(e) => setCollectionId(e.target.value ? Number(e.target.value) : undefined)}>
-                <option value="">컬렉션 없음</option>
-                {collectionsQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-              </select></label>
               <label>메모<textarea value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="이 장소에 대한 메모" /></label>
-              {saveMutation.isError && <div className="form-error">장소를 저장하지 못했습니다. 입력 내용을 확인해 주세요.</div>}
+              {saveMutation.isError && !(saveMutation.error instanceof CollectionChoiceCancelled) && <div className="form-error">장소를 저장하지 못했습니다. 입력 내용을 확인해 주세요.</div>}
               <button disabled={saveMutation.isPending}>{saveMutation.isPending ? '저장 중...' : '내 장소에 저장'}</button>
             </form>
           )}

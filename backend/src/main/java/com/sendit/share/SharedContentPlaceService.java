@@ -17,7 +17,7 @@ public class SharedContentPlaceService {
 
     @Transactional
     public void replace(Long sharedContentId, List<PageMetadata> candidates) {
-        SharedContent content = contents.findById(sharedContentId).orElseThrow();
+        SharedContent content = contents.findForSaving(sharedContentId).orElseThrow();
         places.deleteBySharedContentId(sharedContentId);
         places.flush();
         int order = 1;

@@ -1,0 +1,61 @@
+name: SendIT
+options:
+  bundleIdPrefix: com.sendit
+  deploymentTarget:
+    iOS: '16.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    SENDIT_ORIGIN: https://sendit.example.com
+    SENDIT_KEYCHAIN_GROUP: $(AppIdentifierPrefix)com.sendit.mobile.session
+targets:
+  SendIT:
+    type: application
+    platform: iOS
+    sources: [App, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sendit.mobile
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: SendIT
+        UILaunchScreen: {}
+        SendITOrigin: $(SENDIT_ORIGIN)
+        SendITKeychainGroup: $(SENDIT_KEYCHAIN_GROUP)
+    entitlements:
+      path: App/SendIT.entitlements
+      properties:
+        keychain-access-groups: [$(SENDIT_KEYCHAIN_GROUP)]
+    dependencies:
+      - target: SendITShare
+  SendITShare:
+    type: app-extension
+    platform: iOS
+    sources: [ShareExtension, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sendit.mobile.share
+        APPLICATION_EXTENSION_API_ONLY: YES
+    info:
+      path: ShareExtension/Info.plist
+      properties:
+        CFBundleDisplayName: SendIT
+        SendITOrigin: $(SENDIT_ORIGIN)
+        SendITKeychainGroup: $(SENDIT_KEYCHAIN_GROUP)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
+    entitlements:
+      path: ShareExtension/SendITShare.entitlements
+      properties:
+        keychain-access-groups: [$(SENDIT_KEYCHAIN_GROUP)]
+schemes:
+  SendIT:
+    build:
+      targets:
+        SendIT: all

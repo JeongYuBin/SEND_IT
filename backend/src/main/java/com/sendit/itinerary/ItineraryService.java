@@ -278,7 +278,7 @@ public class ItineraryService {
                 stop.item().getPreferredVisitDate(),
                 stop.item().getPreferredStartTime(),
                 place.getName(),
-                place.getCategory(),
+                saved.getCollection() == null ? null : saved.getCollection().getName(),
                 place.getRoadAddress() == null ? place.getAddress() : place.getRoadAddress(),
                 place.getLatitude(),
                 place.getLongitude(),

@@ -46,6 +46,8 @@ public class SavedPlaceService {
 
     public SavedPlaceDtos.Response create(String email, SavedPlaceDtos.CreateRequest request) {
         var user = users.findByEmail(email).orElseThrow();
+        if (request.collectionId() == null) throw new IllegalArgumentException("저장할 컬렉션을 선택해 주세요.");
+        Collection selectedCollection = collection(email, request.collectionId());
         validateCoordinates(request.latitude(), request.longitude());
         String normalizedName = request.name().trim().toLowerCase().replaceAll("\\s+", "");
         var tourismDetail = tourApiClient.detail(
@@ -68,7 +70,7 @@ public class SavedPlaceService {
                 detail.contentId(), detail.contentTypeId(), detail.description(),
                 detail.imageUrl(), detail.phone(), detail.homepageUrl(),
                 detail.operatingHours(), detail.restDays(), detail.parkingInfo()));
-        Collection collection = collection(email, request.collectionId());
+        Collection collection = selectedCollection;
         var existingSaved = savedPlaces.findByUserIdAndPlaceId(user.getId(), place.getId());
         if (existingSaved.isPresent()) {
             UserSavedPlace saved = existingSaved.get();
@@ -88,9 +90,9 @@ public class SavedPlaceService {
     }
 
     public void autoSaveAnalyzedShare(Long sharedContentId) {
-        SharedContent share = shares.findById(sharedContentId)
+        SharedContent share = shares.findForSaving(sharedContentId)
                 .orElseThrow(() -> new ResourceNotFoundException("공유 콘텐츠를 찾을 수 없습니다."));
-        if (share.getAnalysisStatus() != AnalysisStatus.COMPLETED) {
+        if (share.getAnalysisStatus() != AnalysisStatus.COMPLETED || share.getTargetCollection() == null) {
             return;
         }
         var candidates = extractedPlaces.findBySharedContentIdOrderByDisplayOrder(sharedContentId);
@@ -166,7 +168,7 @@ public class SavedPlaceService {
         if (resolvedLocation != null) place.updateKakaoLocation(resolvedLocation);
         Collection selectedCollection;
         if (Boolean.TRUE.equals(request.clearCollection())) {
-            selectedCollection = null;
+            throw new IllegalArgumentException("이동할 컬렉션을 선택해 주세요.");
         } else if (request.collectionId() != null) {
             selectedCollection = collection(email, request.collectionId());
         } else {

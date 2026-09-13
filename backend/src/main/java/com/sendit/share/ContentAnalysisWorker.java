@@ -196,10 +196,9 @@ public class ContentAnalysisWorker {
                             first.latitude(), first.longitude());
                     needsConfirmation = false;
                 }
+                // Publish candidates before COMPLETED becomes visible to the share save sheet.
+                sharedContentPlaceService.replace(job.sharedContentId(), extractedPlaces);
                 analysisJobService.complete(job.jobId(), metadata, needsConfirmation);
-                if (!extractedPlaces.isEmpty()) {
-                    sharedContentPlaceService.replace(job.sharedContentId(), extractedPlaces);
-                }
                 try {
                     savedPlaceService.autoSaveAnalyzedShare(job.sharedContentId());
                 } catch (RuntimeException ignored) {

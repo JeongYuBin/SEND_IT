@@ -94,13 +94,7 @@ export function SharedContentsPage() {
           {shares.map((share) => (
             <article className="shared-content-card-wrap" key={share.shareId}>
               <Link to={`/shares/${share.shareId}`} className="shared-content-card">
-              {share.thumbnailUrl ? (
-                <PlaceImage src={share.thumbnailUrl} alt="" />
-              ) : (
-                <span className="shared-content-placeholder" aria-hidden="true">
-                  {sourceLabels[share.sourceType].slice(0, 1)}
-                </span>
-              )}
+              <PlaceImage src={share.thumbnailUrl} category={share.collectionName} alt="" />
               <span className="shared-content-copy">
                 <span className="shared-content-meta">
                   <b>{sourceLabels[share.sourceType]}</b>

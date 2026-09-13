@@ -18,6 +18,30 @@ import org.junit.jupiter.api.Test;
 
 class ShareServiceTest {
     @Test
+    void confirmingCollectionAlsoSavesAnAlreadyAnalyzedShare() {
+        var users = mock(UserRepository.class);
+        var contents = mock(SharedContentRepository.class);
+        var collections = mock(CollectionRepository.class);
+        var saved = mock(UserSavedPlaceRepository.class);
+        var saver = mock(com.sendit.place.SavedPlaceService.class);
+        var user = mock(com.sendit.user.User.class);
+        var content = mock(SharedContent.class);
+        var collection = mock(com.sendit.collection.Collection.class);
+        var place = mock(com.sendit.place.UserSavedPlace.class);
+        when(user.getEmail()).thenReturn("user@example.com");
+        when(user.getId()).thenReturn(1L);
+        when(content.getUser()).thenReturn(user);
+        when(contents.findForSaving(7L)).thenReturn(Optional.of(content));
+        when(collections.findByIdAndUserEmail(2L, "user@example.com")).thenReturn(Optional.of(collection));
+        when(saved.findAllLinkedToShare(1L, 7L)).thenReturn(List.of(place));
+        var service = new ShareService(users, contents, mock(AnalysisJobRepository.class), mock(UrlNormalizer.class),
+                mock(MediaStorageCleaner.class), mock(NotificationService.class), mock(SharedContentPlaceRepository.class), collections, saved, saver);
+        service.selectCollection("user@example.com", 7L, 2L);
+        verify(content).selectTargetCollection(collection);
+        verify(place).update(null, null, collection);
+        verify(saver).autoSaveAnalyzedShare(7L);
+    }
+    @Test
     void doesNotCreateDuplicateJobWhileAnalysisIsActive() {
         UserRepository users = mock(UserRepository.class);
         SharedContentRepository contents = mock(SharedContentRepository.class);
@@ -32,7 +56,7 @@ class ShareServiceTest {
         ShareService service = new ShareService(users, contents, jobs,
                 mock(UrlNormalizer.class), mock(MediaStorageCleaner.class),
                 mock(NotificationService.class), mock(SharedContentPlaceRepository.class),
-                mock(CollectionRepository.class), mock(UserSavedPlaceRepository.class));
+                mock(CollectionRepository.class), mock(UserSavedPlaceRepository.class), mock(com.sendit.place.SavedPlaceService.class));
 
         ShareDtos.ShareAcceptedResponse response = service.reanalyze(
                 "user@example.com", 7L);
@@ -63,7 +87,7 @@ class ShareServiceTest {
         ShareService service = new ShareService(users, contents, jobs,
                 mock(UrlNormalizer.class), cleaner, notifications,
                 mock(SharedContentPlaceRepository.class), mock(CollectionRepository.class),
-                mock(UserSavedPlaceRepository.class));
+                mock(UserSavedPlaceRepository.class), mock(com.sendit.place.SavedPlaceService.class));
 
         service.deleteAll("user@example.com");
 

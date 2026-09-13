@@ -49,7 +49,9 @@ public final class ShareDtos {
             String mediaOcrText,
             String mediaTranscript,
             List<ExtractedPlaceResponse> extractedPlaces,
-            Instant createdAt
+            Instant createdAt,
+            Long collectionId,
+            String collectionName
     ) {
     }
 

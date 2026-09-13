@@ -29,6 +29,7 @@ public class ShareService {
     private final SharedContentPlaceRepository extractedPlaces;
     private final CollectionRepository collections;
     private final UserSavedPlaceRepository savedPlaces;
+    private final com.sendit.place.SavedPlaceService savedPlaceService;
 
     public ShareService(
             UserRepository userRepository,
@@ -39,7 +40,8 @@ public class ShareService {
             NotificationService notificationService,
             SharedContentPlaceRepository extractedPlaces,
             CollectionRepository collections,
-            UserSavedPlaceRepository savedPlaces
+            UserSavedPlaceRepository savedPlaces,
+            com.sendit.place.SavedPlaceService savedPlaceService
     ) {
         this.userRepository = userRepository;
         this.sharedContentRepository = sharedContentRepository;
@@ -50,6 +52,7 @@ public class ShareService {
         this.extractedPlaces = extractedPlaces;
         this.collections = collections;
         this.savedPlaces = savedPlaces;
+        this.savedPlaceService = savedPlaceService;
     }
 
     public ShareAcceptedResponse create(String email, CreateShareRequest request) {
@@ -114,12 +117,14 @@ public class ShareService {
     }
 
     public void selectCollection(String email, Long shareId, Long collectionId) {
-        SharedContent content = findOwnedContent(email, shareId);
+        SharedContent content = sharedContentRepository.findForSaving(shareId).orElseThrow(() -> new ShareNotFoundException(shareId));
+        if (!content.getUser().getEmail().equals(email)) throw new ShareNotFoundException(shareId);
         var collection = collections.findByIdAndUserEmail(collectionId, email)
                 .orElseThrow(() -> new ResourceNotFoundException("저장 분류를 찾을 수 없습니다."));
         content.selectTargetCollection(collection);
-        savedPlaces.findByUserIdAndSharedContentId(content.getUser().getId(), shareId)
+        savedPlaces.findAllLinkedToShare(content.getUser().getId(), shareId)
                 .forEach(saved -> saved.update(null, null, collection));
+        savedPlaceService.autoSaveAnalyzedShare(shareId);
     }
 
     public void delete(String email, Long shareId) {
@@ -207,7 +212,9 @@ public class ShareService {
                                 place.getCategory(), place.getAddress(), place.getLatitude(),
                                 place.getLongitude(), place.getImageUrl(), place.getSavedPlaceId()))
                         .toList(),
-                content.getCreatedAt()
+                content.getCreatedAt(),
+                content.getTargetCollection() == null ? null : content.getTargetCollection().getId(),
+                content.getTargetCollection() == null ? null : content.getTargetCollection().getName()
         );
     }
 }

@@ -17,15 +17,21 @@ import org.springframework.web.bind.annotation.*;
 public class CollectionController {
     private final CollectionRepository repository;
     private final UserRepository userRepository;
+    private final com.sendit.place.UserSavedPlaceRepository savedPlaces;
+    private final com.sendit.share.SharedContentRepository shares;
 
-    public CollectionController(CollectionRepository repository, UserRepository userRepository) {
+    public CollectionController(CollectionRepository repository, UserRepository userRepository,
+            com.sendit.place.UserSavedPlaceRepository savedPlaces, com.sendit.share.SharedContentRepository shares) {
         this.repository = repository; this.userRepository = userRepository;
+        this.savedPlaces = savedPlaces;
+        this.shares = shares;
     }
 
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
     CollectionResponse create(Principal principal, @Valid @RequestBody CollectionRequest request) {
         var user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        return response(repository.save(new Collection(user, request.name(), request.description())));
+        return response(repository.findByUserIdAndName(user.getId(), request.name().trim())
+                .orElseGet(() -> repository.save(new Collection(user, request.name(), request.description()))));
     }
 
     @GetMapping @Transactional(readOnly = true)
@@ -44,7 +50,20 @@ public class CollectionController {
 
     @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(Principal principal, @PathVariable Long id) {
-        repository.delete(owned(principal, id));
+        var deleted = owned(principal, id);
+        if (deleted.getName().equals("기타")) throw new IllegalArgumentException("기타 컬렉션은 삭제할 수 없습니다.");
+        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        var affected = savedPlaces.findByCollectionId(id);
+        var pendingShares = shares.findByTargetCollectionId(id);
+        if (!affected.isEmpty() || !pendingShares.isEmpty()) {
+            var fallback = repository.findByUserIdAndName(user.getId(), "기타")
+                    .orElseGet(() -> repository.save(new Collection(user, "기타", null)));
+            affected.forEach(saved -> saved.update(null, null, fallback));
+            pendingShares.forEach(share -> share.selectTargetCollection(fallback));
+            savedPlaces.flush();
+            shares.flush();
+        }
+        repository.delete(deleted);
     }
 
     private Collection owned(Principal principal, Long id) {
@@ -60,4 +79,3 @@ public class CollectionController {
     public record CollectionResponse(Long id, String name, String description,
                                      String coverImageUrl, Instant createdAt) {}
 }
-

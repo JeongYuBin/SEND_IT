@@ -49,10 +49,10 @@ export function MapPlaceSearch({ places, onSelect }: {
     },
   })
   const keyword = query.toLocaleLowerCase('ko')
-  const savedMatches = places.filter((place) => [place.name, place.category, place.address, place.roadAddress, place.memo,
+  const savedMatches = places.filter((place) => [place.name, place.collectionName, place.address, place.roadAddress, place.memo,
     ...place.sources.flatMap((source) => [source.title, source.description])].some((text) => text?.toLocaleLowerCase('ko').includes(keyword)))
   const candidates: Result[] = [...savedMatches.slice(0, page * 20).map((place) => ({
-    ...place, id: `saved-${place.savedPlaceId}`, savedId: place.savedPlaceId, address: place.roadAddress ?? place.address,
+    ...place, category: place.collectionName, id: `saved-${place.savedPlaceId}`, savedId: place.savedPlaceId, address: place.roadAddress ?? place.address,
   })), ...(tourism.data?.pages.flatMap((items) => items.slice(0, 20)) ?? []).map((place) => ({
     ...place, id: `tourism-${place.contentId}`,
     savedId: places.find((saved) => saved.tourismContentId === place.contentId)?.savedPlaceId,
@@ -105,7 +105,7 @@ export function MapPlaceSearch({ places, onSelect }: {
             : <button type="button" disabled={save.isPending || !selected.request} onClick={() => selected.request && save.mutate(selected.request)}>{save.isPending ? '저장 중…' : '내 장소에 저장'}</button>}
           {selected.url && <a href={selected.url} target="_blank" rel="noreferrer">카카오맵 ↗</a>}
         </div>
-        {save.isError && <p role="alert">저장하지 못했습니다. 다시 시도해 주세요.</p>}
+        {save.isError && !(save.error instanceof CollectionChoiceCancelled) && <p role="alert">저장하지 못했습니다. 다시 시도해 주세요.</p>}
       </div> : <div className="map-search-results" aria-live="polite">
         {query.length < 2 ? <p>장소명이나 지역을 두 글자 이상 입력해 주세요.</p>
           : <>
@@ -139,3 +139,4 @@ export function MapPlaceSearch({ places, onSelect }: {
     </form>
   </div>
 }
+import { CollectionChoiceCancelled } from '../saved/collectionChoice'

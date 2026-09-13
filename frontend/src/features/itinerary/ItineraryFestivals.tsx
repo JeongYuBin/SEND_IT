@@ -251,7 +251,7 @@ export function ItineraryFestivals({ itinerary }: Props) {
                   {detailQuery.isError && (
                     <p className="field-error">일부 상세정보를 불러오지 못해 기본정보만 표시합니다.</p>
                   )}
-                  {routeMutation.isError && (
+                  {routeMutation.isError && !(routeMutation.error instanceof CollectionChoiceCancelled) && (
                     <p className="form-error" role="alert">
                       {mutationErrorMessage(routeMutation.error)}
                     </p>
@@ -325,3 +325,4 @@ export function ItineraryFestivals({ itinerary }: Props) {
     </section>
   )
 }
+import { CollectionChoiceCancelled } from '../saved/collectionChoice'

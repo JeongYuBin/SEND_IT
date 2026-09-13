@@ -1,0 +1,12 @@
+<resources>
+  <style name="SendITTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:fontFamily">sans</item><item name="android:colorAccent">#78649e</item>
+    <item name="android:windowLightStatusBar">true</item>
+  </style>
+  <style name="SendITShareTheme" parent="SendITTheme">
+    <item name="android:windowIsTranslucent">true</item>
+    <item name="android:windowBackground">@android:color/transparent</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="android:backgroundDimEnabled">false</item>
+  </style>
+</resources>

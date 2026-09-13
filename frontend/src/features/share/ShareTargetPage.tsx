@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
-import type { ApiError } from '../auth/types'
-import { createCollection, getCollections } from '../saved/savedApi'
-import { createShare, selectShareCollection, type CreateShareInput } from './shareApi'
+import { CollectionPicker } from '../saved/CollectionPicker'
+import { createShare, getShare, selectShareCollection, type CreateShareInput } from './shareApi'
+import { closeShareWindow } from '../../nativeBridge'
+import './share-save-sheet.css'
 
 const PENDING_SHARE_KEY = 'sendit-pending-share'
 
@@ -42,125 +42,64 @@ function readPendingShare(searchParams: URLSearchParams): CreateShareInput | nul
   }
 }
 
+
 export function ShareTargetPage() {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const [searchParams] = useSearchParams()
+  const cache = useQueryClient()
+  const [params] = useSearchParams()
   const accessToken = useAuthStore((state) => state.accessToken)
   const started = useRef(false)
-  const [request] = useState(() => readPendingShare(searchParams))
-  const [newCategory, setNewCategory] = useState('')
-  const [showNewCategory, setShowNewCategory] = useState(false)
+  const [request] = useState(() => readPendingShare(params))
+  const existingId = Number(params.get('share')) || null
+  const [done, setDone] = useState(false)
   const mutation = useMutation({ mutationFn: createShare })
-  const collectionsQuery = useQuery({
-    queryKey: ['collections'],
-    queryFn: getCollections,
-    enabled: Boolean(accessToken && mutation.isSuccess),
+  const shareId = mutation.data?.shareId ?? existingId
+  const detail = useQuery({
+    queryKey: ['share', shareId], enabled: !!accessToken && !!shareId,
+    queryFn: () => getShare(shareId!),
+    refetchInterval: (state) => ['PENDING', 'ANALYZING'].includes(state.state.data?.status ?? '') ? 1500 : false,
   })
-  const selectCategoryMutation = useMutation({
-    mutationFn: (collectionId: number) => selectShareCollection(mutation.data!.shareId, collectionId),
-  })
-  const createCategoryMutation = useMutation({
-    mutationFn: createCollection,
-    onSuccess: async (collection) => {
-      await queryClient.invalidateQueries({ queryKey: ['collections'] })
-      setNewCategory('')
-      setShowNewCategory(false)
-      selectCategoryMutation.mutate(collection.id)
-    },
-  })
-
   useEffect(() => {
-    if (started.current || !request) return
+    if (started.current || (!request && !existingId)) return
     if (!accessToken) {
-      sessionStorage.setItem(PENDING_SHARE_KEY, JSON.stringify(request))
-      navigate('/login', {
-        replace: true,
-        state: {
-          returnTo: '/share-target?pending=1',
-          message: '공유한 게시물을 저장하려면 로그인해 주세요. URL은 안전하게 보관했습니다.',
-        },
-      })
+      if (request) sessionStorage.setItem(PENDING_SHARE_KEY, JSON.stringify(request))
+      // A share extension must not turn into a full login flow.
+      if (params.has('native')) return
+      navigate('/login', { replace: true, state: {
+        returnTo: existingId ? `/share-target?share=${existingId}` : '/share-target?pending=1',
+        message: '공유한 게시물을 저장하려면 로그인해 주세요.',
+      } })
       return
     }
-
+    if (existingId) return
     started.current = true
-    mutation.mutate(request, {
-      onSuccess: () => sessionStorage.removeItem(PENDING_SHARE_KEY),
-    })
-  }, [accessToken, mutation, navigate, request])
-
-  const apiError = (mutation.error as AxiosError<ApiError> | null)?.response?.data
-
-  return (
-    <main className={`share-target-shell ${mutation.isSuccess ? 'share-target-sheet-page' : ''}`}>
-      <Link className="brand-link" to="/">SEND IT</Link>
-      <section className="share-target-card">
-        {!request ? (
-          <>
-            <span className="share-target-mark error" aria-hidden="true">!</span>
-            <h1>공유할 URL을 찾지 못했습니다.</h1>
-            <p>SNS 게시물에서 링크 공유를 선택한 뒤 다시 SEND IT으로 보내 주세요.</p>
-            <Link className="share-target-primary" to="/">홈으로 이동</Link>
-          </>
-        ) : mutation.isPending || mutation.isIdle ? (
-          <>
-            <span className="share-target-loader" aria-hidden="true" />
-            <h1>게시물을 받고 있습니다.</h1>
-            <p>URL을 저장하고 장소 분석을 요청하는 중입니다.</p>
-          </>
-        ) : mutation.isSuccess ? (
-          <div className="share-category-sheet" role="dialog" aria-labelledby="share-category-title">
-            <span className="share-sheet-handle" aria-hidden="true" />
-            <header>
-              <span className="share-target-mark" aria-hidden="true">✓</span>
-              <div>
-                <small>저장 완료</small>
-                <h1 id="share-category-title">어디에 담을까요?</h1>
-              </div>
-            </header>
-            <p>분석은 백그라운드에서 계속됩니다. 저장할 분류를 선택해 주세요.</p>
-            <div className="share-category-list">
-              <button className="share-category-add" type="button" onClick={() => setShowNewCategory(true)}>
-                <span>＋</span><b>새 분류 추가</b>
-              </button>
-              {collectionsQuery.data?.map((collection) => (
-                <button
-                  type="button"
-                  key={collection.id}
-                  className={selectCategoryMutation.variables === collection.id && selectCategoryMutation.isSuccess ? 'selected' : ''}
-                  onClick={() => selectCategoryMutation.mutate(collection.id)}
-                >
-                  <span>★</span><b>{collection.name}</b>
-                </button>
-              ))}
-            </div>
-            {showNewCategory && (
-              <form className="share-new-category" onSubmit={(event) => {
-                event.preventDefault()
-                if (newCategory.trim()) createCategoryMutation.mutate(newCategory.trim())
-              }}>
-                <input autoFocus maxLength={100} value={newCategory} onChange={(event) => setNewCategory(event.target.value)} placeholder="새 분류 이름" />
-                <button disabled={!newCategory.trim() || createCategoryMutation.isPending}>추가</button>
-              </form>
-            )}
-            {(selectCategoryMutation.isError || createCategoryMutation.isError) && <div className="form-error">분류를 저장하지 못했습니다. 다시 시도해 주세요.</div>}
-            <div className="share-sheet-actions">
-              <button type="button" onClick={() => navigate('/', { replace: true })}>완료</button>
-              <Link to={`/shares/${mutation.data.shareId}`}>분석 보기</Link>
-            </div>
-          </div>
-        ) : (
-          <>
-            <span className="share-target-mark error" aria-hidden="true">!</span>
-            <h1>게시물을 저장하지 못했습니다.</h1>
-            <p>{apiError?.message ?? '잠시 후 다시 시도해 주세요.'}</p>
-            <button className="share-target-primary" type="button" onClick={() => mutation.mutate(request)}>
-              다시 시도
-            </button>
-          </>
-        )}
-      </section>
-    </main>
-  )
+    mutation.mutate(request!, { onSuccess: () => sessionStorage.removeItem(PENDING_SHARE_KEY) })
+  }, [accessToken, existingId, mutation, navigate, params, request])
+  const processing = !detail.data || ['PENDING', 'ANALYZING'].includes(detail.data.status)
+  return <main className="share-save-shell">
+    <section className="share-save-sheet" aria-labelledby="share-save-title">
+      <header><div><small>SEND IT</small><h1 id="share-save-title">{done ? '담기 완료!' : '어디에 담을까요?'}</h1></div>
+        <button type="button" aria-label="공유 창 닫기" onClick={closeShareWindow}>×</button></header>
+      {!accessToken ? <p>SendIT 앱에서 먼저 로그인한 뒤 다시 공유해 주세요.</p>
+        : !request && !existingId ? <p>공유할 링크를 찾지 못했습니다.</p>
+        : mutation.isError ? <><p role="alert">게시물을 받지 못했습니다.</p><button onClick={() => mutation.mutate(request!)}>다시 시도</button></>
+        : !shareId ? <p role="status">게시물을 받고 있어요…</p>
+        : done ? <>
+          <p>선택한 컬렉션에 담았습니다.{processing ? ' 장소 분석이 끝나면 자동으로 추가됩니다.' : ''}</p>
+          <div className="share-save-actions"><button onClick={closeShareWindow}>완료</button><button onClick={() => setDone(false)}>컬렉션 변경</button></div>
+          {!params.has('native') && <><small>창이 닫히지 않으면 이전 앱으로 돌아가도 됩니다.</small><Link to={`/shares/${shareId}`}>분석 보기</Link></>}
+        </> : <>
+          <p className="share-save-preview">{detail.data?.extractedPlaceName ?? detail.data?.title ?? request?.url}</p>
+          {processing && <p role="status">자동 추천을 분석 중이에요. 먼저 컬렉션을 선택해도 됩니다.</p>}
+          {detail.isError && <p role="alert">분석 상태를 불러오지 못했습니다. <button onClick={() => detail.refetch()}>다시 시도</button></p>}
+          {detail.data?.status === 'FAILED' && <p>자동 분석에 실패했습니다. 컬렉션을 지정하고 나중에 장소를 확인할 수 있어요.</p>}
+          <CollectionPicker category={detail.data?.extractedCategory} collectionId={detail.data?.collectionId ?? undefined}
+            onConfirm={async (id) => {
+              await selectShareCollection(shareId, id)
+              await cache.invalidateQueries({ queryKey: ['share', shareId] })
+              setDone(true)
+            }} />
+        </>}
+    </section>
+  </main>
 }

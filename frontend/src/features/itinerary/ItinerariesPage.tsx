@@ -66,7 +66,7 @@ export function ItinerariesPage() {
     [placesQuery.data],
   )
   const categoryOptions = useMemo(
-    () => [...new Set((placesQuery.data ?? []).map((place) => place.category).filter(Boolean) as string[])].sort(),
+    () => [...new Set((placesQuery.data ?? []).map((place) => place.collectionName).filter(Boolean) as string[])].sort(),
     [placesQuery.data],
   )
   const regionOptions = useMemo(
@@ -91,8 +91,8 @@ export function ItinerariesPage() {
       const district = parts.slice(1).find((part) => /(?:시|군|구)$/.test(part)) ?? null
       return (regionFilter === 'all' || region === regionFilter)
         && (districtFilter === 'all' || district === districtFilter)
-        && (categoryFilter === 'all' || place.category === categoryFilter)
-        && `${place.name} ${place.roadAddress ?? place.address ?? ''} ${place.category ?? ''}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
+        && (categoryFilter === 'all' || place.collectionName === categoryFilter)
+        && `${place.name} ${place.roadAddress ?? place.address ?? ''} ${place.collectionName ?? ''}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
     }),
     [categoryFilter, districtFilter, placesQuery.data, regionFilter, search],
   )
@@ -228,9 +228,9 @@ export function ItinerariesPage() {
                 </select>
               </label>
               <label>
-                카테고리
+                컬렉션
                 <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
-                  <option value="all">전체 카테고리</option>
+                  <option value="all">전체 컬렉션</option>
                   {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
                 </select>
               </label>
@@ -265,9 +265,9 @@ export function ItinerariesPage() {
                   onClick={() => togglePlace(place.savedPlaceId)}
                 >
                   <span className="selection-order">{selected ? order + 1 : '+'}</span>
-                  <PlaceImage src={place.imageUrl} alt={`${place.name} 대표 이미지`} category={place.category} className="itinerary-option-image" />
+                  <PlaceImage src={place.imageUrl} alt={`${place.name} 대표 이미지`} category={place.collectionName} className="itinerary-option-image" />
                   <span className="itinerary-option-copy">
-                    <small>{place.category ?? '미분류'}</small>
+                    <small>{place.collectionName ?? '기타'}</small>
                     <strong>{place.name}</strong>
                     <small>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</small>
                   </span>

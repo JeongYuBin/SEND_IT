@@ -1,0 +1,13 @@
+body:has(.share-save-shell), body:has(.share-save-shell) #root { background: transparent; }
+body:has(.share-save-shell) :is(.mobile-menu-sheet, .desktop-site-nav, .desktop-site-navigation) { display: none; }
+.share-save-shell { min-height: 100dvh; display: flex; align-items: flex-end; justify-content: center; padding: 0; background: #2b223755; }
+.share-save-sheet { width: min(100%, 540px); max-height: 86dvh; overflow-y: auto; overscroll-behavior: contain; padding: 20px 20px max(20px, env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0; background: #fffcff; color: #352d40; }
+.share-save-sheet header { display: flex; justify-content: space-between; align-items: center; }
+.share-save-sheet header h1 { margin: 5px 0; font-size: 22px; }
+.share-save-sheet header small { font-size: 11px; color: #8a739d; }
+.share-save-sheet header button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #f0e9f7; color: #78608e; font-size: 24px; }
+.share-save-sheet > p { font-size: 13px; line-height: 1.7; }
+.share-save-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #8a739d; }
+.share-save-actions { display: flex; gap: 8px; margin: 14px 0; }
+.share-save-actions button { flex: 1; padding: 12px; background: #eee5f8; border: 0; border-radius: 12px; color: #725789; }
+.share-save-sheet > small, .share-save-sheet > a { display: block; font-size: 12px; color: #8a739d; margin: 10px 0; }

@@ -117,7 +117,7 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
           </button>
         </div>
       </header>
-      {routeMutation.isError && (
+      {routeMutation.isError && !(routeMutation.error instanceof CollectionChoiceCancelled) && (
         <div className="form-error">숙소의 경로 상태를 변경하지 못했습니다. 다시 시도해 주세요.</div>
       )}
       {expanded && <article className="overnight-stay">
@@ -145,20 +145,11 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
                         key={stay.contentId}
                         onClick={() => setSelectedStay(stay)}
                       >
-                        {stay.imageUrl
-                          ? (
-                            <PlaceImage
+                        <PlaceImage category="숙소"
                               src={stay.imageUrl}
                               alt={`${stay.name} 대표 이미지`}
                               className="stay-placeholder"
                             />
-                          )
-                          : (
-                            <div className="stay-skeleton" role="img" aria-label="숙소 이미지 준비 중">
-                              <span className="stay-skeleton-building" />
-                              <span className="stay-skeleton-ground" />
-                            </div>
-                          )}
                         <div>
                           <span>약 {(stay.distanceMeters / 1000).toFixed(1)}km</span>
                           <h3>
@@ -217,20 +208,11 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
             )}
             {!detailQuery.isLoading && (
               <>
-                {(detailQuery.data?.imageUrl ?? selectedStay.imageUrl)
-                  ? (
-                    <PlaceImage
+                <PlaceImage category="숙소"
                       src={detailQuery.data?.imageUrl ?? selectedStay.imageUrl}
                       alt={`${selectedStay.name} 대표 이미지`}
                       className="stay-placeholder"
                     />
-                  )
-                  : (
-                    <div className="stay-skeleton detail" role="img" aria-label="숙소 이미지 준비 중">
-                      <span className="stay-skeleton-building" />
-                      <span className="stay-skeleton-ground" />
-                    </div>
-                  )}
                 <div className="nearby-detail-content">
                   <span className="eyebrow">ACCOMMODATION</span>
                   <h2 id="stay-detail-title">{detailQuery.data?.name ?? selectedStay.name}</h2>
@@ -282,3 +264,4 @@ export function ItineraryAccommodations({ itinerary, day }: Props) {
     </section>
   )
 }
+import { CollectionChoiceCancelled } from '../saved/collectionChoice'

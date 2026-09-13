@@ -596,6 +596,7 @@ export function ItineraryDetailPage() {
                             <Link draggable={false} onClick={(event) => { if (editingOrder) event.preventDefault() }} to={`/saved/places/${item.savedPlaceId}`}>
                               <PlaceImage
                                 src={item.imageUrl}
+                                category={item.category}
                                 alt={`${item.name} 대표 이미지`}
                                 className="timeline-placeholder"
                               />
@@ -726,12 +727,13 @@ export function ItineraryDetailPage() {
                         >
                           <PlaceImage
                             src={place.imageUrl}
+                            category={place.collectionName}
                             alt={`${place.name} 대표 이미지`}
                             className="place-picker-placeholder"
                           />
                           <span>
                             <strong>{place.name}</strong>
-                            <small>{place.roadAddress ?? place.address ?? place.category ?? '장소 정보 없음'}</small>
+                            <small>{place.roadAddress ?? place.address ?? place.collectionName ?? '장소 정보 없음'}</small>
                           </span>
                           <b>
                             {addPlaceMutation.isPending

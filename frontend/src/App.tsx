@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { CollectionSaveDialog } from './features/saved/CollectionPicker'
 import { AuthPage } from './features/auth/AuthPage'
 import { AccountRecoveryPage } from './features/auth/AccountRecoveryPage'
 import { HomePage } from './features/home/HomePage'
@@ -24,6 +25,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <>
+      <CollectionSaveDialog />
       <DesktopSiteNavigation />
       <Routes>
       <Route path="/" element={<HomePage />} />

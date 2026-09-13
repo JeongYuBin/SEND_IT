@@ -22,7 +22,7 @@ public final class SavedPlaceDtos {
             LocalDate eventStartDate,
             LocalDate eventEndDate,
             Long sharedContentId,
-            Long collectionId,
+            @NotNull Long collectionId,
             @Size(max=1000) String memo,
             @Min(0) @Max(5) Integer priority,
             @Size(max=50) String kakaoPlaceId,

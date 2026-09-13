@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CollectionRepository extends JpaRepository<Collection, Long> {
     List<Collection> findByUserEmailOrderByCreatedAtDesc(String email);
     Optional<Collection> findByIdAndUserEmail(Long id, String email);
+    Optional<Collection> findByUserIdAndName(Long userId, String name);
 }
-

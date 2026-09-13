@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { App } from './App'
+import { startNativeSessionSync } from './nativeBridge'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import './styles.css'
 import './design-system.css'
@@ -13,6 +14,8 @@ import './trip-create.css'
 import './trip-detail.css'
 import './saved-detail.css'
 import './place-image.css'
+
+startNativeSessionSync()
 
 const queryClient = new QueryClient({
   defaultOptions: {

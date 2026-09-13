@@ -49,7 +49,6 @@ export function SavedPlaceDetailPage() {
   const [selectedNearby, setSelectedNearby] = useState<NearbyTourismPlace | null>(null)
   const [editingDetails, setEditingDetails] = useState(false)
   const [editName, setEditName] = useState('')
-  const [editCategory, setEditCategory] = useState('')
   const [editAddress, setEditAddress] = useState('')
   const [nearbyPage, setNearbyPage] = useState(0)
   const placeQuery = useQuery({
@@ -177,7 +176,7 @@ export function SavedPlaceDetailPage() {
       </nav>
       <article className="place-detail">
         <div className="place-detail-visual">
-          <PlaceImage src={place.imageUrl} alt={place.name} category={place.category}
+          <PlaceImage src={place.imageUrl} alt={place.name} category={place.collectionName}
             fallbackSources={place.sources.map((source) => source.thumbnailUrl)} className="place-detail-image-skeleton" />
           {place.latitude !== null && place.longitude !== null && (
             <section className="place-detail-location">
@@ -199,8 +198,7 @@ export function SavedPlaceDetailPage() {
         </div>
         <div className="place-detail-content">
           <div className="place-meta">
-            <span>{place.category ?? '미분류'}</span>
-            <span>{place.collectionName ?? '컬렉션 없음'}</span>
+            <span>{place.collectionName ?? '기타'}</span>
           </div>
           <h1>{place.name}</h1>
           <p className="place-detail-address">{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
@@ -210,7 +208,6 @@ export function SavedPlaceDetailPage() {
               className="secondary-button place-detail-edit-toggle"
               onClick={() => {
                 setEditName(place.name)
-                setEditCategory(place.category ?? '')
                 setEditAddress(place.roadAddress ?? place.address ?? '')
                 setEditingDetails(true)
               }}
@@ -225,7 +222,6 @@ export function SavedPlaceDetailPage() {
                 event.preventDefault()
                 updateMutation.mutate({
                   name: editName,
-                  category: editCategory,
                   roadAddress: editAddress,
                 })
               }}
@@ -239,7 +235,6 @@ export function SavedPlaceDetailPage() {
               </div>
               <div className="place-detail-edit-fields">
                 <label><span>장소명 <em>필수</em></span><input required maxLength={200} value={editName} onChange={(event) => setEditName(event.target.value)} /></label>
-                <label><span>카테고리</span><input maxLength={100} placeholder="예: 음식점, 관광지" value={editCategory} onChange={(event) => setEditCategory(event.target.value)} /></label>
                 <label className="wide-field"><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => setEditAddress(event.target.value)} /></label>
               </div>
               {updateMutation.isError && (
@@ -387,12 +382,10 @@ export function SavedPlaceDetailPage() {
                 disabled={updateMutation.isPending}
                 onChange={(event) => {
                   const value = event.target.value
-                  updateMutation.mutate(value === 'none'
-                    ? { clearCollection: true }
-                    : { collectionId: Number(value) })
+                  updateMutation.mutate({ collectionId: Number(value) })
                 }}
               >
-                <option value="none">컬렉션 없음</option>
+                
                 {collectionsQuery.data?.map((item) => (
                   <option key={item.id} value={item.id}>{item.name}</option>
                 ))}
@@ -416,7 +409,7 @@ export function SavedPlaceDetailPage() {
                     return (
                     <li key={source.sharedContentId}>
                       <a href={source.originalUrl} target="_blank" rel="noreferrer">
-                        {source.thumbnailUrl && <img src={source.thumbnailUrl} alt="" />}
+                        <PlaceImage src={source.thumbnailUrl} className="source-image" />
                         <span>
                           <small>{sourceLabels[source.sourceType]}</small>
                           <strong>{source.title ?? `${sourceLabels[source.sourceType]} 원본 콘텐츠`}</strong>
@@ -460,14 +453,7 @@ export function SavedPlaceDetailPage() {
                     key={nearby.contentId}
                     onClick={() => setSelectedNearby(nearby)}
                   >
-                    {nearby.imageUrl
-                      ? <img src={nearby.imageUrl} alt="" />
-                      : (
-                        <div className="nearby-placeholder" aria-label="관광공사 제공 이미지 없음">
-                          <strong>{nearby.category ?? '관광지'}</strong>
-                          <small>제공 이미지 없음</small>
-                        </div>
-                      )}
+                    <PlaceImage src={nearby.imageUrl} category={nearby.category} alt={nearby.name} className="nearby-image" />
                     <div>
                       <span>{nearby.category ?? '관광지'} · {nearby.distanceMeters.toLocaleString()}m</span>
                       <h3>
@@ -532,14 +518,7 @@ export function SavedPlaceDetailPage() {
                 )}
                 {nearbyDetailQuery.isError && (
                   <>
-                    {selectedNearby.imageUrl
-                      ? <img src={selectedNearby.imageUrl} alt="" />
-                      : (
-                        <div className="nearby-placeholder">
-                          <strong>{selectedNearby.category ?? '관광지'}</strong>
-                          <small>제공 이미지 없음</small>
-                        </div>
-                      )}
+                    <PlaceImage src={selectedNearby.imageUrl} category={selectedNearby.category} alt={selectedNearby.name} className="nearby-image" />
                     <div className="nearby-detail-content">
                       <span className="eyebrow">{selectedNearby.category ?? 'TOURISM'}</span>
                       <h2 id="nearby-detail-title">{selectedNearby.name}</h2>
@@ -563,14 +542,7 @@ export function SavedPlaceDetailPage() {
                 )}
                 {nearbyDetailQuery.data && (
                   <>
-                    {nearbyDetailQuery.data.imageUrl
-                      ? <img src={nearbyDetailQuery.data.imageUrl} alt="" />
-                      : (
-                        <div className="nearby-placeholder">
-                          <strong>{nearbyDetailQuery.data.category ?? '관광지'}</strong>
-                          <small>제공 이미지 없음</small>
-                        </div>
-                      )}
+                    <PlaceImage src={nearbyDetailQuery.data.imageUrl} fallbackSources={[selectedNearby.imageUrl]} category={nearbyDetailQuery.data.category} alt={nearbyDetailQuery.data.name} className="nearby-image" />
                     <div className="nearby-detail-content">
                       <span className="eyebrow">{nearbyDetailQuery.data.category ?? 'TOURISM'}</span>
                       <h2 id="nearby-detail-title">{nearbyDetailQuery.data.name}</h2>

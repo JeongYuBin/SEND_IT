@@ -3,24 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { KakaoMap, type KakaoMapPoint } from '../../components/KakaoMap'
 import type { SavedPlace } from '../saved/types'
 import { MapPlaceSearch } from './MapPlaceSearch'
-
-const defaultFilters = [
-  { label: '전체', pattern: /.*/ },
-  { label: '음식점', pattern: /음식|식당|맛집|한식|중식|일식|양식/ },
-  { label: '카페', pattern: /카페|커피|디저트/ },
-  { label: '숙소', pattern: /숙소|호텔|펜션|게스트|리조트/ },
-]
-
-const CUSTOM_FILTERS_KEY = 'sendit-map-custom-filters'
-
-function storedCustomFilters() {
-  try {
-    const value = JSON.parse(localStorage.getItem(CUSTOM_FILTERS_KEY) ?? '[]')
-    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
-  } catch {
-    return []
-  }
-}
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createCollection, getCollections } from '../saved/savedApi'
 
 export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
   const navigate = useNavigate()
@@ -28,10 +12,12 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
   const focused = places.find((place) => place.savedPlaceId === Number(params.get('place')))
   const focusedCenter = useMemo(() => focused?.latitude != null && focused.longitude != null
     ? { latitude: focused.latitude, longitude: focused.longitude } : null, [focused?.latitude, focused?.longitude])
-  const [filter, setFilter] = useState('전체')
+  const [filter, setFilter] = useState<number | null>(null)
+  const cache = useQueryClient()
+  const collections = useQuery({ queryKey: ['collections'], queryFn: getCollections })
+  const activeFilter = collections.data?.some((item) => item.id === filter) ? filter : null
   const [searchPoint, setSearchPoint] = useState<KakaoMapPoint | null>(null)
   const searchCenter = useMemo(() => searchPoint ? { latitude: searchPoint.latitude, longitude: searchPoint.longitude } : null, [searchPoint])
-  const [customFilters, setCustomFilters] = useState<string[]>(storedCustomFilters)
   const [addingFilter, setAddingFilter] = useState(false)
   const [newFilter, setNewFilter] = useState('')
   const [filterError, setFilterError] = useState('')
@@ -63,26 +49,13 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
     }
   }, [addingFilter])
 
+  const addCollection = useMutation({ mutationFn: createCollection, onSuccess: async (collection) => {
+    await cache.invalidateQueries({ queryKey: ['collections'] })
+    setFilter(collection.id); setNewFilter(''); setAddingFilter(false); setFilterError('')
+  }, onError: () => setFilterError('컬렉션을 만들지 못했습니다. 다시 시도해 주세요.') })
   const addFilter = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const name = newFilter.trim().replace(/\s+/g, ' ').slice(0, 20)
-    if (!name) {
-      setFilterError('카테고리 이름을 입력해 주세요.')
-      return
-    }
-    if ([...defaultFilters.map((item) => item.label), ...customFilters].includes(name)) {
-      setFilter(name)
-      setAddingFilter(false)
-      setFilterError('')
-      return
-    }
-    const next = [...customFilters, name]
-    setCustomFilters(next)
-    localStorage.setItem(CUSTOM_FILTERS_KEY, JSON.stringify(next))
-    setFilter(name)
-    setNewFilter('')
-    setFilterError('')
-    setAddingFilter(false)
+    if (newFilter.trim()) addCollection.mutate(newFilter.trim())
   }
 
   useEffect(() => {
@@ -94,61 +67,55 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
     )
   }, [params])
   const points = useMemo<KakaoMapPoint[]>(() => {
-    const selected = defaultFilters.find((item) => item.label === filter)
     return places
       .filter((place) => place.latitude !== null && place.longitude !== null)
-      .filter((place) => selected
-        ? selected.pattern.test(place.category ?? '')
-        : (place.category ?? '').toLocaleLowerCase('ko').includes(filter.toLocaleLowerCase('ko')))
+      .filter((place) => activeFilter === null || place.collectionId === activeFilter)
       .map((place) => ({
         id: place.savedPlaceId,
         name: place.name,
         label: place.name,
-        category: place.category,
+        category: place.collectionName,
         latitude: place.latitude!,
         longitude: place.longitude!,
       }))
-  }, [filter, places])
+  }, [activeFilter, places])
 
   return (
     <section className="home-map" aria-label="저장한 장소 지도">
-      <div className="home-map-filters" role="group" aria-label="장소 카테고리 필터">
-        {[...defaultFilters.map((item) => item.label), ...customFilters].map((label) => (
-          <button
-            key={label}
-            type="button"
-            className={filter === label ? 'active' : ''}
-            onClick={() => setFilter(label)}
-          >{label}</button>
+      <div className="home-map-filters" role="group" aria-label="컬렉션 필터">
+        {[{ id: null, name: '전체' }, ...(collections.data ?? [])].map((item) => (
+          <button key={item.id ?? 'all'} type="button" className={activeFilter === item.id ? 'active' : ''}
+            aria-pressed={activeFilter === item.id} onClick={() => { setFilter(item.id); setSearchPoint(null) }}>
+            {item.name}</button>
         ))}
         <button
           ref={addButtonRef}
           className="map-filter-add"
           type="button"
-          aria-label="지도 카테고리 추가"
+          aria-label="컬렉션 추가"
           aria-expanded={addingFilter}
           onClick={() => { setAddingFilter((open) => !open); setFilterError('') }}
         >+</button>
       </div>
       {addingFilter && (
         <form ref={filterPopoverRef} className="map-filter-popover" onSubmit={addFilter}>
-          <label htmlFor="new-map-filter">지도에서 볼 카테고리</label>
+          <label htmlFor="new-map-filter">새 컬렉션</label>
           <div>
             <input
               id="new-map-filter"
               autoFocus
-              maxLength={20}
+              maxLength={100}
               value={newFilter}
               onChange={(event) => { setNewFilter(event.target.value); setFilterError('') }}
               placeholder="예: 문화시설"
             />
-            <button type="submit">추가</button>
+            <button type="submit" disabled={addCollection.isPending || !newFilter.trim()}>추가</button>
           </div>
           {filterError && <small role="alert">{filterError}</small>}
         </form>
       )}
       <KakaoMap
-        ariaLabel={`${filter} 저장 장소 ${points.length}곳`}
+        ariaLabel={`저장 장소 ${points.length}곳`}
         points={searchPoint ? [searchPoint] : points}
         initialCenter={searchCenter ?? focusedCenter ?? currentLocation}
         fitPoints={false}

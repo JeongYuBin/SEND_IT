@@ -1,4 +1,5 @@
 import { http } from '../../api/http'
+import { chooseCollection } from './collectionChoice'
 import type {
   Collection,
   CreateSavedPlace,
@@ -27,7 +28,8 @@ export async function getSavedPlace(id: number) {
 }
 
 export async function createSavedPlace(request: CreateSavedPlace) {
-  return (await http.post<SavedPlace>('/saved-places', request)).data
+  const collectionId = await chooseCollection(request)
+  return (await http.post<SavedPlace>('/saved-places', { ...request, collectionId })).data
 }
 
 export async function updateSavedPlace(
