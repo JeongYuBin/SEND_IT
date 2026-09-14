@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { SavedPlaceSheet } from '../saved/SavedPlaceSheet'
 import { KakaoMap, type KakaoMapPoint } from '../../components/KakaoMap'
 import type { SavedPlace } from '../saved/types'
 import { MapPlaceSearch } from './MapPlaceSearch'
@@ -7,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createCollection, getCollections } from '../saved/savedApi'
 
 export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
-  const navigate = useNavigate()
+  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null)
   const [params] = useSearchParams()
   const focused = places.find((place) => place.savedPlaceId === Number(params.get('place')))
   const focusedCenter = useMemo(() => focused?.latitude != null && focused.longitude != null
@@ -119,9 +120,10 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
         points={searchPoint ? [searchPoint] : points}
         initialCenter={searchCenter ?? focusedCenter ?? currentLocation}
         fitPoints={false}
-        onSelect={(point) => { if (!searchPoint) navigate(`/saved/places/${point.id}`) }}
+        onSelect={(point) => { if (!searchPoint) setSelectedPlaceId(Number(point.id)) }}
       />
-      <MapPlaceSearch places={places} onSelect={setSearchPoint} />
+      <MapPlaceSearch places={places} onSelect={setSearchPoint} onOpenSaved={setSelectedPlaceId} />
+      {selectedPlaceId !== null && <SavedPlaceSheet key={selectedPlaceId} placeId={selectedPlaceId} onClose={() => setSelectedPlaceId(null)} />}
     </section>
   )
 }

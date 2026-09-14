@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useState } from 'react'
 import { PlaceImage } from '../../components/PlaceImage'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import {
   createSavedPlace,
+  deleteSavedPlace,
   getCollections,
   getNearbyTourismPlaces,
   getSavedPlace,
@@ -42,9 +44,11 @@ function kakaoMapUrl(place: {
   return `https://map.kakao.com/link/search/${encodeURIComponent(query)}`
 }
 
-export function SavedPlaceDetailPage() {
+export function SavedPlaceDetailPage({ placeId, embedded = false, onDeleted }: { placeId?: number; embedded?: boolean; onDeleted?: () => void } = {}) {
   const { savedPlaceId: savedPlaceIdParam } = useParams()
-  const savedPlaceId = Number(savedPlaceIdParam)
+  const savedPlaceId = placeId ?? Number(savedPlaceIdParam)
+  const navigate = useNavigate()
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const queryClient = useQueryClient()
   const [selectedNearby, setSelectedNearby] = useState<NearbyTourismPlace | null>(null)
   const [editingDetails, setEditingDetails] = useState(false)
@@ -115,6 +119,16 @@ export function SavedPlaceDetailPage() {
       setEditingDetails(false)
     },
   })
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteSavedPlace(savedPlaceId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['saved-places'] })
+      await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+      queryClient.removeQueries({ queryKey: ['saved-place', savedPlaceId], exact: true })
+      if (onDeleted) onDeleted()
+      else navigate('/saved', { replace: true })
+    },
+  })
   const saveNearbyMutation = useMutation({
     mutationFn: (nearby: NearbyTourismPlace) => createSavedPlace({
       name: nearby.name,
@@ -125,7 +139,6 @@ export function SavedPlaceDetailPage() {
       imageUrl: nearby.imageUrl ?? undefined,
       tourismContentId: nearby.contentId,
       tourismContentTypeId: nearby.contentTypeId,
-      collectionId: placeQuery.data?.collectionId ?? undefined,
     }),
     onSuccess: (savedPlace) => {
       queryClient.setQueryData(
@@ -164,8 +177,8 @@ export function SavedPlaceDetailPage() {
   const currentNearbyPage = Math.min(nearbyPage, Math.max(0, nearbyPageCount - 1))
 
   return (
-    <main className="place-detail-shell compact-saved-detail">
-      <nav className="top-nav">
+    <main className={`place-detail-shell compact-saved-detail${embedded ? ' embedded-place-detail' : ''}`}>
+      {!embedded && <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
           <Link to={backUrl}>← 저장한 장소</Link>
@@ -173,12 +186,12 @@ export function SavedPlaceDetailPage() {
           <Link to="/settings">설정</Link>
           <Link to="/notifications">알림</Link>
         </div>
-      </nav>
+      </nav>}
       <article className="place-detail">
         <div className="place-detail-visual">
           <PlaceImage src={place.imageUrl} alt={place.name} category={place.collectionName}
             fallbackSources={place.sources.map((source) => source.thumbnailUrl)} className="place-detail-image-skeleton" />
-          {place.latitude !== null && place.longitude !== null && (
+          {!embedded && place.latitude !== null && place.longitude !== null && (
             <section className="place-detail-location">
               <div>
                 <span className="eyebrow">LOCATION</span>
@@ -202,6 +215,7 @@ export function SavedPlaceDetailPage() {
           </div>
           <h1>{place.name}</h1>
           <p className="place-detail-address">{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
+          <div className="saved-place-actions">
           {!editingDetails && (
             <button
               type="button"
@@ -215,6 +229,11 @@ export function SavedPlaceDetailPage() {
               장소 정보 수정
             </button>
           )}
+          <a className="kakao-map-link" href={kakaoMapUrl(place)} target="_blank" rel="noreferrer">카카오맵에서 보기 ↗</a>
+          <button type="button" className="saved-place-delete" onClick={() => setConfirmDelete(true)} disabled={deleteMutation.isPending}>삭제</button>
+          </div>
+          {deleteMutation.isError && <p className="form-error" role="alert">장소를 삭제하지 못했습니다. 다시 시도해 주세요.</p>}
+          <ConfirmDialog open={confirmDelete} title="저장한 장소를 삭제할까요?" description="내 저장 목록에서 이 장소를 삭제합니다. 연결된 여행 일정에서도 제외됩니다." pending={deleteMutation.isPending} onCancel={() => setConfirmDelete(false)} onConfirm={() => deleteMutation.mutate()} />
           {editingDetails && (
             <form
               className="place-detail-edit-form"
@@ -249,23 +268,6 @@ export function SavedPlaceDetailPage() {
               </div>
             </form>
           )}
-          <div className="place-map-actions">
-            <a
-              className="kakao-map-link"
-              href={kakaoMapUrl(place)}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${place.name} 카카오맵에서 보기`}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2.75a7 7 0 0 0-7 7c0 5.1 6.07 10.72 6.33 10.96a1 1 0 0 0 1.34 0C12.93 20.47 19 14.85 19 9.75a7 7 0 0 0-7-7Zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
-              </svg>
-              <span>카카오맵에서 보기</span>
-              <span className="external-arrow" aria-hidden="true">↗</span>
-            </a>
-            <p>카카오맵에서 위치를 확인하고 즐겨찾기에 추가할 수 있습니다.</p>
-          </div>
-
           {eventState && (
             <section className={`place-event-period ${eventState.tone}`}>
               <div>

@@ -81,3 +81,6 @@ body:has(.compact-saved-detail .nearby-detail-backdrop) .mobile-menu-sheet { vis
  .compact-saved-detail .place-detail-location { order: 2; width: 100%; margin-top: 0; }
  .compact-saved-detail .place-detail-visual > img, .compact-saved-detail .place-detail-image-skeleton { height: 150px; }
 }
+.compact-saved-detail .saved-place-actions { display: flex; align-items: stretch; gap: 6px; margin: 12px 0; }
+.compact-saved-detail .saved-place-actions > :is(button,a) { display: inline-flex; align-items: center; justify-content: center; min-width: 0; min-height: 40px; margin: 0; padding: 7px 9px; font: inherit; font-size: 11px; white-space: nowrap; border-radius: 10px; }
+.compact-saved-detail .saved-place-actions .saved-place-delete { border: 1px solid #ebcbd0; background: #fff7f8; color: #ad4557; }

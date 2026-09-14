@@ -18,8 +18,8 @@ type Result = {
   request?: CreateSavedPlace; url?: string | null
 }
 
-export function MapPlaceSearch({ places, onSelect }: {
-  places: SavedPlace[]; onSelect: (point: KakaoMapPoint | null) => void
+export function MapPlaceSearch({ places, onSelect, onOpenSaved }: {
+  places: SavedPlace[]; onSelect: (point: KakaoMapPoint | null) => void; onOpenSaved?: (id: number) => void
 }) {
   const navigate = useNavigate()
   const cache = useQueryClient()
@@ -101,7 +101,7 @@ export function MapPlaceSearch({ places, onSelect }: {
         <strong>{selected.name}</strong><small>{selected.category}</small><p>{selected.address ?? '주소 정보 없음'}</p>
         {selected.latitude == null && <small>등록된 위치 정보가 없습니다.</small>}
         <div className="map-search-actions">
-          {selected.savedId ? <button type="button" onClick={() => navigate(`/saved/places/${selected.savedId}`)}>게시물·상세 보기</button>
+          {selected.savedId ? <button type="button" onClick={() => onOpenSaved ? onOpenSaved(selected.savedId!) : navigate(`/saved/places/${selected.savedId}`)}>게시물·상세 보기</button>
             : <button type="button" disabled={save.isPending || !selected.request} onClick={() => selected.request && save.mutate(selected.request)}>{save.isPending ? '저장 중…' : '내 장소에 저장'}</button>}
           {selected.url && <a href={selected.url} target="_blank" rel="noreferrer">카카오맵 ↗</a>}
         </div>

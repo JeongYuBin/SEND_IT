@@ -73,7 +73,7 @@ export function CollectionSaveDialog() {
   return createPortal(<dialog ref={dialogRef} className="collection-save-dialog" onCancel={(event) => { event.preventDefault(); cancel() }} aria-labelledby="collection-save-title">
     <header><h2 id="collection-save-title">어디에 담을까요?</h2><button type="button" aria-label="저장 취소" onClick={cancel}>×</button></header>
     <p className="collection-save-name">{request.name}</p>
-    <CollectionPicker category={request.category} collectionId={request.collectionId} onConfirm={async (id) => {
+    <CollectionPicker category={request.category} onConfirm={async (id) => {
       pending.current?.resolve(id); pending.current = null; setRequest(null)
     }} />
   </dialog>, document.body)
