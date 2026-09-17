@@ -2,7 +2,7 @@
 .trip-detail-page .itinerary-detail > header .eyebrow { margin: 0 0 8px; font-size: 10px; }
 .trip-detail-page .itinerary-detail h1 { font-size: 26px; margin: 0; }
 .trip-detail-page .itinerary-detail > header p { font-size: 12px; gap: 4px 10px; margin: 10px 0; }
-.trip-detail-page .itinerary-header-actions { margin: 12px 0; }
+.trip-detail-page .itinerary-header-actions { margin: 12px 0; align-items: center; overflow: visible; }
 .trip-detail-page .itinerary-header-actions button { font-size: 12px; padding: 8px 12px; min-height: 38px; }
 .trip-detail-page .inline-order-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0; padding: 10px 12px; border-radius: 14px; background: #eee8f5; font-size: 12px; }
 .trip-detail-page .inline-order-notice button { padding: 8px 12px; border: 0; border-radius: 10px; color: #695383; background: white; font-size: 12px; }
@@ -44,13 +44,17 @@
 .trip-order-editing .timeline-card-shell a { pointer-events: none; }
 .trip-order-editing .timeline-remove-button { display: none; }
 .trip-detail-page .card-drag-handle { padding: 3px 0; font-size: 10px; color: #8a729e; }
-.trip-reminders { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px; border: 1px solid #e6deee; border-radius: 14px; background: #ffffffbc; }
-.trip-reminders > div { flex: 1; }
-.trip-reminders strong { font-size: 12px; }
-.trip-reminders small { display: block; font-size: 10px; color: #8f829a; }
-.trip-reminder-limit { width: 100%; }
-.trip-reminders button { padding: 8px 14px; border: 0; border-radius: 20px; background: #eee9f3; color: #7b678b; }
-.trip-reminders button[aria-checked='true'] { background: #8974a5; color: white; }
+.trip-reminder-control { position: relative; flex: 0 0 auto; margin-left: auto; }
+.trip-detail-page .itinerary-header-actions .trip-reminder-icon { position: relative; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #e5ddeb; border-radius: 50%; background: #f1edf6; color: #8c8098; }
+.trip-reminder-icon svg { width: 21px; height: 21px; }
+.trip-detail-page .itinerary-header-actions .trip-reminder-icon[aria-checked='true'] { color: #72558d; border-color: #d2c1e2; background: #e9dff3; }
+.trip-reminder-icon:hover { filter: brightness(.97); }
+.trip-reminder-icon:focus-visible { outline: 2px solid #8974a5; outline-offset: 3px; }
+.trip-reminder-icon:disabled { opacity: .6; cursor: wait; }
+.trip-reminder-dot { position: absolute; top: 7px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: #806296; box-shadow: 0 0 0 2px #e9dff3; }
+.trip-reminder-hint { position: absolute; z-index: 20; top: 100%; right: 0; width: min(260px, calc(100vw - 48px)); padding: 12px; border: 1px solid #e5ddeb; border-radius: 12px; background: #fffcff; box-shadow: 0 5px 18px #30293715; color: #7b6b88; font-size: 11px; line-height: 1.6; visibility: hidden; }
+.trip-reminder-hint strong { display: block; color: #5f4e70; margin-bottom: 4px; font-size: 12px; }
+.trip-reminder-control:is(:hover, :focus-within) .trip-reminder-hint:not(.dismissed) { visibility: visible; }
 body:has(.trip-detail-page .nearby-detail-backdrop) .mobile-menu-sheet { visibility: hidden; pointer-events: none; }
 .trip-detail-page .nearby-detail-backdrop { z-index: 2200; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); overscroll-behavior: contain; }
 .trip-detail-page .nearby-detail-dialog { max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom))); overscroll-behavior: contain; scroll-padding-bottom: 32px; }

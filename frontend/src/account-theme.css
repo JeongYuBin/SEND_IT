@@ -1,0 +1,109 @@
+/* Account pages share the compact, warm lavender palette used by trip details. */
+.account-shell, .notification-page {
+  --account-danger: #a64758;
+  width: 100%; max-width: none; margin: 0; padding: 24px 24px 100px;
+  color: var(--ink); font-family: var(--app-font); font-size: 13px;
+}
+.account-shell > :not(.top-nav), .notification-page > :not(.top-nav) { width: min(100%, 680px); margin-inline: auto; }
+:is(.account-shell, .notification-page) .account-header { margin-top: 18px; margin-bottom: 20px; }
+:is(.account-shell, .notification-page) .account-back-link { display: flex; align-items: center; gap: 7px; width: fit-content; min-height: 36px; margin-bottom: 12px; color: var(--muted); font-size: 12px; }
+.account-back-link > span { font-size: 23px; line-height: 1; }
+:is(.account-shell, .notification-page) .account-header .eyebrow { display: block; margin: 0 0 6px; color: #8b7a98; font-size: 10px; letter-spacing: .12em; }
+:is(.account-shell, .notification-page) .account-header h1 { margin: 0; color: var(--ink); font-size: 26px; font-weight: 700; line-height: 1.35; letter-spacing: -.04em; }
+:is(.account-shell, .notification-page) .account-header p { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; word-break: keep-all; }
+.account-shell :is(.profile-card, .profile-stats a, .profile-quick-links, .settings-list, .profile-edit-form) { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: none; }
+.account-shell .profile-card { margin-top: 0; padding: 18px; gap: 14px; align-items: flex-start; }
+.account-shell .profile-avatar { width: 52px; height: 52px; background: linear-gradient(145deg, #ae96c9, #82679e); font-size: 22px; font-weight: 600; border-radius: 18px; }
+.account-shell .profile-summary > span { color: var(--muted); font-size: 10px; }
+.account-shell .profile-summary h2 { margin: 3px 0; color: var(--ink); font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
+.account-shell .profile-summary p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.account-shell .profile-summary button { min-height: 36px; margin-top: 10px; padding: 7px 12px; border: 1px solid #e2d6ed; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; }
+.account-shell .profile-stats { gap: 10px; margin-top: 12px; margin-bottom: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.account-shell .profile-stats a { min-height: 88px; padding: 14px 16px; gap: 4px; }
+.account-shell .profile-stats strong { color: var(--accent); font-size: 24px; line-height: 1.3; font-weight: 650; }
+.account-shell .profile-stats span { color: var(--muted); font-size: 12px; }
+.account-shell .profile-quick-links { overflow: hidden; margin-top: 0; }
+.account-shell .profile-quick-links a { display: flex; align-items: center; gap: 12px; min-height: 66px; padding: 12px 16px; color: var(--ink); font-size: 13px; font-weight: 550; }
+.account-shell .profile-quick-links a + a { border-top: 1px solid var(--line); }
+.account-shell .profile-quick-links small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 400; }
+.account-icon { flex: 0 0 20px; width: 20px; height: 20px; color: #8b729f; }
+.account-chevron { margin-left: auto; padding-left: 8px; color: #a798b4; font-size: 20px; font-weight: 400; }
+.account-shell .account-section-title { margin-top: 20px; margin-bottom: 8px; padding-left: 3px; color: #80718d; font-size: 11px; font-weight: 600; }
+.account-shell .settings-list { margin-top: 0; }
+.account-shell .settings-list > div { min-height: 50px; padding: 14px 16px; gap: 12px; border-color: var(--line); align-items: center; font-size: 12px; }
+.account-shell .settings-list > div:last-child { border-bottom: 0; }
+.account-shell .settings-list > div span { color: var(--muted); }
+.account-shell .settings-list > div strong { color: var(--ink); font-size: 12px; font-weight: 550; text-align: right; }
+.account-shell .settings-list .account-menu-row { display: flex; align-items: center; gap: 12px; min-height: 56px; width: 100%; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; color: var(--ink); background: var(--surface); font-size: 13px; font-weight: 550; }
+.account-shell .settings-list .account-menu-row:last-child { border-bottom: 0; }
+.account-shell .settings-list .settings-action small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; font-weight: 400; line-height: 1.6; }
+.account-shell .settings-list .account-delete-toggle { color: var(--account-danger); }
+.account-shell .account-delete-toggle .account-icon { color: inherit; }
+.account-shell :is(.profile-edit-form, .settings-list .account-security-form, .settings-list .account-delete-form) { display: grid; padding: 16px; gap: 12px; background: #f7f3fa; font-size: 12px; }
+.account-shell .profile-edit-form { margin-top: 12px; margin-bottom: 12px; }
+.account-shell :is(.profile-edit-form, .account-security-form, .account-delete-form) label { display: grid; gap: 6px; color: #62576d; font-size: 12px; font-weight: 550; }
+.account-shell :is(.profile-edit-form, .account-security-form, .account-delete-form) input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #dfd5e8; border-radius: 10px; background: var(--surface); color: var(--ink); font-size: 16px; font-weight: 400; }
+.account-shell :is(.profile-edit-form, .account-security-form, .account-delete-form) > div { display: flex; justify-content: flex-end; flex-wrap: wrap; min-height: 0; margin-top: 2px; padding: 0; border: 0; gap: 8px; }
+.account-shell :is(.profile-edit-form, .account-security-form, .account-delete-form) button { width: auto; min-height: 40px; padding: 9px 14px; border: 1px solid #dfd5e8; border-radius: 10px; background: var(--surface); color: #756184; font-size: 12px; font-weight: 600; text-align: center; }
+.account-shell :is(.profile-edit-form, .account-security-form) button[type='submit'] { background: var(--accent); border-color: var(--accent); color: white; }
+.account-shell .settings-list .account-delete-form { background: #fcf4f5; }
+.account-shell .account-delete-form > strong { color: var(--account-danger); font-size: 12px; }
+.account-shell .account-delete-form p { color: #876771; font-size: 11px; line-height: 1.7; }
+.account-shell .account-delete-form button[type='submit'] { background: var(--account-danger); border-color: var(--account-danger); color: white; }
+:is(.account-shell, .notification-page) button:disabled { opacity: .5; cursor: not-allowed; }
+:is(.account-shell, .notification-page) :is(.form-error, .settings-error, .account-feedback) { margin-block: 12px; padding: 10px 12px; border: 1px solid #ecd4db; border-radius: 10px; background: #fcf3f5; color: var(--account-danger); font-size: 12px; line-height: 1.6; }
+.account-feedback button { min-height: 36px; border: 0; background: transparent; color: inherit; font-size: 12px; text-decoration: underline; }
+.notification-page .notification-header { display: flex; flex-direction: row; margin-top: 0; margin-bottom: 14px; gap: 8px; }
+.notification-page .notification-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.notification-page .notification-actions button, .notification-page .shared-content-more { min-height: 38px; padding: 8px 12px; border: 1px solid #e2d6ed; border-radius: 10px; background: var(--surface); color: var(--accent); font-size: 12px; font-weight: 550; }
+.notification-page .notification-list { display: grid; gap: 8px; }
+.notification-page .notification-list button { grid-template-columns: 6px minmax(0, 1fr); gap: 5px 10px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: none; }
+.notification-page .notification-list button.unread { background: #f1ebf8; border-color: #dfd1ed; }
+.notification-page .notification-list i { align-self: start; margin-top: 7px; width: 6px; height: 6px; }
+.notification-page .notification-list .unread i { background: #987bb2; }
+.notification-page .notification-list strong { color: var(--ink); font-size: 13px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.notification-page .notification-list span { gap: 4px; }
+.notification-page .notification-list small { color: var(--muted); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.notification-page .notification-list time { grid-column: 2; color: #8a7e95; font-size: 10px; line-height: 1.5; margin-top: 4px; }
+.notification-page .notification-empty { display: grid; justify-items: center; gap: 8px; margin-top: 16px; padding: 36px 16px; border: 1px dashed #ded2e9; border-radius: 16px; background: #faf7fc; color: var(--muted); font-size: 12px; }
+.notification-empty .account-icon { width: 28px; height: 28px; margin-bottom: 4px; }
+.notification-empty strong { color: #6f5e7d; font-size: 13px; font-weight: 550; }
+.notification-page .analysis-state { min-height: 120px; padding: 24px 16px; font-size: 12px; color: var(--muted); }
+.notification-page .shared-content-more { display: block; width: fit-content; margin-top: 16px; }
+.account-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* Account recovery and sign-in use the same fields and accents. */
+.auth-shell .auth-card { border-color: var(--line); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-card); }
+.auth-shell .auth-card h1 { font-size: 26px; line-height: 1.4; letter-spacing: -.04em; }
+.auth-shell .auth-card > p { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.auth-shell .auth-card .eyebrow { color: #8b7a98; font-size: 10px; }
+.auth-shell .auth-form { gap: 12px; }
+.auth-shell .auth-form label { color: #62576d; font-size: 12px; }
+.auth-shell .auth-form input { min-height: 44px; padding: 10px 12px; border-color: #dfd5e8; border-radius: 10px; color: var(--ink); font-size: 16px; background: var(--surface); }
+.auth-shell .auth-form button { min-height: 42px; border-radius: 10px; font-size: 12px; }
+.auth-shell .auth-switch { font-size: 12px; }
+.auth-shell .auth-switch a { color: var(--accent); }
+.auth-shell .auth-recovery-links { font-size: 12px; }
+.auth-shell .auth-recovery-links a { color: var(--accent); font-weight: 500; }
+.auth-shell .auth-inline-field button { min-width: 90px; padding: 8px 10px; border-color: #dfd5e8; color: var(--accent); background: var(--accent-soft); }
+.auth-shell .auth-form label small.field-success { color: var(--accent); }
+.auth-shell :is(.form-error, .form-success) { padding: 10px 12px; border-radius: 10px; font-size: 12px; line-height: 1.6; }
+.auth-shell .form-success { background: var(--accent-soft); color: var(--accent); }
+body:has(:is(.account-shell, .notification-page)) .confirm-dialog { width: min(100%, 380px); padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--ink); }
+body:has(:is(.account-shell, .notification-page)) .confirm-dialog h2 { margin: 12px 0 8px; font-size: 18px; }
+body:has(:is(.account-shell, .notification-page)) .confirm-dialog p { color: var(--muted); font-size: 12px; line-height: 1.7; }
+body:has(:is(.account-shell, .notification-page)) .confirm-dialog-actions { gap: 8px; margin-top: 18px; }
+body:has(:is(.account-shell, .notification-page)) .confirm-dialog-actions button { min-height: 42px; padding: 10px 12px; border-radius: 10px; font-size: 12px; }
+body:has(:is(.account-shell, .notification-page)) .confirm-dialog-actions .danger { background: #a64758; color: white; border-color: #a64758; }
+@media (hover: hover) {
+  .account-shell :is(.profile-quick-links a, .profile-stats a, .settings-list .account-menu-row):hover { background: #f5f0fa; }
+  .account-shell .settings-list .account-delete-toggle:hover { background: #fcf0f3; }
+}
+@media (max-width: 760px) {
+  .account-shell, .notification-page { padding: 12px 16px calc(84px + env(safe-area-inset-bottom)); }
+  :is(.account-shell, .notification-page) .account-header { margin-top: 4px; margin-bottom: 18px; }
+  :is(.account-shell, .notification-page) .account-header h1 { font-size: 24px; }
+  .account-shell .profile-card { padding: 16px; }
+  .auth-shell .auth-card { padding: 20px; }
+  .auth-shell .auth-card h1 { font-size: 24px; }
+}
+.account-shell .account-security-form input::placeholder { color: #a5a1aa; opacity: 1; font-size: 12px; font-weight: 400; }

@@ -93,7 +93,7 @@ export function HomePage() {
     .slice(0, 4)
 
   return (
-    <main className="shell">
+    <main className={`shell${accessToken ? '' : ' landing-shell'}`}>
       <nav className="top-nav">
         <Link className="brand-link" to="/">SEND IT</Link>
         <div>
@@ -126,7 +126,7 @@ export function HomePage() {
           </nav>
         )}
         <span className="eyebrow">SEND IT</span>
-        <h1>발견한 여행지를<br />진짜 여행으로.</h1>
+        <h1>발견한 여행지를<br /><span>진짜 여행으로.</span></h1>
         <p>
           SNS와 블로그에서 찾은 장소를 저장하고,<br />
           방문 가능한 여행 동선으로 만들어 보세요.
@@ -138,7 +138,11 @@ export function HomePage() {
               id="content-url"
               required
               type="url"
-              placeholder="https://..."
+              placeholder="https://… 링크를 붙여넣어 주세요"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="url"
               aria-describedby="url-help"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
@@ -148,6 +152,7 @@ export function HomePage() {
             </button>
           </div>
           <small id="url-help">Instagram, YouTube, TikTok, 네이버 블로그와 일반 웹페이지를 지원합니다.</small>
+          <p className="landing-login-hint">로그인 후 장소를 저장할 수 있어요.</p>
           {shareMutation.isSuccess && (
             <div className="share-feedback success" role="status">
               {shareMutation.data.duplicate ? '이미 저장한 콘텐츠예요.' : '저장했어요! 장소를 분석하고 있습니다.'}

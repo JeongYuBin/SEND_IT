@@ -4,6 +4,7 @@ import { logout } from '../auth/authApi'
 import { useAuthStore } from '../../stores/authStore'
 import { deleteAccount, updatePassword } from './accountApi'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { AccountIcon, AccountPageHeader } from './AccountPageHeader'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -82,12 +83,9 @@ export function SettingsPage() {
           <Link to="/notifications">알림</Link>
         </div>
       </nav>
-      <header className="account-header">
-        <span className="eyebrow">SETTINGS</span>
-        <h1>설정</h1>
-        <p>앱과 계정 사용 설정을 관리합니다.</p>
-      </header>
-      <section className="settings-list">
+      <AccountPageHeader eyebrow="SETTINGS" title="설정" description="앱과 계정 사용 설정을 관리합니다." />
+      <h2 className="account-section-title">앱 정보</h2>
+      <section className="settings-list" aria-label="앱 정보">
         <div>
           <span>앱 버전</span>
           <strong>0.1.0</strong>
@@ -96,30 +94,34 @@ export function SettingsPage() {
           <span>데이터 저장</span>
           <strong>내 계정에 저장</strong>
         </div>
-        <button className="settings-action" type="button" onClick={() => setShowPassword((value) => !value)}>
-          <span>비밀번호 변경</span>
-          <small>변경 후 모든 기기에서 다시 로그인합니다.</small>
+      </section>
+      <h2 className="account-section-title">계정 및 보안</h2>
+      <section className="settings-list" aria-label="계정 및 보안">
+        <button className="settings-action account-menu-row" type="button" aria-expanded={showPassword} aria-controls="account-password-form" onClick={() => setShowPassword((value) => !value)}>
+          <AccountIcon name="lock" />
+          <span>비밀번호 변경<small>변경 후 모든 기기에서 다시 로그인합니다.</small></span>
+          <span className="account-chevron" aria-hidden="true">{showPassword ? '⌄' : '›'}</span>
         </button>
         {showPassword && (
-          <form className="account-security-form" onSubmit={handlePasswordChange}>
+          <form id="account-password-form" className="account-security-form" onSubmit={handlePasswordChange}>
             <label><span>현재 비밀번호</span><input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required /></label>
-            <label><span>새 비밀번호</span><input type="password" autoComplete="new-password" minLength={8} maxLength={72} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required /></label>
-            <label><span>새 비밀번호 확인</span><input type="password" autoComplete="new-password" minLength={8} maxLength={72} value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} required /></label>
-            {passwordError && <p className="settings-error">{passwordError}</p>}
+            <label><span>새 비밀번호</span><input type="password" autoComplete="new-password" minLength={8} maxLength={15} pattern="(?=.*[A-Za-z])(?=.*\d)[\x21-\x7E]{8,15}" placeholder="영문과 숫자 포함 8~15자" title="영문과 숫자를 포함한 8~15자로 입력해 주세요." value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required /></label>
+            <label><span>새 비밀번호 확인</span><input type="password" autoComplete="new-password" minLength={8} maxLength={15} placeholder="새 비밀번호를 다시 입력해 주세요" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} required /></label>
+            {passwordError && <p className="settings-error" role="alert">{passwordError}</p>}
             <div>
-              <button type="button" onClick={() => setShowPassword(false)}>취소</button>
+              <button type="button" disabled={changingPassword} onClick={() => setShowPassword(false)}>취소</button>
               <button type="submit" disabled={changingPassword}>{changingPassword ? '변경 중...' : '비밀번호 변경'}</button>
             </div>
           </form>
         )}
-        <button type="button" onClick={handleLogout} disabled={loggingOut}>
-          {loggingOut ? '로그아웃 중...' : '로그아웃'}
+        <button className="account-menu-row account-logout" type="button" onClick={handleLogout} disabled={loggingOut}>
+          <AccountIcon name="logout" /><span>{loggingOut ? '로그아웃 중...' : '로그아웃'}</span><span className="account-chevron" aria-hidden="true">›</span>
         </button>
-        <button className="account-delete-toggle" type="button" onClick={() => setShowDelete((value) => !value)}>
-          계정 삭제
+        <button className="account-delete-toggle account-menu-row" type="button" aria-expanded={showDelete} aria-controls="account-delete-form" onClick={() => setShowDelete((value) => !value)}>
+          <AccountIcon name="delete" /><span>계정 삭제</span><span className="account-chevron" aria-hidden="true">{showDelete ? '⌄' : '›'}</span>
         </button>
         {showDelete && (
-          <form className="account-delete-form" onSubmit={handleDeleteAccount}>
+          <form id="account-delete-form" className="account-delete-form" onSubmit={handleDeleteAccount}>
             <strong>계정과 모든 데이터를 영구 삭제합니다.</strong>
             <p>저장 장소, 여행 계획, 원본 콘텐츠와 분석 파일은 복구할 수 없습니다.</p>
             <label>
@@ -132,7 +134,7 @@ export function SettingsPage() {
                 required
               />
             </label>
-            {deleteError && <p className="settings-error">{deleteError}</p>}
+            {deleteError && <p className="settings-error" role="alert">{deleteError}</p>}
             <div>
               <button type="button" onClick={() => setShowDelete(false)}>취소</button>
               <button type="submit" disabled={deleting || !deletePassword}>

@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { AccountIcon, AccountPageHeader } from '../account/AccountPageHeader'
 import {
   deleteReadNotifications,
   getNotificationsPage,
@@ -39,7 +40,10 @@ export function NotificationsPage() {
   })
 
   const openNotification = async (id: number, read: boolean, targetUrl: string | null) => {
-    if (!read) await readMutation.mutateAsync(id)
+    if (!read) {
+      try { await readMutation.mutateAsync(id) }
+      catch { return }
+    }
     if (targetUrl) navigate(targetUrl)
   }
 
@@ -55,8 +59,8 @@ export function NotificationsPage() {
         <Link className="brand-link" to="/">SEND IT</Link>
         <Link to="/saved">저장한 장소</Link>
       </nav>
-      <header className="notification-header">
-        <div><span className="eyebrow">NOTIFICATIONS</span><h1>알림</h1></div>
+      <AccountPageHeader eyebrow="NOTIFICATIONS" title="알림" description="여행과 저장한 장소의 새로운 소식을 확인하세요." />
+      <div className="notification-header">
         <div className="notification-actions">
           <button type="button" disabled={allMutation.isPending} onClick={() => allMutation.mutate()}>
             모두 읽음
@@ -69,10 +73,11 @@ export function NotificationsPage() {
             {deleteReadMutation.isPending ? '삭제 중...' : '읽은 알림 삭제'}
           </button>
         </div>
-      </header>
+      </div>
       {query.isLoading && <div className="analysis-state">알림을 불러오고 있습니다.</div>}
-      {query.isError && <div className="form-error">알림을 불러오지 못했습니다.</div>}
-      {notifications.length === 0 && !query.isLoading && <div className="notification-empty">아직 도착한 알림이 없습니다.</div>}
+      {query.isError && <div className="account-feedback" role="alert">알림을 불러오지 못했습니다. <button type="button" onClick={() => void query.refetch()}>다시 시도</button></div>}
+      {(readMutation.isError || allMutation.isError || deleteReadMutation.isError) && <p className="account-feedback" role="alert">알림을 처리하지 못했습니다. 다시 시도해 주세요.</p>}
+      {notifications.length === 0 && query.isSuccess && <div className="notification-empty"><AccountIcon name="bell" /><strong>아직 도착한 알림이 없어요</strong><span>새로운 소식이 생기면 여기에 알려드릴게요.</span></div>}
       <section className="notification-list">
         {notifications.map((item) => (
           <button
@@ -82,8 +87,8 @@ export function NotificationsPage() {
             onClick={() => openNotification(item.id, item.read, item.targetUrl)}
           >
             <i aria-hidden="true" />
-            <span><strong>{item.title}</strong><small>{item.message}</small></span>
-            <time>{formatDate(item.createdAt)}</time>
+            <span><strong>{!item.read && <span className="account-sr-only">읽지 않은 알림: </span>}{item.title}</strong><small>{item.message}</small></span>
+            <time dateTime={item.createdAt}>{formatDate(item.createdAt)}</time>
           </button>
         ))}
       </section>

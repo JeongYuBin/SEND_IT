@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { getItineraries } from '../itinerary/itineraryApi'
 import { getSavedPlaces } from '../saved/savedApi'
 import { getProfile, updateProfile } from './accountApi'
+import { AccountIcon, AccountPageHeader } from './AccountPageHeader'
 
 export function ProfilePage() {
   const queryClient = useQueryClient()
@@ -49,29 +50,28 @@ export function ProfilePage() {
           <Link to="/notifications">알림</Link>
         </div>
       </nav>
-      <header className="account-header">
-        <span className="eyebrow">MY PROFILE</span>
-        <h1>내 정보</h1>
-        <p>여행 준비 현황과 계정 정보를 확인해 보세요.</p>
-      </header>
+      <AccountPageHeader eyebrow="MY PROFILE" title="내 정보" description="여행 준비 현황과 계정 정보를 확인해 보세요." backTo="/" backLabel="지도" />
+      {profileQuery.isError && <p className="account-feedback" role="alert">최신 계정 정보를 불러오지 못했습니다. <button type="button" onClick={() => void profileQuery.refetch()}>다시 시도</button></p>}
       <section className="profile-card">
         <div className="profile-avatar" aria-hidden="true">
           {profile?.nickname?.slice(0, 1).toUpperCase() ?? 'S'}
         </div>
         <div className="profile-summary">
           <span>여행자</span>
-          <h2>{profile?.nickname}</h2>
+          <h2>{profile?.nickname ?? '불러오는 중…'}</h2>
           <p>{profile?.email}</p>
           {!editing && (
-            <button type="button" onClick={() => setEditing(true)}>이름 수정</button>
+            <button type="button" aria-expanded={editing} aria-controls="profile-edit-form" onClick={() => setEditing(true)}>이름 수정</button>
           )}
         </div>
       </section>
       {editing && (
-        <form className="profile-edit-form" onSubmit={handleSubmit}>
+        <form id="profile-edit-form" className="profile-edit-form" onSubmit={handleSubmit}>
           <label htmlFor="profile-nickname">이름</label>
           <input
             id="profile-nickname"
+            autoComplete="nickname"
+            autoFocus
             required
             maxLength={50}
             value={nickname}
@@ -99,18 +99,22 @@ export function ProfilePage() {
       )}
       <section className="profile-stats" aria-label="나의 여행 현황">
         <Link to="/itineraries">
-          <strong>{itinerariesQuery.data?.length ?? 0}</strong>
+          <strong>{itinerariesQuery.data?.length ?? '—'}</strong>
           <span>여행 계획</span>
         </Link>
         <Link to="/saved">
-          <strong>{savedPlacesQuery.data?.length ?? 0}</strong>
+          <strong>{savedPlacesQuery.data?.length ?? '—'}</strong>
           <span>저장한 장소</span>
         </Link>
       </section>
       <section className="profile-quick-links" aria-label="계정 메뉴">
-        <Link to="/notifications"><span>알림</span><span aria-hidden="true">›</span></Link>
-        <Link to="/settings"><span>설정</span><span aria-hidden="true">›</span></Link>
+        <Link to="/notifications"><AccountIcon name="bell" /><span>알림<small>여행과 장소의 새로운 소식</small></span><span className="account-chevron" aria-hidden="true">›</span></Link>
+        <Link to="/settings"><AccountIcon name="settings" /><span>설정<small>계정 및 보안 관리</small></span><span className="account-chevron" aria-hidden="true">›</span></Link>
       </section>
+      {(itinerariesQuery.isError || savedPlacesQuery.isError) && <p className="account-feedback" role="alert">여행 현황 일부를 불러오지 못했습니다. <button type="button" onClick={() => {
+        if (itinerariesQuery.isError) void itinerariesQuery.refetch()
+        if (savedPlacesQuery.isError) void savedPlacesQuery.refetch()
+      }}>다시 시도</button></p>}
     </main>
   )
 }

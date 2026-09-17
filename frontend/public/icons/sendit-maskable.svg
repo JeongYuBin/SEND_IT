@@ -11,7 +11,7 @@
       <stop offset="1" stop-color="#ee84b5" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#sky)"/>
-  <rect width="512" height="512" rx="112" fill="url(#sunrise)"/>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <rect width="512" height="512" fill="url(#sunrise)"/>
   <path d="M142 244 352 142Q373 132 366 155L295 365Q288 385 278 365L245 293Q242 287 247 281L308 208Q313 201 306 206L227 269Q222 273 215 271L145 261Q124 257 142 244Z" fill="#fff"/>
 </svg>

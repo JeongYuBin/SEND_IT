@@ -1,5 +1,5 @@
-const CACHE_NAME = 'sendit-shell-v3'
-const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/sendit-icon.svg']
+const CACHE_NAME = 'sendit-shell-v4'
+const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/sendit-icon.svg', '/icons/sendit-maskable.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)))

@@ -8,8 +8,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f5f3ec",
-  "theme_color": "#176b52",
+  "background_color": "#f7f5f8",
+  "theme_color": "#7560a6",
   "categories": ["travel", "navigation", "lifestyle"],
   "launch_handler": { "client_mode": "navigate-existing" },
   "shortcuts": [
@@ -43,7 +43,13 @@
       "src": "/icons/sendit-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/sendit-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }

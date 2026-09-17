@@ -400,6 +400,7 @@ export function ItineraryDetailPage() {
               <button className="danger-button" type="button" disabled={deleteMutation.isPending} onClick={handleDelete}>
                 {deleteMutation.isPending ? '삭제 중…' : '계획 삭제'}
               </button>
+              <TripReminders itinerary={itineraryQuery.data} />
             </div>
           </header>
           {editingPlan && (
@@ -411,7 +412,6 @@ export function ItineraryDetailPage() {
               onSave={(request) => updateMutation.mutate(request)}
             />
           )}
-          <TripReminders itinerary={itineraryQuery.data} />
           <section className="inline-order-notice">
             {editingOrder ? <>
               <span>카드를 끌어 날짜와 순서를 바꿔 주세요.</span>

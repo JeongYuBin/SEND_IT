@@ -14,6 +14,8 @@ import './trip-create.css'
 import './trip-detail.css'
 import './saved-detail.css'
 import './place-image.css'
+import './account-theme.css'
+import './landing.css'
 
 startNativeSessionSync()
 
