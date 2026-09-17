@@ -18,5 +18,14 @@ public interface SharedContentRepository extends JpaRepository<SharedContent, Lo
 
     List<SharedContent> findAllByUserEmailOrderByCreatedAtDesc(String email);
     Page<SharedContent> findByUserEmail(String email, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("""
+            select s from SharedContent s where s.user.email = :email
+            and s.targetCollection is not null
+            and (:collectionId is null or s.targetCollection.id = :collectionId)
+            """)
+    Page<SharedContent> findSavedPosts(
+            @org.springframework.data.repository.query.Param("email") String email,
+            @org.springframework.data.repository.query.Param("collectionId") Long collectionId,
+            Pageable pageable);
     List<SharedContent> findByTargetCollectionId(Long collectionId);
 }

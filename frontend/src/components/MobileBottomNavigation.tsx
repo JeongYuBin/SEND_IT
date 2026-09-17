@@ -21,10 +21,14 @@ const icons: Record<IconName, ReactNode> = {
 export function MobileBottomNavigation() {
   const authenticated = useAuthStore((state) => Boolean(state.accessToken))
   const { pathname } = useLocation()
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(() => {
+    try { return localStorage.getItem('sendit-menu-expanded') !== 'false' } catch { return true }
+  })
   const dragStart = useRef<number | null>(null)
   const dragged = useRef(false)
-  useEffect(() => { setExpanded(false) }, [pathname])
+  useEffect(() => {
+    try { localStorage.setItem('sendit-menu-expanded', String(expanded)) } catch { /* Session state still works. */ }
+  }, [expanded])
   if (!authenticated || ['/login', '/signup', '/find-id', '/reset-password', '/share-target'].includes(pathname)) return null
 
   return (
@@ -48,7 +52,7 @@ export function MobileBottomNavigation() {
         }}
         onPointerUp={() => { dragStart.current = null }}
         onPointerCancel={() => { dragStart.current = null }}>
-        <span /><small>{expanded ? '아래로 내려 접기' : '메뉴 열기'}</small>
+        <span />
       </button>
     <nav id="mobile-menu-links" className="mobile-bottom-nav" aria-label="주요 메뉴" hidden={!expanded}>
       {items.map((item) => (

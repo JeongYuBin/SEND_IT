@@ -20,6 +20,7 @@ import { eventPeriodState } from './eventPeriod'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { FeedDiscovery } from './FeedDiscovery'
 import { CollectionChoiceCancelled } from './collectionChoice'
+import { SavedSharedPosts } from './SavedSharedPosts'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -281,6 +282,7 @@ export function SavedPlacesPage() {
       </details>
 
 
+      <SavedSharedPosts collectionId={selectedCollectionId} />
       {showForm && addPlaceSlotRef.current && createPortal((
         <section className="place-add-panel">
           <header>

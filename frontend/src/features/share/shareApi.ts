@@ -25,6 +25,10 @@ export async function getSharesPage(page = 0, size = 12) {
   return (await http.get<SharePage>('/shares/page', { params: { page, size } })).data
 }
 
+export async function getSavedSharesPage(page = 0, collectionId: number | null = null) {
+  return (await http.get<SharePage>('/shares/saved', { params: { page, size: 8, collectionId } })).data
+}
+
 export async function reanalyzeShare(shareId: number) {
   const response = await http.post<ShareAcceptedResponse>(`/shares/${shareId}/reanalyze`)
   return response.data

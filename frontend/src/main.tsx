@@ -16,6 +16,7 @@ import './saved-detail.css'
 import './place-image.css'
 import './account-theme.css'
 import './landing.css'
+import './mobile-layout.css'
 
 startNativeSessionSync()
 

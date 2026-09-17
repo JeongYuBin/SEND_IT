@@ -5,6 +5,11 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
+import android.view.Gravity
+import android.view.WindowInsets
+import android.view.WindowManager
+import android.widget.FrameLayout
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -22,6 +27,17 @@ open class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (sharing) {
+            window.setGravity(Gravity.BOTTOM)
+            window.setBackgroundDrawableResource(android.R.color.transparent)
+            window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            window.attributes = window.attributes.apply { dimAmount = 0.22f }
+            val screenHeight = resources.displayMetrics.heightPixels
+            val minHeight = (190 * resources.displayMetrics.density).toInt()
+            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, maxOf(minHeight, (screenHeight * 0.27).toInt()))
+        } else if (Build.VERSION.SDK_INT >= 30) {
+            window.setDecorFitsSystemWindows(false)
+        }
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) || !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
             setContentView(TextView(this).apply { text = "Android System WebView를 업데이트한 뒤 다시 시도해 주세요."; setPadding(32, 64, 32, 32) }); return
         }
@@ -55,7 +71,20 @@ open class MainActivity : Activity() {
                 return true
             }
         }
-        setContentView(web)
+        val container = FrameLayout(this).apply {
+            setBackgroundColor(if (sharing) Color.TRANSPARENT else Color.rgb(247, 245, 248))
+            addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        }
+        if (!sharing && Build.VERSION.SDK_INT >= 30) {
+            container.setOnApplyWindowInsetsListener { view, insets ->
+                val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+                val keyboard = insets.getInsets(WindowInsets.Type.ime())
+                view.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, keyboard.bottom))
+                WindowInsets.CONSUMED
+            }
+        }
+        setContentView(container)
+        container.requestApplyInsets()
         val url = if (sharing) {
             val shared = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString().orEmpty().take(10000)
             val title = intent.getStringExtra(Intent.EXTRA_SUBJECT).orEmpty().take(1000)

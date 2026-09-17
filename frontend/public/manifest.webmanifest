@@ -40,13 +40,13 @@
   },
   "icons": [
     {
-      "src": "/icons/sendit-icon.svg",
+      "src": "/icons/sendit-icon.svg?v=20260917",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/sendit-maskable.svg",
+      "src": "/icons/sendit-maskable.svg?v=20260917",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"

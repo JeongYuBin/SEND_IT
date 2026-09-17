@@ -14,17 +14,23 @@ public class AnalysisJobService {
 
     private final AnalysisJobRepository analysisJobRepository;
     private final NotificationService notificationService;
+    private final com.sendit.place.SavedPlaceService savedPlaceService;
+    private final SharedContentRepository sharedContents;
     private final int maxRetries;
     private final long staleTimeoutSeconds;
 
     public AnalysisJobService(
             AnalysisJobRepository analysisJobRepository,
             NotificationService notificationService,
+            com.sendit.place.SavedPlaceService savedPlaceService,
+            SharedContentRepository sharedContents,
             @Value("${app.analysis.max-retries}") int maxRetries,
             @Value("${app.analysis.stale-timeout-seconds:1800}") long staleTimeoutSeconds
     ) {
         this.analysisJobRepository = analysisJobRepository;
         this.notificationService = notificationService;
+        this.savedPlaceService = savedPlaceService;
+        this.sharedContents = sharedContents;
         this.maxRetries = maxRetries;
         this.staleTimeoutSeconds = Math.max(60, staleTimeoutSeconds);
     }
@@ -58,8 +64,12 @@ public class AnalysisJobService {
     public void complete(Long jobId, PageMetadata metadata, boolean needsConfirmation) {
         AnalysisJob job = analysisJobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalStateException("분석 작업을 찾을 수 없습니다."));
+        // Read the collection selection under the same lock used by selectCollection.
+        sharedContents.findForSaving(job.getSharedContent().getId()).orElseThrow();
         job.complete(Instant.now(), metadata);
         if (needsConfirmation) job.getSharedContent().requireConfirmation();
+        // Publish completion and saved places together; a save failure rolls back and retries the job.
+        savedPlaceService.autoSaveAnalyzedShare(job.getSharedContent().getId());
         notificationService.notifyAnalysisResult(job.getSharedContent());
     }
 

@@ -5,6 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 class SharedTextMetadataParserTest {
+    @Test
+    void extractsSingleLocationMarkerButDoesNotUseAnAddressAsAName() {
+        var parser = new SharedTextMetadataParser();
+        assertThat(parser.parse("📍돌담카페\n주소: 제주 제주시 애월로 12").placeName()).isEqualTo("돌담카페");
+        assertThat(parser.parse("📍서울 마포구 월드컵로 12").placeName()).isNull();
+    }
     private final SharedTextMetadataParser parser = new SharedTextMetadataParser();
 
     @Test

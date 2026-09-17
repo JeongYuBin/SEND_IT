@@ -4,10 +4,12 @@
 
 ## 동작
 
-- Android: `ACTION_SEND` → 투명한 `ShareActivity` → `/share-target?native=android` → 컬렉션 확정 → 완료 버튼으로 Activity 종료, 원래 앱 복귀.
+- Android: `ACTION_SEND` → 화면 하단 약 27% 크기의 `ShareActivity` → `/share-target?native=android` → 컬렉션 저장 성공 즉시 Activity 종료, 원래 앱 복귀.
 - iOS: 시스템 공유 메뉴 → `SendITShare` 확장 → `/share-target?native=ios` → 컬렉션 확정 → `completeRequest`로 확장 닫기. 본체 앱을 실행하지 않습니다.
 - 공통: 공유 URL은 먼저 분석 대기로 등록됩니다. 컬렉션을 확정하기 전에는 장소 자동 저장이 수행되지 않습니다. 분석 완료 전 선택해도 완료 후 같은 컬렉션으로 저장됩니다. 로그인하지 않았거나 네트워크 요청이 실패하면 완료라고 표시하지 않습니다.
 - 공유 페이지의 컬렉션 기본값은 자동 분석 결과이며, 수동 선택 이후에는 추천이 갱신되어도 사용자 선택을 덮어쓰지 않습니다.
+- 컬렉션을 저장하면 분석 중인 원본도 게시물에 바로 표시됩니다. 분석이 완료되면 검증된 장소가 자동 저장됩니다.
+- iOS 공유 확장은 화면 높이의 약 27%를 요청하지만 실제 높이는 시스템이 결정합니다. 네이티브 변경은 웹 재배포만으로 적용되지 않으므로 앱을 다시 빌드하고 설치해야 합니다. 홈 화면에 추가한 PWA는 다른 앱 위에 공유창만 띄우거나 원래 앱으로 자동 복귀하는 동작을 보장하지 않습니다.
 - Android 세션은 Android Keystore AES-GCM으로 암호화하고, iOS 세션은 본체와 확장이 공유하는 Keychain access group에 보관합니다. 메시지 브리지는 지정한 HTTPS origin의 메인 프레임에만 허용합니다. 세션을 URL 쿼리로 전달하지 않습니다.
 
 ## Android 빌드

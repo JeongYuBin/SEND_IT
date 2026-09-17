@@ -83,6 +83,8 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
 
   return (
     <section className="home-map" aria-label="저장한 장소 지도">
+      <div className="home-map-controls">
+      <MapPlaceSearch places={places} onSelect={setSearchPoint} onOpenSaved={setSelectedPlaceId} />
       <div className="home-map-filters" role="group" aria-label="컬렉션 필터">
         {[{ id: null, name: '전체' }, ...(collections.data ?? [])].map((item) => (
           <button key={item.id ?? 'all'} type="button" className={activeFilter === item.id ? 'active' : ''}
@@ -115,6 +117,7 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
           {filterError && <small role="alert">{filterError}</small>}
         </form>
       )}
+      </div>
       <KakaoMap
         ariaLabel={`저장 장소 ${points.length}곳`}
         points={searchPoint ? [searchPoint] : points}
@@ -122,7 +125,6 @@ export function HomePlacesMap({ places }: { places: SavedPlace[] }) {
         fitPoints={false}
         onSelect={(point) => { if (!searchPoint) setSelectedPlaceId(Number(point.id)) }}
       />
-      <MapPlaceSearch places={places} onSelect={setSearchPoint} onOpenSaved={setSelectedPlaceId} />
       {selectedPlaceId !== null && <SavedPlaceSheet key={selectedPlaceId} placeId={selectedPlaceId} onClose={() => setSelectedPlaceId(null)} />}
     </section>
   )

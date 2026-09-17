@@ -1,0 +1,25 @@
+/* Keep interactive controls inside the visual viewport, below system chrome. */
+.home-map-controls { position: absolute; z-index: 10; top: 12px; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); max-width: 560px; margin-inline: auto; display: flex; flex-direction: column; gap: 7px; }
+.home-map .home-map-controls .map-place-search { position: relative; inset: auto; width: 100%; margin: 0; display: flex; flex-direction: column; }
+.home-map-controls .map-search-form { order: -1; height: 44px; padding: 4px; border-radius: 13px; box-shadow: 0 2px 12px #39274c12; }
+.home-map-controls .map-search-form input { padding: 6px 8px; }
+.home-map-controls .map-search-form button { min-height: 34px; padding: 6px 12px; border-radius: 10px; font-size: 11px; }
+.home-map-controls .map-search-panel { position: absolute; top: 88px; left: 0; right: 0; margin: 0; }
+.home-map-controls .map-search-results, .home-map-controls .map-search-selection { max-height: min(45dvh, 360px); }
+.home-map .home-map-controls .home-map-filters { position: static; display: flex; gap: 6px; margin: 0; padding: 0 0 3px; width: 100%; overflow-x: auto; }
+.home-map-controls .home-map-filters button { flex: 0 0 auto; min-height: 32px; padding: 6px 12px; font-size: 11px; box-shadow: 0 2px 8px #39274c10; }
+.home-map-controls .map-filter-popover { top: 90px; left: 0; right: 0; }
+@media (max-width: 760px) {
+  .shell:has(.home-map) { padding-top: env(safe-area-inset-top, 0px); background: #f7f5f8; }
+  .shell .home-map, .shell .home-map > .kakao-map { height: calc(100dvh - env(safe-area-inset-top, 0px)); min-height: calc(100dvh - env(safe-area-inset-top, 0px)); }
+  .home-map-controls { top: 8px; }
+  .mobile-menu-sheet { padding: 0 8px max(4px, env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; box-shadow: 0 -3px 16px #39274c12; }
+  .mobile-menu-sheet .mobile-menu-handle { height: 20px; padding: 8px 0; justify-content: center; }
+  .mobile-menu-handle > span { width: 32px; height: 3px; }
+  .mobile-menu-sheet .mobile-bottom-nav { height: 48px; min-height: 0; padding: 0; gap: 5px; }
+  .mobile-menu-sheet .mobile-bottom-nav a { min-height: 44px; padding: 4px; gap: 2px; border-radius: 11px; }
+  .mobile-menu-sheet .mobile-bottom-nav a > span { width: 21px; height: 21px; }
+  .mobile-menu-sheet .mobile-bottom-nav svg { width: 21px; height: 21px; }
+  .mobile-menu-sheet .mobile-bottom-nav small { font-size: 10px; line-height: 1.2; }
+  .home-map .tourism-map-toolbar { top: 8px; }
+}

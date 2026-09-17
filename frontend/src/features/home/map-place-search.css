@@ -26,6 +26,4 @@
 .map-search-actions a { font-size: 12px; color: #776587; padding: 8px; }
 .map-search-pagination { display: flex; justify-content: center; align-items: center; gap: 16px; padding-top: 8px; font-size: 12px; }
 @media(max-width:760px) {
-  .home-map .map-place-search { bottom: calc(62px + env(safe-area-inset-bottom)); }
-  body:has(.mobile-menu-sheet.expanded) .home-map .map-place-search { bottom: calc(152px + env(safe-area-inset-bottom)); }
 }

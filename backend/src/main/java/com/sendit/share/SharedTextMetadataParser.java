@@ -16,7 +16,7 @@ public class SharedTextMetadataParser {
             "(?im)(?:도로명\\s*주소|지번\\s*주소|주소|위치)"
                     + "\\s*[:：-]\\s*([^\\r\\n#|]{5,150})");
     private static final Pattern LOCATION_MARKER_PLACE = Pattern.compile(
-            "📍\\s*([^📍\\r\\n#]{2,80}?)\\s*📍");
+            "(?m)📍\\s*([^📍\\r\\n#]{2,80}?)(?=\\s*📍|\\r?$|#)");
     private static final Pattern LANDMARK_PLACE = Pattern.compile(
             "(?im)^\\s*[\\p{So}\\p{Sk}\\p{Punct}]*\\s*"
                     + "([^#\\r\\n]{2,50}?(?:호수|온천|폭포|계곡|해변|해수욕장|공원|박물관|"
@@ -113,6 +113,7 @@ public class SharedTextMetadataParser {
                 .trim();
         if (candidate.length() < 2 || candidate.length() > 50
                 || !candidate.matches(".*[\\p{L}\\p{N}].*")) return null;
+        if (KOREAN_ADDRESS.matcher(candidate).lookingAt()) return null;
         return candidate;
     }
 

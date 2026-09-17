@@ -5,8 +5,8 @@ import { createCollection, getCollections } from './savedApi'
 import { CollectionChoiceCancelled, recommendedCollection, registerCollectionChooser, type CollectionChoiceRequest } from './collectionChoice'
 import './collection-picker.css'
 
-export function CollectionPicker({ category, collectionId, onConfirm, pending = false }: {
-  category?: string | null; collectionId?: number; onConfirm: (id: number) => Promise<unknown>; pending?: boolean
+export function CollectionPicker({ category, collectionId, onConfirm, pending = false, compact = false }: {
+  category?: string | null; collectionId?: number; onConfirm: (id: number) => Promise<unknown>; pending?: boolean; compact?: boolean
 }) {
   const cache = useQueryClient()
   const collections = useQuery({ queryKey: ['collections'], queryFn: getCollections })
@@ -29,13 +29,13 @@ export function CollectionPicker({ category, collectionId, onConfirm, pending = 
     } catch { setError('저장하지 못했습니다. 다시 시도해 주세요.') }
     finally { setBusy(false) }
   }
-  return <div className="collection-picker">
-    <p>추천 컬렉션 <b>{suggested}</b> · 원하는 컬렉션으로 바꿀 수 있어요.</p>
+  return <div className={`collection-picker${compact ? ' compact' : ''}`}>
+    {!compact && <p>추천 컬렉션 <b>{suggested}</b> · 원하는 컬렉션으로 바꿀 수 있어요.</p>}
     {collections.isLoading && <p role="status">컬렉션을 불러오는 중…</p>}
     {collections.isError && <p role="alert">컬렉션을 불러오지 못했습니다. <button onClick={() => collections.refetch()}>다시 시도</button></p>}
     <div className="collection-picker-options" role="group" aria-label="저장할 컬렉션">
       {names.map((name) => <button key={name} type="button" disabled={busy || pending} aria-pressed={selected === name} onClick={() => setChoice(name)}>
-        <span aria-hidden="true">{selected === name ? '✓' : '☆'}</span>{name}
+        {(!compact || selected === name) && <span aria-hidden="true">{selected === name ? '✓' : '☆'}</span>}{name}
       </button>)}
       <button type="button" disabled={busy || pending} onClick={() => setAdding(!adding)}>＋ 새 컬렉션</button>
     </div>
@@ -45,7 +45,7 @@ export function CollectionPicker({ category, collectionId, onConfirm, pending = 
       <button disabled={!newName.trim() || busy || pending}>선택</button></form>}
     {error && <p role="alert">{error}</p>}
     <button className="collection-picker-confirm" type="button" disabled={busy || pending || !collections.isSuccess} onClick={() => void confirm()}>
-      {busy || pending ? '저장 중…' : `‘${selected}’에 저장`}
+      {busy || pending ? '저장 중…' : compact ? '저장' : `‘${selected}’에 저장`}
     </button>
   </div>
 }

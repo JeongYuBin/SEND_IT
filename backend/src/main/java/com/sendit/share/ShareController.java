@@ -62,6 +62,14 @@ public class ShareController {
         return shareService.reanalyze(principal.getName(), shareId);
     }
 
+    @GetMapping("/saved")
+    ShareDtos.SharePageResponse savedPosts(Principal principal,
+            @RequestParam(required = false) Long collectionId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size) {
+        return shareService.savedPosts(principal.getName(), collectionId, page, size);
+    }
+
     @PatchMapping("/{shareId}/collection/{collectionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void selectCollection(Principal principal, @PathVariable Long shareId,

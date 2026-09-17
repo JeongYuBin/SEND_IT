@@ -116,6 +116,15 @@ public class ShareService {
         return accepted(content, false, "콘텐츠 재분석을 요청했습니다.");
     }
 
+    @Transactional(readOnly = true)
+    public ShareDtos.SharePageResponse savedPosts(String email, Long collectionId, int page, int size) {
+        var result = sharedContentRepository.findSavedPosts(email, collectionId,
+                PageRequest.of(Math.max(0, page), Math.max(1, Math.min(size, 50)),
+                        Sort.by(Sort.Direction.DESC, "createdAt")));
+        return new ShareDtos.SharePageResponse(result.getContent().stream().map(this::toDetail).toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages(), result.isLast());
+    }
+
     public void selectCollection(String email, Long shareId, Long collectionId) {
         SharedContent content = sharedContentRepository.findForSaving(shareId).orElseThrow(() -> new ShareNotFoundException(shareId));
         if (!content.getUser().getEmail().equals(email)) throw new ShareNotFoundException(shareId);

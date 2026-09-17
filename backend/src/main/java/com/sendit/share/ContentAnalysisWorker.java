@@ -1,7 +1,6 @@
 package com.sendit.share;
 
 import com.sendit.tourism.TourApiClient;
-import com.sendit.place.SavedPlaceService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +15,6 @@ public class ContentAnalysisWorker {
     private final VisitKoreaMetadataClient visitKoreaMetadataClient;
     private final TourApiClient tourApiClient;
     private final KakaoPlaceSearchClient kakaoPlaceSearchClient;
-    private final SavedPlaceService savedPlaceService;
     private final AutomaticMediaDownloader automaticMediaDownloader;
     private final VideoMediaProcessor videoMediaProcessor;
     private final FrameOcrExtractor frameOcrExtractor;
@@ -38,7 +36,6 @@ public class ContentAnalysisWorker {
             VisitKoreaMetadataClient visitKoreaMetadataClient,
             TourApiClient tourApiClient,
             KakaoPlaceSearchClient kakaoPlaceSearchClient,
-            SavedPlaceService savedPlaceService,
             AutomaticMediaDownloader automaticMediaDownloader,
             VideoMediaProcessor videoMediaProcessor,
             FrameOcrExtractor frameOcrExtractor,
@@ -59,7 +56,6 @@ public class ContentAnalysisWorker {
         this.visitKoreaMetadataClient = visitKoreaMetadataClient;
         this.tourApiClient = tourApiClient;
         this.kakaoPlaceSearchClient = kakaoPlaceSearchClient;
-        this.savedPlaceService = savedPlaceService;
         this.automaticMediaDownloader = automaticMediaDownloader;
         this.videoMediaProcessor = videoMediaProcessor;
         this.frameOcrExtractor = frameOcrExtractor;
@@ -86,7 +82,9 @@ public class ContentAnalysisWorker {
                                 return pageMetadataParser.parse(page.html(), page.finalUrl());
                             });
                 } catch (RuntimeException fetchFailure) {
-                    if (!sharedTextMetadataParser.hasContent(shared)) throw fetchFailure;
+                    if (!sharedTextMetadataParser.hasContent(shared)
+                            && !automaticMediaDownloader.supports(job.url())
+                            && !instagramCarouselDownloader.supports(job.url())) throw fetchFailure;
                     metadata = shared;
                 }
                 PageMetadata discoveredFromPageText = sharedTextMetadataParser.parse(
@@ -113,10 +111,14 @@ public class ContentAnalysisWorker {
                 }
                 if (analyzeMedia && frameKeys.isEmpty()
                         && instagramCarouselDownloader.supports(job.url())) {
-                    MediaProcessingResult carousel = instagramCarouselDownloader.downloadFrames(job.url());
-                    if (!carousel.frameStorageKeys().isEmpty()) {
-                        analysisJobService.attachMediaProcessingResult(job.jobId(), carousel);
-                        frameKeys = carousel.frameStorageKeys();
+                    try {
+                        MediaProcessingResult carousel = instagramCarouselDownloader.downloadFrames(job.url());
+                        if (!carousel.frameStorageKeys().isEmpty()) {
+                            analysisJobService.attachMediaProcessingResult(job.jobId(), carousel);
+                            frameKeys = carousel.frameStorageKeys();
+                        }
+                    } catch (RuntimeException ignored) {
+                        // A missing carousel must not prevent reel/audio analysis or caption extraction.
                     }
                 }
                 if (analyzeMedia
@@ -146,11 +148,6 @@ public class ContentAnalysisWorker {
                         ocrText = frameOcrExtractor.extract(frameKeys);
                         if (ocrText != null && !ocrText.isBlank()) {
                             analysisJobService.attachMediaOcrText(job.jobId(), ocrText);
-                            PageMetadata fromFrames = sharedTextMetadataParser.parse(ocrText);
-                            metadata = sharedTextMetadataParser.merge(metadata, fromFrames);
-                            metadata = kakaoPlaceSearchClient.enrich(metadata);
-                            metadata = tourApiClient.enrich(metadata);
-                            needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
                         }
                     } catch (RuntimeException ignored) {
                         // OCR 실패 시 프레임을 유지하고 재분석에서 다시 시도한다.
@@ -162,25 +159,31 @@ public class ContentAnalysisWorker {
                         transcript = audioTranscriber.transcribe(audioStorageKey);
                         if (transcript != null && !transcript.isBlank()) {
                             analysisJobService.attachMediaTranscript(job.jobId(), transcript);
-                            PageMetadata fromSpeech = sharedTextMetadataParser.parse(transcript);
-                            metadata = sharedTextMetadataParser.merge(metadata, fromSpeech);
-                            metadata = kakaoPlaceSearchClient.enrich(metadata);
-                            metadata = tourApiClient.enrich(metadata);
-                            needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
                         }
                     } catch (RuntimeException ignored) {
                         // STT 실패 시 기존 메타데이터와 OCR 결과로 분석을 마무리한다.
                     }
                 }
+                // Reuse cached OCR/transcripts on reanalysis, including YouTube captions without audio.
+                metadata = sharedTextMetadataParser.merge(metadata, sharedTextMetadataParser.parse(ocrText));
+                metadata = sharedTextMetadataParser.merge(metadata, sharedTextMetadataParser.parse(transcript));
+                metadata = kakaoPlaceSearchClient.enrich(metadata);
+                metadata = tourApiClient.enrich(metadata);
+                needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
                 java.util.List<PageMetadata> extractedPlaces = new java.util.ArrayList<>(
                         multiPlaceExtractor.extract(ocrText, metadata));
-                for (PageMetadata place : multiPlaceExtractor.extractCaption(transcript, metadata)) {
+                java.util.List<PageMetadata> textPlaces = new java.util.ArrayList<>(
+                        multiPlaceExtractor.extractDescription(metadata.description(), metadata));
+                textPlaces.addAll(multiPlaceExtractor.extractCaption(transcript, metadata));
+                if (placeVerificationPolicy.isVerified(metadata)) textPlaces.add(metadata);
+                for (PageMetadata place : textPlaces) {
                     boolean duplicate = extractedPlaces.stream().anyMatch(existing ->
                             normalizePlace(existing.placeName()).equals(normalizePlace(place.placeName()))
                                     && normalizePlace(existing.address()).equals(normalizePlace(place.address())));
                     if (!duplicate) extractedPlaces.add(place);
                 }
                 extractedPlaces = extractedPlaces.stream()
+                        .filter(placeVerificationPolicy::isVerified)
                         .map(this::enrichPlaceImage)
                         .toList();
                 // Instagram 이미지 게시물은 각 슬라이드가 장소별 원본 이미지다.
@@ -199,11 +202,6 @@ public class ContentAnalysisWorker {
                 // Publish candidates before COMPLETED becomes visible to the share save sheet.
                 sharedContentPlaceService.replace(job.sharedContentId(), extractedPlaces);
                 analysisJobService.complete(job.jobId(), metadata, needsConfirmation);
-                try {
-                    savedPlaceService.autoSaveAnalyzedShare(job.sharedContentId());
-                } catch (RuntimeException ignored) {
-                    // 분석 결과는 유지하고 자동 저장 실패 시 결과 화면에서 직접 저장할 수 있게 한다.
-                }
                 mediaStorageCleaner.deleteTransient(mediaStorageKey, audioStorageKey);
                 mediaStorageCleaner.deleteAll(frameKeys);
             } catch (RuntimeException exception) {
@@ -226,7 +224,7 @@ public class ContentAnalysisWorker {
     }
 
     private boolean shouldDeepAnalyze(String url, PageMetadata metadata) {
-        if (url == null || !url.matches("https://(?:www\\.|m\\.)?(?:youtube\\.com|youtu\\.be)/.*")) {
+        if (url == null || !automaticMediaDownloader.supports(url)) {
             return false;
         }
         String text = String.join(" ", metadata.title() == null ? "" : metadata.title(),
