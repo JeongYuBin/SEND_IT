@@ -78,4 +78,25 @@ class KakaoPlaceSearchClientTest {
 
         assertThat(client.parse(response, fallback)).isEmpty();
     }
+
+    @Test
+    void resolvesPlaceNameFromExactAddressWithoutAName() {
+        String response = """
+                {"documents": [
+                  {"place_name":"훈스타포크", "category_group_name":"음식점",
+                   "address_name":"서울 관악구 봉천동 1690-153",
+                   "road_address_name":"서울 관악구 보라매로3길 17", "x":"126.927", "y":"37.491"},
+                  {"place_name":"다른 식당", "category_group_name":"음식점",
+                   "road_address_name":"서울 관악구 보라매로3길 19", "x":"126.928", "y":"37.492"}
+                ]}
+                """;
+
+        PageMetadata result = client.parseAddress(response, "서울 관악구 보라매로3길 17").orElseThrow();
+
+        assertThat(result.placeName()).isEqualTo("훈스타포크");
+        assertThat(result.category()).isEqualTo("음식점");
+        assertThat(result.address()).isEqualTo("서울 관악구 보라매로3길 17");
+        assertThat(result.latitude()).isEqualTo(37.491);
+        assertThat(result.longitude()).isEqualTo(126.927);
+    }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { createSavedPlace } from '../saved/savedApi'
+import { createSavedPlace, searchKakaoPlaces } from '../saved/savedApi'
 import { getShare, reanalyzeShare, selectShareCollection } from './shareApi'
 
 import { CollectionPicker } from '../saved/CollectionPicker'
@@ -9,6 +9,20 @@ import { CollectionChoiceCancelled } from '../saved/collectionChoice'
 import { PlaceImage } from '../../components/PlaceImage'
 
 const processingStatuses = new Set(['PENDING', 'ANALYZING'])
+const editableStatuses = new Set(['COMPLETED', 'NEEDS_CONFIRMATION', 'FAILED'])
+
+function normalizeAddress(value: string | null | undefined) {
+  return value?.replace(/[^0-9a-z가-힣]/gi, '').toLocaleLowerCase() ?? ''
+}
+
+function conciseTitle(value: string | null) {
+  if (!value) return '장소 정보를 확인해 주세요'
+  const withoutInstagram = value
+    .replace(/^.+? on Instagram:\s*[“"']?/i, '')
+    .replace(/[”"']?\s*•\s*Instagram.*$/i, '')
+    .trim()
+  return withoutInstagram || '장소 정보를 확인해 주세요'
+}
 
 export function ShareResultPage() {
   const { shareId: shareIdParam } = useParams()
@@ -27,15 +41,36 @@ export function ShareResultPage() {
     refetchInterval: (query) =>
       processingStatuses.has(query.state.data?.status ?? '') ? 1500 : false,
   })
+  const extractedAddress = shareQuery.data?.extractedAddress?.trim() ?? ''
+  const addressLookup = useQuery({
+    queryKey: ['share-address-place', extractedAddress],
+    queryFn: () => searchKakaoPlaces(extractedAddress),
+    enabled: Boolean(extractedAddress && !shareQuery.data?.extractedPlaceName),
+    staleTime: 5 * 60_000,
+  })
+  const resolvedAddressPlace = addressLookup.data?.places.find((place) => {
+    const expected = normalizeAddress(extractedAddress)
+    return [place.roadAddress, place.address].some((candidate) => {
+      const normalized = normalizeAddress(candidate)
+      return Boolean(normalized) && (normalized === expected || normalized.includes(expected) || expected.includes(normalized))
+    })
+  })
 
   useEffect(() => {
     const share = shareQuery.data
-    if (!share || initialized.current || !new Set(['COMPLETED', 'NEEDS_CONFIRMATION']).has(share.status)) return
+    if (!share || initialized.current || !editableStatuses.has(share.status)) return
     setName(share.extractedPlaceName ?? '')
     setCategory(share.extractedCategory ?? '')
     setAddress(share.extractedAddress ?? '')
     initialized.current = true
   }, [shareQuery.data])
+
+  useEffect(() => {
+    if (!resolvedAddressPlace || name.trim()) return
+    setName(resolvedAddressPlace.name)
+    setCategory(resolvedAddressPlace.categoryGroup ?? resolvedAddressPlace.category ?? '')
+    setAddress(resolvedAddressPlace.roadAddress ?? resolvedAddressPlace.address ?? extractedAddress)
+  }, [extractedAddress, name, resolvedAddressPlace])
 
   const saveMutation = useMutation({
     mutationFn: createSavedPlace,
@@ -62,8 +97,8 @@ export function ShareResultPage() {
       memo: memo || undefined,
       sharedContentId: shareQuery.data.shareId,
       imageUrl: shareQuery.data.thumbnailUrl ?? undefined,
-      latitude: shareQuery.data.extractedLatitude ?? undefined,
-      longitude: shareQuery.data.extractedLongitude ?? undefined,
+      latitude: shareQuery.data.extractedLatitude ?? resolvedAddressPlace?.latitude ?? undefined,
+      longitude: shareQuery.data.extractedLongitude ?? resolvedAddressPlace?.longitude ?? undefined,
     })
   }
 
@@ -76,7 +111,10 @@ export function ShareResultPage() {
 
   const share = shareQuery.data
   const isProcessing = processingStatuses.has(share.status)
-  const canSave = new Set(['COMPLETED', 'NEEDS_CONFIRMATION', 'FAILED']).has(share.status)
+  const canSave = editableStatuses.has(share.status)
+  const previewTitle = share.extractedPlaceName
+    ?? resolvedAddressPlace?.name
+    ?? (canSave ? '장소 정보를 확인해 주세요' : conciseTitle(share.title))
 
   return (
     <main className="result-shell">
@@ -91,11 +129,13 @@ export function ShareResultPage() {
       </nav>
       <section className="result-layout">
         <div className="result-preview">
-          <span className="eyebrow">ANALYSIS RESULT</span>
+          <span className="eyebrow">분석 결과</span>
           <PlaceImage src={share.thumbnailUrl} category={share.extractedCategory} className="preview-placeholder" />
           <div className="source-badge">{share.sourceType}</div>
-          <h1>{share.title ?? '장소 정보를 찾는 중이에요.'}</h1>
-          <p>{share.description ?? '원본 콘텐츠에서 설명을 가져오지 못했습니다.'}</p>
+          <h1>{previewTitle}</h1>
+          <p>{canSave && share.extractedAddress
+            ? `${share.extractedAddress} 주소를 기준으로 장소 정보를 확인하고 있습니다.`
+            : (share.description ?? conciseTitle(share.title))}</p>
           <a href={share.originalUrl} target="_blank" rel="noreferrer">원본 콘텐츠 열기 ↗</a>
           {!isProcessing && (
             <button

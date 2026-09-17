@@ -500,7 +500,7 @@ export function SavedPlacesPage() {
           ).map(post => <PendingSavedPost key={`share-${post.shareId}`} post={post} />)}
           {places.map((place) => (
             <article
-              className="place-card"
+              className={`place-card${collectionMenuPlaceId === place.savedPlaceId ? ' collection-menu-open' : ''}`}
               key={place.savedPlaceId}
               role="link"
               tabIndex={0}

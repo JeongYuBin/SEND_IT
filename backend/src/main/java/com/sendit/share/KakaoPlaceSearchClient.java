@@ -58,13 +58,41 @@ public class KakaoPlaceSearchClient {
     }
 
     public PageMetadata enrich(PageMetadata fallback) {
-        if (apiKey.isBlank() || fallback.placeName() == null
-                || fallback.placeName().isBlank()) return fallback;
+        if (apiKey.isBlank()) return fallback;
+        if (fallback.placeName() == null || fallback.placeName().isBlank()) {
+            if (fallback.address() == null || fallback.address().isBlank()) return fallback;
+            return resolveAddress(fallback.address())
+                    .map(resolved -> new PageMetadata(
+                            fallback.title(), fallback.description(), fallback.imageUrl(),
+                            resolved.placeName(), resolved.category(), resolved.address(),
+                            resolved.latitude(), resolved.longitude()))
+                    .orElse(fallback);
+        }
         for (String query : searchQueries(fallback)) {
             Optional<PageMetadata> result = search(query, fallback);
             if (result.isPresent()) return result.get();
         }
         return fallback;
+    }
+
+    public Optional<PageMetadata> resolveAddress(String address) {
+        if (apiKey.isBlank() || address == null || address.isBlank()) return Optional.empty();
+        try {
+            URI uri = URI.create(baseUrl + "?size=10&query="
+                    + URLEncoder.encode(address.trim(), StandardCharsets.UTF_8));
+            HttpRequest request = HttpRequest.newBuilder(uri)
+                    .timeout(requestTimeout)
+                    .header("Authorization", "KakaoAK " + apiKey)
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
+            HttpResponse<String> response = httpClient.send(
+                    request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() < 200 || response.statusCode() >= 300) return Optional.empty();
+            return parseAddress(response.body(), address);
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
     }
 
     public Optional<PageMetadata> resolveCandidate(String placeName) {
@@ -158,6 +186,40 @@ public class KakaoPlaceSearchClient {
         } catch (Exception ignored) {
             return Optional.empty();
         }
+    }
+
+    Optional<PageMetadata> parseAddress(String body, String expectedAddress) {
+        try {
+            JsonNode documents = objectMapper.readTree(body).path("documents");
+            if (!documents.isArray()) return Optional.empty();
+            String expected = normalize(expectedAddress);
+            JsonNode match = java.util.stream.StreamSupport.stream(documents.spliterator(), false)
+                    .map(document -> new ScoredDocument(document,
+                            Math.max(
+                                    addressScore(expected, normalize(text(document, "road_address_name"))),
+                                    addressScore(expected, normalize(text(document, "address_name"))))))
+                    .filter(candidate -> candidate.score() >= 90)
+                    .max(Comparator.comparingInt(ScoredDocument::score))
+                    .map(ScoredDocument::document)
+                    .orElse(null);
+            if (match == null) return Optional.empty();
+            return Optional.of(new PageMetadata(
+                    null, null, null,
+                    text(match, "place_name"),
+                    text(match, "category_group_name"),
+                    first(text(match, "road_address_name"), text(match, "address_name"), expectedAddress),
+                    number(match, "y"), number(match, "x")
+            ));
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private int addressScore(String expected, String candidate) {
+        if (expected.isBlank() || candidate.isBlank()) return 0;
+        if (expected.equals(candidate)) return 110;
+        if (expected.contains(candidate) || candidate.contains(expected)) return 100;
+        return 0;
     }
 
     private int score(String expected, String candidate,
