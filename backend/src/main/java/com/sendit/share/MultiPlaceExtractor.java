@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MultiPlaceExtractor {
+    private static final Pattern DESCRIPTION_LABEL = Pattern.compile("^\\s*(?:📍|\\d{1,2}\\uFE0F?\\u20E3|[①-⑳]|\\d{1,2}[.)]|(?:장소명|상호명?|가게명|매장명|숙소명)\\s*[:：-])\\s*(.+)$");
+    public long descriptionPlaceCount(String description) {
+        return description == null ? 0 : description.lines().filter(line -> DESCRIPTION_LABEL.matcher(line).find()).count();
+    }
     private static final Pattern SLIDE = Pattern.compile("--- SLIDE \\d+ ---");
     private static final Pattern PREFIX = Pattern.compile(
             "^[\\s•·✓✔★☆▶▷#@|\\-–—]+|^\\d{1,2}[.)\\s-]+");
@@ -32,15 +36,16 @@ public class MultiPlaceExtractor {
     public List<PageMetadata> extractDescription(String description, PageMetadata source) {
         if (description == null || description.isBlank()) return List.of();
         var parser = new SharedTextMetadataParser();
-        var label = Pattern.compile("^\\s*(?:📍|(?:장소명|상호명?|가게명|매장명|숙소명)\\s*[:：-])\\s*(.+)$");
+        var label = DESCRIPTION_LABEL;
         var lines = description.lines().limit(400).toList();
         Map<String, PageMetadata> found = new LinkedHashMap<>();
         java.util.Set<String> attempted = new java.util.HashSet<>();
         for (int i = 0; i < lines.size() && attempted.size() < 16; i++) {
             var match = label.matcher(lines.get(i));
             if (!match.find()) continue;
-            StringBuilder block = new StringBuilder(lines.get(i));
-            for (int next = i + 1; next < Math.min(i + 3, lines.size()); next++) {
+            String heading = match.group(1).trim();
+            StringBuilder block = new StringBuilder("장소명: " + heading);
+            for (int next = i + 1; next < Math.min(i + 5, lines.size()); next++) {
                 if (label.matcher(lines.get(next)).find()) break;
                 block.append('\n').append(lines.get(next));
             }
@@ -48,7 +53,13 @@ public class MultiPlaceExtractor {
             if (parsed.placeName() == null) continue;
             String hint = parsed.address() == null ? inferRegion(source) : parsed.address();
             if (!attempted.add(normalize(parsed.placeName()) + "|" + normalize(hint))) continue;
-            kakao.resolveCandidate(parsed.placeName(), hint).ifPresent(place -> found.putIfAbsent(
+            var resolved = kakao.resolveCandidate(parsed.placeName(), hint);
+            // Captions prefix business names with a neighbourhood or nearby landmark.
+            // Retry without that prefix only when the same block provides an address.
+            if (resolved.isEmpty() && parsed.address() != null && heading.contains(" ")) {
+                resolved = kakao.resolveCandidate(heading.substring(heading.indexOf(' ') + 1).trim(), hint);
+            }
+            resolved.ifPresent(place -> found.putIfAbsent(
                     normalize(place.placeName()) + "|" + normalize(place.address()), place));
         }
         return new ArrayList<>(found.values());

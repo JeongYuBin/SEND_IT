@@ -21,3 +21,7 @@ body:has(.share-save-shell) :is(.mobile-menu-sheet, .desktop-site-nav, .desktop-
 .share-save-sheet .collection-picker :is(p,button) { font-size: 12px; }
 .share-save-shell.native-share { min-height: 100dvh; background: transparent; }
 .native-share .share-save-sheet { min-height: 100dvh; max-height: 100dvh; }
+.share-save-sheet:not(:has(.collection-picker)) { min-height: 112px; }
+.native-share .share-save-sheet:not(:has(.collection-picker)) { min-height: 100dvh; }
+.share-save-sheet .collection-picker-options { scrollbar-width: none; }
+.share-save-sheet .collection-picker-options::-webkit-scrollbar { display: none; }

@@ -15,6 +15,31 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class SavedPlaceServiceTest {
+    @Test
+    void savesEveryExtractedPlaceIntoTheOneSelectedCollectionExactlyOnce() {
+        Fixture fixture = new Fixture();
+        var service = org.mockito.Mockito.spy(fixture.service);
+        var share = mock(com.sendit.share.SharedContent.class);
+        var user = mock(com.sendit.user.User.class);
+        var collection = mock(com.sendit.collection.Collection.class);
+        when(user.getEmail()).thenReturn("user@example.com");
+        when(collection.getId()).thenReturn(12L);
+        when(share.getUser()).thenReturn(user);
+        when(share.getTargetCollection()).thenReturn(collection);
+        when(share.getAnalysisStatus()).thenReturn(com.sendit.share.AnalysisStatus.COMPLETED);
+        when(fixture.shares.findForSaving(7L)).thenReturn(Optional.of(share));
+        var candidates = java.util.stream.IntStream.range(0, 6).mapToObj(i -> new com.sendit.share.SharedContentPlace(share, i,
+                new com.sendit.share.PageMetadata(null, null, null, "장소" + i, "음식점", "서울 종로구", 37.5, 127.0))).toList();
+        when(fixture.extracted.findBySharedContentIdOrderByDisplayOrder(7L)).thenReturn(candidates);
+        var response = mock(SavedPlaceDtos.Response.class);
+        when(response.savedPlaceId()).thenReturn(99L);
+        org.mockito.Mockito.doReturn(response).when(service).create(org.mockito.ArgumentMatchers.eq("user@example.com"), org.mockito.ArgumentMatchers.any());
+        service.autoSaveAnalyzedShare(7L);
+        service.autoSaveAnalyzedShare(7L);
+        var requests = org.mockito.ArgumentCaptor.forClass(SavedPlaceDtos.CreateRequest.class);
+        verify(service, org.mockito.Mockito.times(6)).create(org.mockito.ArgumentMatchers.eq("user@example.com"), requests.capture());
+        org.assertj.core.api.Assertions.assertThat(requests.getAllValues()).allMatch(request -> request.collectionId().equals(12L));
+    }
 
     @Test
     void completedAnalysisDoesNotSaveBeforeCollectionConfirmation() {

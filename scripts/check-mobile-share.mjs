@@ -60,7 +60,7 @@ socket.addEventListener('message', async ({ data }) => {
     let body = []
     if (url.pathname.endsWith('/collections')) body = [{ id: 1, name: '여행지' }, { id: 2, name: '카페' }, { id: 3, name: '음식점' }]
     if (url.pathname.endsWith('/unread-count')) body = { count: 0 }
-    if (url.pathname.endsWith('/shares') && request.method === 'POST') body = { shareId: 41, status: 'PENDING', duplicate: false }
+    if (url.pathname.endsWith('/shares') && request.method === 'POST') { saved = true; body = { shareId: 41, status: 'PENDING', duplicate: false } }
     if (url.pathname.endsWith('/shares/41')) body = { ...post, collectionId: null }
     if (url.pathname.endsWith('/shares/41/collection/2') && request.method === 'PATCH') saved = true
     if (url.pathname.endsWith('/shares/saved')) body = { content: saved ? [post] : [], page: 0, totalElements: saved ? 1 : 0, totalPages: 1, last: true }
@@ -117,6 +117,10 @@ try {
   await until("!!document.querySelector('.home-map-controls')")
   assert.equal(await evaluate("!!document.querySelector('.mobile-menu-sheet.expanded')"), false)
   await command('Page.navigate', { url: `${base}/share-target?url=${encodeURIComponent(post.originalUrl)}` })
+  await until("document.body.textContent.includes('게시물을 저장했어요')")
+  assert.equal(saved, true, 'Sharing itself saves without a confirmation click')
+  assert.equal(await evaluate("!!document.querySelector('.collection-picker-confirm')"), false)
+  await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent==='컬렉션 변경').click()")
   await until("!!document.querySelector('.collection-picker-confirm:not(:disabled)')")
   const shareHeight = await evaluate("document.querySelector('.share-save-sheet').getBoundingClientRect().height")
   assert.ok(shareHeight <= height * .3, `Share sheet height ${shareHeight}`)
@@ -129,8 +133,9 @@ try {
   assert.equal(requests.filter(request => request === 'POST /api/v1/shares').length, 1, 'Share registration is not duplicated by StrictMode')
   assert.ok(requests.includes('PATCH /api/v1/shares/41/collection/2'))
   await command('Page.navigate', { url: `${base}/saved` })
-  await until("!!document.querySelector('.saved-shared-post-grid article')")
-  assert.ok(await evaluate("document.querySelector('.saved-shared-post-grid').textContent.includes('장소 찾는 중')"))
+  await until("!!document.querySelector('.place-grid .pending-saved-post')")
+  assert.equal(await evaluate("document.body.textContent.includes('공유한 게시물')"), false)
+  assert.ok(await evaluate("document.querySelector('.place-grid').textContent.includes('저장 완료')"))
   await screenshot('pending-post-in-feed')
   assert.deepEqual(errors, [])
   console.log(JSON.stringify({ passed: true, viewport: {width, height}, layout, shareHeight, screenshots: artifacts }, null, 2))

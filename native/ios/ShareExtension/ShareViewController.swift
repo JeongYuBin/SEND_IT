@@ -6,7 +6,7 @@ final class ShareViewController: TrustedWebViewController {
     override func viewDidLoad() {
         sharing = true
         super.viewDidLoad()
-        preferredContentSize = CGSize(width: 420, height: max(190, UIScreen.main.bounds.height * 0.27))
+        preferredContentSize = CGSize(width: 420, height: 120)
         let items = extensionContext?.inputItems as? [NSExtensionItem] ?? []
         let providers = items.flatMap { $0.attachments ?? [] }
         if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.url.identifier) }) {

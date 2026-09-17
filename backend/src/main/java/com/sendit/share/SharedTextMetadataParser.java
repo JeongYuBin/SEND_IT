@@ -118,6 +118,8 @@ public class SharedTextMetadataParser {
     }
 
     private String landmarkPlace(String text) {
+        // Numbered lists are handled per item; never truncate "낙산공원 개뿔" to "낙산공원".
+        if (Pattern.compile("(?m)^\\s*(?:\\d{1,2}\\uFE0F?\\u20E3|[①-⑳]|\\d{1,2}[.)])").matcher(text).find()) return null;
         Matcher matcher = LANDMARK_PLACE.matcher(text);
         return matcher.find() ? cleanCandidate(matcher.group(1)) : null;
     }

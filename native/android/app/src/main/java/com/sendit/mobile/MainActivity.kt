@@ -32,9 +32,7 @@ open class MainActivity : Activity() {
             window.setBackgroundDrawableResource(android.R.color.transparent)
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.attributes = window.attributes.apply { dimAmount = 0.22f }
-            val screenHeight = resources.displayMetrics.heightPixels
-            val minHeight = (190 * resources.displayMetrics.density).toInt()
-            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, maxOf(minHeight, (screenHeight * 0.27).toInt()))
+            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, (120 * resources.displayMetrics.density).toInt())
         } else if (Build.VERSION.SDK_INT >= 30) {
             window.setDecorFitsSystemWindows(false)
         }
@@ -55,6 +53,11 @@ open class MainActivity : Activity() {
                 when (data.optString("type")) {
                     "session" -> { val value = data.getString("value"); session.write(value); sessionAtLoad = value }
                     "close" -> if (sharing) finish()
+                    "share-layout" -> if (sharing) {
+                        val density = resources.displayMetrics.density
+                        val height = if (data.optBoolean("expanded")) maxOf((210 * density).toInt(), (resources.displayMetrics.heightPixels * 0.27).toInt()) else (120 * density).toInt()
+                        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height)
+                    }
                 }
             }
         }

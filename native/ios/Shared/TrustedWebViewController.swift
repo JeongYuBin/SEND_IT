@@ -70,6 +70,10 @@ class TrustedWebViewController: UIViewController, WKNavigationDelegate, WKScript
             if SessionStore.write(value) { currentSession = value }
         }
         if payload["type"] as? String == "close", sharing { extensionContext?.completeRequest(returningItems: nil, completionHandler: nil) }
+        if payload["type"] as? String == "share-layout", sharing {
+            let expanded = payload["expanded"] as? Bool ?? false
+            preferredContentSize = CGSize(width: 420, height: expanded ? max(210, UIScreen.main.bounds.height * 0.27) : 120)
+        }
     }
     func showError(_ text: String) {
         let label = UILabel(); label.text = text; label.numberOfLines = 0; label.textAlignment = .center

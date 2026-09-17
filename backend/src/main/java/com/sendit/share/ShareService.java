@@ -62,6 +62,8 @@ public class ShareService {
                 .findByUserIdAndNormalizedUrl(user.getId(), normalizedUrl);
         if (existing.isPresent()) {
             SharedContent content = existing.get();
+            ensureSavedCollection(user, content);
+            savedPlaceService.autoSaveAnalyzedShare(content.getId());
             return accepted(content, true, "이미 저장된 콘텐츠입니다.");
         }
 
@@ -75,8 +77,16 @@ public class ShareService {
                 sourceType,
                 request.sharedText()
         ));
+        ensureSavedCollection(user, content);
         analysisJobRepository.save(new AnalysisJob(content));
         return accepted(content, false, "콘텐츠 분석을 요청했습니다.");
+    }
+
+    private void ensureSavedCollection(User user, SharedContent content) {
+        if (content.getTargetCollection() != null) return;
+        var collection = collections.findByUserIdAndName(user.getId(), "기타")
+                .orElseGet(() -> collections.save(new com.sendit.collection.Collection(user, "기타", null)));
+        content.selectTargetCollection(collection);
     }
 
     @Transactional(readOnly = true)

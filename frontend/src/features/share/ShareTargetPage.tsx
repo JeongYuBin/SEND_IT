@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { CollectionPicker } from '../saved/CollectionPicker'
 import { createShare, getShare, selectShareCollection, type CreateShareInput } from './shareApi'
-import { closeShareWindow } from '../../nativeBridge'
+import { closeShareWindow, resizeShareWindow } from '../../nativeBridge'
 import './share-save-sheet.css'
 
 const PENDING_SHARE_KEY = 'sendit-pending-share'
@@ -51,8 +51,14 @@ export function ShareTargetPage() {
   const started = useRef(false)
   const [request] = useState(() => readPendingShare(params))
   const existingId = Number(params.get('share')) || null
-  const [done, setDone] = useState(false)
-  const mutation = useMutation({ mutationFn: createShare })
+  const [done, setDone] = useState(!!existingId)
+  const [changingCollection, setChangingCollection] = useState(false)
+  useEffect(() => { resizeShareWindow(changingCollection) }, [changingCollection])
+  const mutation = useMutation({ mutationFn: createShare, onSuccess: () => {
+    sessionStorage.removeItem(PENDING_SHARE_KEY)
+    setDone(true)
+    void cache.invalidateQueries({ queryKey: ['saved-shares'] })
+  } })
   const { mutate } = mutation
   const shareId = mutation.data?.shareId ?? existingId
   const detail = useQuery({
@@ -60,6 +66,11 @@ export function ShareTargetPage() {
     queryFn: () => getShare(shareId!),
     refetchInterval: (state) => ['PENDING', 'ANALYZING'].includes(state.state.data?.status ?? '') ? 1500 : false,
   })
+  useEffect(() => {
+    if (!done || changingCollection || !params.has('native')) return
+    const timer = window.setTimeout(closeShareWindow, 4000)
+    return () => window.clearTimeout(timer)
+  }, [done, changingCollection, params])
   useEffect(() => {
     if (started.current || (!request && !existingId)) return
     if (!accessToken) {
@@ -84,15 +95,14 @@ export function ShareTargetPage() {
   }, [accessToken, existingId, mutate, navigate, params, request])
   return <main className={`share-save-shell${params.has('native') ? ' native-share' : ''}`}>
     <section className="share-save-sheet" aria-labelledby="share-save-title">
-      <header><h1 id="share-save-title">{done ? '저장했어요' : '컬렉션에 저장'}</h1>
+      <header><h1 id="share-save-title">{changingCollection ? '컬렉션 변경' : done ? '게시물을 저장했어요' : '저장 중…'}</h1>
         <button type="button" aria-label="공유 창 닫기" onClick={closeShareWindow}>×</button></header>
       {!accessToken ? <p>SendIT 앱에서 먼저 로그인한 뒤 다시 공유해 주세요.</p>
         : !request && !existingId ? <p>공유할 링크를 찾지 못했습니다.</p>
         : mutation.isError ? <><p role="alert">게시물을 받지 못했습니다.</p><button onClick={() => mutation.mutate(request!)}>다시 시도</button></>
         : !shareId ? <p role="status">게시물을 받고 있어요…</p>
-        : done ? <>
-          <p>이전 앱으로 돌아가 계속 보세요.</p>
-          <div className="share-save-actions"><button onClick={closeShareWindow}>닫기</button><Link to="/saved">게시물 보기</Link></div>
+        : done && !changingCollection ? <>
+          <div className="share-save-actions"><button onClick={() => setChangingCollection(true)}>컬렉션 변경</button><button onClick={closeShareWindow}>닫기</button>{!params.has('native') && <Link to="/saved">게시물 보기</Link>}</div>
         </> : <>
           <CollectionPicker compact category={detail.data?.extractedCategory} collectionId={detail.data?.collectionId ?? undefined}
             onConfirm={async (id) => {
@@ -100,6 +110,7 @@ export function ShareTargetPage() {
               void cache.invalidateQueries({ queryKey: ['share', shareId] })
               void cache.invalidateQueries({ queryKey: ['saved-shares'] })
               setDone(true)
+              setChangingCollection(false)
               closeShareWindow()
             }} />
         </>}

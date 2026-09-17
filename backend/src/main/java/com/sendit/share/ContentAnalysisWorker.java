@@ -93,11 +93,14 @@ public class ContentAnalysisWorker {
                                 metadata.description() == null ? "" : metadata.description()));
                 metadata = sharedTextMetadataParser.merge(metadata, discoveredFromPageText);
                 metadata = sharedTextMetadataParser.merge(metadata, shared);
+                var captionPlaces = multiPlaceExtractor.extractDescription(metadata.description(), metadata);
                 metadata = visitKoreaMetadataClient.enrich(job.url(), metadata);
                 metadata = kakaoPlaceSearchClient.enrich(metadata);
                 metadata = tourApiClient.enrich(metadata);
                 boolean needsConfirmation = !placeVerificationPolicy.isVerified(metadata);
-                boolean analyzeMedia = needsConfirmation || shouldDeepAnalyze(job.url(), metadata);
+                boolean completeCaption = !captionPlaces.isEmpty()
+                        && captionPlaces.size() == multiPlaceExtractor.descriptionPlaceCount(metadata.description());
+                boolean analyzeMedia = !completeCaption && (needsConfirmation || shouldDeepAnalyze(job.url(), metadata));
                 String mediaStorageKey = job.mediaStorageKey();
                 java.util.List<String> frameKeys = job.mediaFrameKeys();
                 String ocrText = job.mediaOcrText();
@@ -173,9 +176,10 @@ public class ContentAnalysisWorker {
                 java.util.List<PageMetadata> extractedPlaces = new java.util.ArrayList<>(
                         multiPlaceExtractor.extract(ocrText, metadata));
                 java.util.List<PageMetadata> textPlaces = new java.util.ArrayList<>(
-                        multiPlaceExtractor.extractDescription(metadata.description(), metadata));
+                        captionPlaces);
                 textPlaces.addAll(multiPlaceExtractor.extractCaption(transcript, metadata));
-                if (placeVerificationPolicy.isVerified(metadata)) textPlaces.add(metadata);
+                // A structured list is authoritative; do not append a truncated headline landmark.
+                if (textPlaces.isEmpty() && placeVerificationPolicy.isVerified(metadata)) textPlaces.add(metadata);
                 for (PageMetadata place : textPlaces) {
                     boolean duplicate = extractedPlaces.stream().anyMatch(existing ->
                             normalizePlace(existing.placeName()).equals(normalizePlace(place.placeName()))

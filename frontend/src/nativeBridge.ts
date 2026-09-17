@@ -15,6 +15,9 @@ function send(message: object) {
 export function closeShareWindow() {
   if (!send({ type: 'close' })) window.close()
 }
+export function resizeShareWindow(expanded: boolean) {
+  send({ type: 'share-layout', expanded })
+}
 export function startNativeSessionSync() {
   const sync = () => {
     const { accessToken, refreshToken, user } = useAuthStore.getState()

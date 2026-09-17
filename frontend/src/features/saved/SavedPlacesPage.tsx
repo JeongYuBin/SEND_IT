@@ -20,7 +20,8 @@ import { eventPeriodState } from './eventPeriod'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { FeedDiscovery } from './FeedDiscovery'
 import { CollectionChoiceCancelled } from './collectionChoice'
-import { SavedSharedPosts } from './SavedSharedPosts'
+import { PendingSavedPost } from './SavedSharedPosts'
+import { usePendingSavedPosts } from './usePendingSavedPosts'
 
 const transportLabels: Record<TransportType, string> = {
   WALKING: '도보',
@@ -73,6 +74,7 @@ export function SavedPlacesPage() {
   }, [showForm])
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
+  const pendingPosts = usePendingSavedPosts(selectedCollectionId, placesQuery.data ?? [])
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
   const itinerariesQuery = useQuery({ queryKey: ['itineraries'], queryFn: getItineraries })
   const placeSearchQuery = useQuery({
@@ -282,7 +284,6 @@ export function SavedPlacesPage() {
       </details>
 
 
-      <SavedSharedPosts collectionId={selectedCollectionId} />
       {showForm && addPlaceSlotRef.current && createPortal((
         <section className="place-add-panel">
           <header>
@@ -477,7 +478,7 @@ export function SavedPlacesPage() {
 
       {placesQuery.isLoading && <div className="empty-state">장소를 불러오고 있습니다.</div>}
       {placesQuery.isError && <div className="form-error">저장한 장소를 불러오지 못했습니다.</div>}
-      {!placesQuery.isLoading && collectionPlaces.length === 0 && (
+      {!placesQuery.isLoading && collectionPlaces.length === 0 && pendingPosts.posts.length === 0 && (
         <div className="empty-state"><strong>아직 저장한 장소가 없어요.</strong><span>첫 여행지를 추가해 보세요.</span></div>
       )}
       {!placesQuery.isLoading && collectionPlaces.length > 0 && places.length === 0 && (
@@ -489,8 +490,13 @@ export function SavedPlacesPage() {
       {collectionIdParam && !collectionsQuery.isLoading && !selectedCollection && (
         <div className="form-error">존재하지 않거나 접근할 수 없는 컬렉션입니다.</div>
       )}
-      {places.length > 0 && (
+      {(places.length > 0 || pendingPosts.posts.length > 0) && (
         <section className="place-grid">
+          {pendingPosts.posts.filter(post =>
+            (!search || `${post.title ?? ''} ${post.extractedPlaceName ?? ''}`.includes(search))
+            && (categoryFilter === 'all' || post.collectionName === categoryFilter)
+            && regionFilter === 'all' && districtFilter === 'all'
+          ).map(post => <PendingSavedPost key={`share-${post.shareId}`} post={post} />)}
           {places.map((place) => (
             <article
               className="place-card"
@@ -555,6 +561,8 @@ export function SavedPlacesPage() {
           ))}
         </section>
       )}
+      {pendingPosts.isError && <p role="alert">게시물 상태를 불러오지 못했습니다. <button onClick={() => void pendingPosts.refetch()}>다시 시도</button></p>}
+      {pendingPosts.hasNextPage && <button disabled={pendingPosts.isFetchingNextPage} onClick={() => void pendingPosts.fetchNextPage()}>이전 게시물 불러오기</button>}
       <ConfirmDialog
         open={showCollectionDeleteConfirm && selectedCollection !== undefined}
         title="컬렉션을 삭제할까요?"

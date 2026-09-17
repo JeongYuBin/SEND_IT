@@ -8,6 +8,20 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MultiPlaceExtractorTest {
+    @Test
+    void extractsAllSixNumberedBusinessesWithTheirOwnAddressNotTheNearbyLandmark() {
+        // Factual names/addresses from the reported DW87bK4gY7Y caption (not marketing text).
+        String[] headings = {"낙산공원 개뿔", "성북구 문화식당", "창신동 창창", "익선동 새서울", "해방촌 선셋무드", "천호 그루바"};
+        String[] names = {"개뿔", "문화식당", "창창", "새서울", "선셋무드", "그루바"};
+        String[] addresses = {"서울 종로구 낙산성곽서1길 26", "서울 성북구 혜화로 88", "서울 종로구 창신12길 37", "서울 종로구 돈화문로11길 28-5", "서울 용산구 회나무로 41", "서울 강동구 구천면로 140"};
+        StringBuilder caption = new StringBuilder();
+        for (int i = 0; i < names.length; i++) {
+            caption.append(i + 1).append("️⃣").append(headings[i]).append("\n* ").append(addresses[i]).append("\n\n");
+            when(kakao.resolveCandidate(names[i], addresses[i])).thenReturn(Optional.of(place(names[i], addresses[i])));
+        }
+        var source = new PageMetadata("서울 데이트 6곳", caption.toString(), null, null, null, null, null, null);
+        assertThat(extractor.extractDescription(caption.toString(), source)).extracting(PageMetadata::placeName).containsExactly(names);
+    }
     private final KakaoPlaceSearchClient kakao = mock(KakaoPlaceSearchClient.class);
     private final MultiPlaceExtractor extractor = new MultiPlaceExtractor(kakao);
 
