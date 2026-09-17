@@ -18,25 +18,30 @@ import org.junit.jupiter.api.Test;
 
 class ShareServiceTest {
     @Test
-    void sharingSelectsDefaultCollectionBeforeAnalysisWithoutASecondSave() {
+    void resharingAnUnconfirmedPostQueuesFreshAnalysis() {
         var users = mock(UserRepository.class);
         var user = mock(com.sendit.user.User.class);
         when(user.getId()).thenReturn(1L);
         when(users.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         var contents = mock(SharedContentRepository.class);
-        when(contents.save(any(SharedContent.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        var collections = mock(CollectionRepository.class);
-        var collection = mock(com.sendit.collection.Collection.class);
-        when(collections.findByUserIdAndName(1L, "기타")).thenReturn(Optional.of(collection));
+        var content = mock(SharedContent.class);
+        when(content.getId()).thenReturn(7L);
+        when(content.getAnalysisStatus()).thenReturn(AnalysisStatus.NEEDS_CONFIRMATION);
+        when(contents.findByUserIdAndNormalizedUrl(org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(Optional.of(content));
         var jobs = mock(AnalysisJobRepository.class);
+        var saver = mock(com.sendit.place.SavedPlaceService.class);
         var service = new ShareService(users, contents, jobs, new UrlNormalizer(), mock(MediaStorageCleaner.class),
-                mock(NotificationService.class), mock(SharedContentPlaceRepository.class), collections,
-                mock(UserSavedPlaceRepository.class), mock(com.sendit.place.SavedPlaceService.class));
-        service.create("user@example.com", new ShareDtos.CreateShareRequest("https://www.instagram.com/reel/test/", null, null));
-        var saved = org.mockito.ArgumentCaptor.forClass(SharedContent.class);
-        verify(contents).save(saved.capture());
-        assertThat(saved.getValue().getTargetCollection()).isSameAs(collection);
+                mock(NotificationService.class), mock(SharedContentPlaceRepository.class), mock(CollectionRepository.class),
+                mock(UserSavedPlaceRepository.class), saver);
+
+        service.create("user@example.com", new ShareDtos.CreateShareRequest(
+                "https://www.instagram.com/reel/test/", null, null));
+
+        verify(content).queueForAnalysis();
         verify(jobs).save(any(AnalysisJob.class));
+        verify(saver).autoSaveAnalyzedShare(7L);
     }
     @Test
     void confirmingCollectionAlsoSavesAnAlreadyAnalyzedShare() {

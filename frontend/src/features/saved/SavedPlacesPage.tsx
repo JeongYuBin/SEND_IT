@@ -60,6 +60,7 @@ export function SavedPlacesPage() {
   const [regionFilter, setRegionFilter] = useState('all')
   const [districtFilter, setDistrictFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [collectionMenuPlaceId, setCollectionMenuPlaceId] = useState<number | null>(null)
   const addPlaceSlotRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -529,26 +530,21 @@ export function SavedPlacesPage() {
                 <p>{place.roadAddress ?? place.address ?? '주소 정보 없음'}</p>
                 {place.memo && <p className="place-memo">{place.memo}</p>}
                 <div className="feed-card-tools" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
-                  <label className="feed-card-collection">
-                    <span>컬렉션</span>
-                    <select
-                      aria-label={`${place.name} 컬렉션`}
-                      value={place.collectionId ?? 'none'}
-                      disabled={updateMutation.isPending}
-                      onChange={(event) => {
-                        const value = event.target.value
-                        updateMutation.mutate({
-                          id: place.savedPlaceId,
-                          request: { collectionId: Number(value) },
-                        })
-                      }}
-                    >
-                      
-                      {collectionsQuery.data?.map((item) => (
-                        <option key={item.id} value={item.id}>{item.name}</option>
-                      ))}
-                    </select>
-                  </label>
+                  <div className="feed-card-collection-wrap">
+                    <button className="feed-card-collection" type="button"
+                      aria-expanded={collectionMenuPlaceId === place.savedPlaceId}
+                      aria-label={`${place.name} 컬렉션 변경`}
+                      onClick={() => setCollectionMenuPlaceId(current => current === place.savedPlaceId ? null : place.savedPlaceId)}>
+                      <span>컬렉션</span><strong>{place.collectionName ?? '기타'}</strong><i aria-hidden="true">⌄</i>
+                    </button>
+                    {collectionMenuPlaceId === place.savedPlaceId && <div className="feed-card-collection-menu" role="listbox" aria-label="컬렉션 선택">
+                      {collectionsQuery.data?.map(item => <button key={item.id} type="button" role="option"
+                        aria-selected={place.collectionId === item.id} disabled={updateMutation.isPending}
+                        onClick={() => updateMutation.mutate({ id: place.savedPlaceId, request: { collectionId: item.id } }, {
+                          onSuccess: () => setCollectionMenuPlaceId(null),
+                        })}>{place.collectionId === item.id && <span aria-hidden="true">✓</span>}{item.name}</button>)}
+                    </div>}
+                  </div>
                   <button
                     className="feed-card-delete"
                     type="button"

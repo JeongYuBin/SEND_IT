@@ -32,7 +32,6 @@ open class MainActivity : Activity() {
             window.setBackgroundDrawableResource(android.R.color.transparent)
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.attributes = window.attributes.apply { dimAmount = 0.22f }
-            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, (120 * resources.displayMetrics.density).toInt())
         } else if (Build.VERSION.SDK_INT >= 30) {
             window.setDecorFitsSystemWindows(false)
         }
@@ -54,9 +53,7 @@ open class MainActivity : Activity() {
                     "session" -> { val value = data.getString("value"); session.write(value); sessionAtLoad = value }
                     "close" -> if (sharing) finish()
                     "share-layout" -> if (sharing) {
-                        val density = resources.displayMetrics.density
-                        val height = if (data.optBoolean("expanded")) maxOf((210 * density).toInt(), (resources.displayMetrics.heightPixels * 0.27).toInt()) else (120 * density).toInt()
-                        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height)
+                        updateShareWindow(data.optBoolean("expanded"))
                     }
                 }
             }
@@ -87,6 +84,7 @@ open class MainActivity : Activity() {
             }
         }
         setContentView(container)
+        if (sharing) container.post { updateShareWindow(false) }
         container.requestApplyInsets()
         val url = if (sharing) {
             val shared = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString().orEmpty().take(10000)
@@ -109,6 +107,12 @@ open class MainActivity : Activity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() { if (!sharing && webView?.canGoBack() == true) webView?.goBack() else finish() }
     override fun onDestroy() { webView?.destroy(); super.onDestroy() }
+
+    private fun updateShareWindow(expanded: Boolean) {
+        val density = resources.displayMetrics.density
+        val height = if (expanded) maxOf((210 * density).toInt(), (resources.displayMetrics.heightPixels * 0.27).toInt()) else (120 * density).toInt()
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height)
+    }
 }
 
 class ShareActivity : MainActivity() { override val sharing = true }

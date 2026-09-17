@@ -36,6 +36,11 @@ function command(method, params = {}) {
   })
 }
 let saved = false
+const savedPlace = { savedPlaceId: 88, placeId: 188, name: '테스트 장소', category: '카페', address: '서울 종로구 테스트로 1', roadAddress: null,
+  latitude: 37.5, longitude: 127, description: null, imageUrl: null, phone: null, homepageUrl: null,
+  tourismContentId: null, tourismContentTypeId: null, operatingHours: null, restDays: null, parkingInfo: null,
+  eventStartDate: null, eventEndDate: null, collectionId: 2, collectionName: '카페', memo: null, priority: 0,
+  savedAt: '2026-09-17T10:00:00Z', originalUrl: null, kakaoPlaceId: null, kakaoPlaceUrl: null, sources: [] }
 const post = { shareId: 41, originalUrl: 'https://www.instagram.com/reel/test/', sourceType: 'INSTAGRAM',
   status: 'ANALYZING', title: null, extractedPlaceName: null, extractedCategory: null, thumbnailUrl: null,
   collectionId: 2, collectionName: '카페', extractedPlaces: [], createdAt: '2026-09-17T10:00:00Z' }
@@ -59,8 +64,9 @@ socket.addEventListener('message', async ({ data }) => {
     requests.push(`${request.method} ${url.pathname}`)
     let body = []
     if (url.pathname.endsWith('/collections')) body = [{ id: 1, name: '여행지' }, { id: 2, name: '카페' }, { id: 3, name: '음식점' }]
+    if (url.pathname.endsWith('/saved-places') && request.method === 'GET') body = [savedPlace]
     if (url.pathname.endsWith('/unread-count')) body = { count: 0 }
-    if (url.pathname.endsWith('/shares') && request.method === 'POST') { saved = true; body = { shareId: 41, status: 'PENDING', duplicate: false } }
+    if (url.pathname.endsWith('/shares') && request.method === 'POST') body = { shareId: 41, status: 'PENDING', duplicate: false }
     if (url.pathname.endsWith('/shares/41')) body = { ...post, collectionId: null }
     if (url.pathname.endsWith('/shares/41/collection/2') && request.method === 'PATCH') saved = true
     if (url.pathname.endsWith('/shares/saved')) body = { content: saved ? [post] : [], page: 0, totalElements: saved ? 1 : 0, totalPages: 1, last: true }
@@ -117,10 +123,6 @@ try {
   await until("!!document.querySelector('.home-map-controls')")
   assert.equal(await evaluate("!!document.querySelector('.mobile-menu-sheet.expanded')"), false)
   await command('Page.navigate', { url: `${base}/share-target?url=${encodeURIComponent(post.originalUrl)}` })
-  await until("document.body.textContent.includes('게시물을 저장했어요')")
-  assert.equal(saved, true, 'Sharing itself saves without a confirmation click')
-  assert.equal(await evaluate("!!document.querySelector('.collection-picker-confirm')"), false)
-  await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent==='컬렉션 변경').click()")
   await until("!!document.querySelector('.collection-picker-confirm:not(:disabled)')")
   const shareHeight = await evaluate("document.querySelector('.share-save-sheet').getBoundingClientRect().height")
   assert.ok(shareHeight <= height * .3, `Share sheet height ${shareHeight}`)
@@ -136,6 +138,9 @@ try {
   await until("!!document.querySelector('.place-grid .pending-saved-post')")
   assert.equal(await evaluate("document.body.textContent.includes('공유한 게시물')"), false)
   assert.ok(await evaluate("document.querySelector('.place-grid').textContent.includes('저장 완료')"))
+  await evaluate("document.querySelector('.feed-card-collection').click()")
+  assert.equal(await evaluate("!!document.querySelector('.feed-card-collection-menu')"), true)
+  assert.equal(await evaluate("!!document.querySelector('.feed-card-collection select')"), false)
   await screenshot('pending-post-in-feed')
   assert.deepEqual(errors, [])
   console.log(JSON.stringify({ passed: true, viewport: {width, height}, layout, shareHeight, screenshots: artifacts }, null, 2))
