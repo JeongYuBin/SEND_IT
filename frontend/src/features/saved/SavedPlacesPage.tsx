@@ -76,6 +76,17 @@ export function SavedPlacesPage() {
 
   const placesQuery = useQuery({ queryKey: ['saved-places'], queryFn: getSavedPlaces })
   const pendingPosts = usePendingSavedPosts(selectedCollectionId, placesQuery.data ?? [])
+  const feedEndRef = useRef<HTMLDivElement>(null)
+  const { hasNextPage, isFetching, isError, fetchNextPage } = pendingPosts
+  useEffect(() => {
+    const target = feedEndRef.current
+    if (!target || !hasNextPage || isFetching || isError) return
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) void fetchNextPage()
+    }, { rootMargin: '0px 0px 320px 0px' })
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetching, isError, fetchNextPage])
   const collectionsQuery = useQuery({ queryKey: ['collections'], queryFn: getCollections })
   const itinerariesQuery = useQuery({ queryKey: ['itineraries'], queryFn: getItineraries })
   const placeSearchQuery = useQuery({
@@ -558,7 +569,9 @@ export function SavedPlacesPage() {
         </section>
       )}
       {pendingPosts.isError && <p role="alert">게시물 상태를 불러오지 못했습니다. <button onClick={() => void pendingPosts.refetch()}>다시 시도</button></p>}
-      {pendingPosts.hasNextPage && <button disabled={pendingPosts.isFetchingNextPage} onClick={() => void pendingPosts.fetchNextPage()}>이전 게시물 불러오기</button>}
+      <div ref={feedEndRef} className="feed-load-status" role="status" aria-live="polite">
+        {pendingPosts.isFetchingNextPage && '게시물을 불러오고 있어요…'}
+      </div>
       <ConfirmDialog
         open={showCollectionDeleteConfirm && selectedCollection !== undefined}
         title="컬렉션을 삭제할까요?"

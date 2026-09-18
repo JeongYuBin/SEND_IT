@@ -59,20 +59,36 @@ public class KakaoPlaceSearchClient {
 
     public PageMetadata enrich(PageMetadata fallback) {
         if (apiKey.isBlank()) return fallback;
+        // Recover a structured name when the page supplied a promotional title as its name.
+        PageMetadata parsed = new SharedTextMetadataParser().parse(
+                first(fallback.description(), fallback.title()));
+        if ((fallback.address() == null || fallback.address().isBlank()) && parsed.address() != null) {
+            fallback = new PageMetadata(fallback.title(), fallback.description(), fallback.imageUrl(),
+                    fallback.placeName(), fallback.category(), parsed.address(),
+                    fallback.latitude(), fallback.longitude());
+        }
+        if (parsed.placeName() != null && (fallback.placeName() == null
+                || fallback.placeName().length() > 50 || fallback.placeName().contains("Instagram"))) {
+            fallback = new PageMetadata(fallback.title(), fallback.description(), fallback.imageUrl(),
+                    parsed.placeName(), fallback.category(), first(fallback.address(), parsed.address()),
+                    fallback.latitude(), fallback.longitude());
+        }
         if (fallback.placeName() == null || fallback.placeName().isBlank()) {
             if (fallback.address() == null || fallback.address().isBlank()) return fallback;
-            return resolveAddress(fallback.address())
-                    .map(resolved -> new PageMetadata(
-                            fallback.title(), fallback.description(), fallback.imageUrl(),
-                            resolved.placeName(), resolved.category(), resolved.address(),
-                            resolved.latitude(), resolved.longitude()))
-                    .orElse(fallback);
+            return enrichFromAddress(fallback);
         }
         for (String query : searchQueries(fallback)) {
             Optional<PageMetadata> result = search(query, fallback);
             if (result.isPresent()) return result.get();
         }
-        return fallback;
+        return enrichFromAddress(fallback);
+    }
+
+    private PageMetadata enrichFromAddress(PageMetadata fallback) {
+        return resolveAddress(fallback.address()).map(resolved -> new PageMetadata(
+                fallback.title(), fallback.description(), fallback.imageUrl(),
+                resolved.placeName(), resolved.category(), resolved.address(),
+                resolved.latitude(), resolved.longitude())).orElse(fallback);
     }
 
     public Optional<PageMetadata> resolveAddress(String address) {
@@ -192,17 +208,17 @@ public class KakaoPlaceSearchClient {
         try {
             JsonNode documents = objectMapper.readTree(body).path("documents");
             if (!documents.isArray()) return Optional.empty();
-            String expected = normalize(expectedAddress);
-            JsonNode match = java.util.stream.StreamSupport.stream(documents.spliterator(), false)
+            String expected = normalizeAddress(expectedAddress);
+            List<JsonNode> matches = java.util.stream.StreamSupport.stream(documents.spliterator(), false)
                     .map(document -> new ScoredDocument(document,
                             Math.max(
-                                    addressScore(expected, normalize(text(document, "road_address_name"))),
-                                    addressScore(expected, normalize(text(document, "address_name"))))))
+                                    addressScore(expected, normalizeAddress(text(document, "road_address_name"))),
+                                    addressScore(expected, normalizeAddress(text(document, "address_name"))))))
                     .filter(candidate -> candidate.score() >= 90)
-                    .max(Comparator.comparingInt(ScoredDocument::score))
                     .map(ScoredDocument::document)
-                    .orElse(null);
-            if (match == null) return Optional.empty();
+                    .toList();
+            if (matches.size() != 1) return Optional.empty();
+            JsonNode match = matches.getFirst();
             return Optional.of(new PageMetadata(
                     null, null, null,
                     text(match, "place_name"),
@@ -218,8 +234,11 @@ public class KakaoPlaceSearchClient {
     private int addressScore(String expected, String candidate) {
         if (expected.isBlank() || candidate.isBlank()) return 0;
         if (expected.equals(candidate)) return 110;
-        if (expected.contains(candidate) || candidate.contains(expected)) return 100;
         return 0;
+    }
+
+    private String normalizeAddress(String value) {
+        return normalize(com.sendit.place.AddressNormalizer.normalize(value));
     }
 
     private int score(String expected, String candidate,
@@ -236,7 +255,7 @@ public class KakaoPlaceSearchClient {
         else return 0;
         String region = addressRegion(expectedAddress);
         if (region != null && candidateAddress != null
-                && normalize(candidateAddress).contains(normalize(region))) return nameScore + 20;
+                && normalizeAddress(candidateAddress).contains(normalizeAddress(region))) return nameScore + 20;
         if (region != null) return 0;
         return nameScore;
     }

@@ -8,6 +8,41 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 class KakaoPlaceSearchClientTest {
+    @Test
+    void enrichesBothDirectionsThroughHttpSearch() throws Exception {
+        var http = org.mockito.Mockito.mock(HttpClient.class);
+        @SuppressWarnings("unchecked")
+        java.net.http.HttpResponse<String> response = org.mockito.Mockito.mock(java.net.http.HttpResponse.class);
+        org.mockito.Mockito.when(response.statusCode()).thenReturn(200);
+        org.mockito.Mockito.when(response.body()).thenReturn("""
+                {"documents":[{"place_name":"테스트식당","road_address_name":"서울 관악구 보라매로3길 17",
+                "category_group_name":"음식점","x":"126.927","y":"37.491"}]}
+                """);
+        org.mockito.Mockito.when(http.send(org.mockito.ArgumentMatchers.any(java.net.http.HttpRequest.class),
+                org.mockito.ArgumentMatchers.<java.net.http.HttpResponse.BodyHandler<String>>any())).thenReturn(response);
+        var lookup = new KakaoPlaceSearchClient(new ObjectMapper(), "test", "https://example.com", http, Duration.ofSeconds(1));
+        var addressOnly = lookup.enrich(new PageMetadata("제목", null, null, null, null,
+                "서울특별시 관악구 보라매로3길 17", null, null));
+        assertThat(addressOnly.placeName()).isEqualTo("테스트식당");
+        var nameOnly = lookup.enrich(new PageMetadata("제목", null, null, "테스트식당", null, null, null, null));
+        assertThat(nameOnly.address()).isEqualTo("서울 관악구 보라매로3길 17");
+        var wrongName = lookup.enrich(new PageMetadata("제목", null, null, "잘못 추출된 제목", null,
+                "서울특별시 관악구 보라매로3길 17", null, null));
+        assertThat(wrongName.placeName()).isEqualTo("테스트식당");
+    }
+
+    @Test
+    void doesNotConfuseBuildingNumbersOrChooseAmongMultipleTenants() {
+        String body = """
+                {"documents":[{"place_name":"A식당","road_address_name":"서울 관악구 보라매로3길 170"}]}
+                """;
+        assertThat(client.parseAddress(body, "서울 관악구 보라매로3길 17")).isEmpty();
+        String multiple = """
+                {"documents":[{"place_name":"A식당","road_address_name":"서울 관악구 보라매로3길 17"},
+                {"place_name":"B식당","road_address_name":"서울 관악구 보라매로3길 17"}]}
+                """;
+        assertThat(client.parseAddress(multiple, "서울 관악구 보라매로3길 17")).isEmpty();
+    }
     private final KakaoPlaceSearchClient client = new KakaoPlaceSearchClient(
             new ObjectMapper(), "test", "https://example.com",
             HttpClient.newHttpClient(), Duration.ofSeconds(1));

@@ -36,6 +36,7 @@ function command(method, params = {}) {
   })
 }
 let saved = false
+let nextPageRequests = 0
 const savedPlace = { savedPlaceId: 88, placeId: 188, name: '테스트 장소', category: '카페', address: '서울 종로구 테스트로 1', roadAddress: null,
   latitude: 37.5, longitude: 127, description: null, imageUrl: null, phone: null, homepageUrl: null,
   tourismContentId: null, tourismContentTypeId: null, operatingHours: null, restDays: null, parkingInfo: null,
@@ -69,7 +70,12 @@ socket.addEventListener('message', async ({ data }) => {
     if (url.pathname.endsWith('/shares') && request.method === 'POST') body = { shareId: 41, status: 'PENDING', duplicate: false }
     if (url.pathname.endsWith('/shares/41')) body = { ...post, collectionId: null }
     if (url.pathname.endsWith('/shares/41/collection/2') && request.method === 'PATCH') saved = true
-    if (url.pathname.endsWith('/shares/saved')) body = { content: saved ? [post] : [], page: 0, totalElements: saved ? 1 : 0, totalPages: 1, last: true }
+    if (url.pathname.endsWith('/shares/saved')) {
+      const page = Number(url.searchParams.get('page') || 0)
+      if (page === 1) nextPageRequests++
+      body = { content: saved ? [{ ...post, shareId: page ? 42 : 41 }] : [], page,
+        totalElements: saved ? 2 : 0, totalPages: saved ? 2 : 1, last: !saved || page === 1 }
+    }
     await command('Fetch.fulfillRequest', { requestId, responseCode: 200,
       responseHeaders: [{ name: 'Content-Type', value: 'application/json' },
         { name: 'Access-Control-Allow-Origin', value: base },
@@ -138,6 +144,11 @@ try {
   await until("!!document.querySelector('.place-grid .pending-saved-post')")
   assert.equal(await evaluate("document.body.textContent.includes('공유한 게시물')"), false)
   assert.ok(await evaluate("document.querySelector('.place-grid').textContent.includes('저장 완료')"))
+  assert.equal(await evaluate("document.querySelector('.pending-post-delete')?.textContent.trim()"), '삭제')
+  await evaluate("document.querySelector('.pending-post-delete').click()")
+  assert.equal(await evaluate("document.querySelector('.confirm-dialog')?.textContent.includes('이 게시물을 삭제할까요?')"), true)
+  await evaluate("document.querySelector('.confirm-dialog-actions button').click()")
+  await until("!!document.querySelector('.feed-card-collection') && !document.querySelector('.confirm-dialog')")
   const cardHeightBeforeMenu = await evaluate("document.querySelector('.feed-card-collection').closest('.place-card').getBoundingClientRect().height")
   await evaluate("document.querySelector('.feed-card-collection').click()")
   assert.equal(await evaluate("!!document.querySelector('.feed-card-collection-menu')"), true)
@@ -145,6 +156,10 @@ try {
   const cardHeightAfterMenu = await evaluate("document.querySelector('.feed-card-collection').closest('.place-card').getBoundingClientRect().height")
   assert.equal(cardHeightAfterMenu, cardHeightBeforeMenu, 'Collection overlay must not resize or push feed cards')
   await screenshot('pending-post-in-feed')
+  await evaluate("document.querySelector('.feed-load-status').scrollIntoView()")
+  await until("document.querySelectorAll('.pending-saved-post').length === 2")
+  assert.ok(nextPageRequests > 0, 'Scrolling loads the next page without a button')
+  assert.equal(await evaluate("document.body.textContent.includes('이전 게시물 불러오기')"), false)
   assert.deepEqual(errors, [])
   console.log(JSON.stringify({ passed: true, viewport: {width, height}, layout, shareHeight, screenshots: artifacts }, null, 2))
 } finally {

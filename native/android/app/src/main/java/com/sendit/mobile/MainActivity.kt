@@ -97,6 +97,7 @@ open class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         val current = session.read()
+        android.util.Log.d("SENDIT_TEST", "onResume sharing=$sharing")
         if (current != sessionAtLoad) {
             sessionAtLoad = current
             val js = current?.let { "localStorage.setItem('sendit-auth', ${JSONObject.quote(it)});location.reload();" }

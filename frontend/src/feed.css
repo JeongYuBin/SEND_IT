@@ -78,10 +78,15 @@
 .feed-card-collection-menu button:hover, .feed-card-collection-menu button[aria-selected="true"] { color: #674f86; background: #f0e9f7; }
 .feed-card-collection-menu button span { width: 11px; color: #765b9b; }
 .pending-saved-post { cursor: pointer; }
+.feed-load-status { min-height: 1px; margin: 12px auto; text-align: center; color: var(--muted); font-size: 12px; }
 .pending-post-actions { display: flex; margin-top: 9px; align-items: center; flex-wrap: wrap; gap: 6px; }
 .pending-post-actions a, .pending-post-actions button { min-height: 28px; padding: 5px 9px; border: 1px solid rgb(111 91 137 / 13%); border-radius: 999px; color: #6e598a; background: #f6f1fa; font-size: 9px; font-weight: 650; }
-.pending-post-actions a { flex: 0 0 100%; padding-left: 0; border: 0; background: transparent; }
+.pending-post-source-actions { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
+.pending-post-actions .pending-post-source-actions a { min-height: 0; padding: 4px 0; border: 0; background: transparent; }
+.pending-post-actions .pending-post-delete { min-height: 27px; padding: 4px 10px; border-color: rgb(193 77 93 / 13%); color: #b05262; background: rgb(255 248 249 / 88%); }
+.pending-post-actions .pending-post-delete:hover { background: #fff0f2; }
 .pending-post-actions button { flex: 1 1 0; white-space: nowrap; }
+.pending-post-actions .pending-post-source-actions button { flex: 0 0 auto; }
 .pending-post-actions .pending-post-edit { color: white; background: #7962a0; }
 .pending-post-retry:disabled { opacity: .6; }
 .feed-card-delete { flex: 0 0 auto; min-height: 27px; margin: 0; padding: 4px 9px; border: 1px solid rgb(193 77 93 / 13%); border-radius: 999px; color: #b05262; background: rgb(255 248 249 / 78%); font-size: 9px; font-weight: 650; }
