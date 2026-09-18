@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
+import { PlaceNameLookup } from './PlaceNameLookup'
 import { PlaceImage } from '../../components/PlaceImage'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
@@ -16,7 +17,7 @@ import {
   getTourismPlaceDetail,
   updateSavedPlace,
 } from './savedApi'
-import type { NearbyTourismPlace } from './types'
+import type { KakaoPlaceSearchResult, NearbyTourismPlace } from './types'
 import { KakaoMap } from '../../components/KakaoMap'
 import { eventPeriodState } from './eventPeriod'
 import { sourceExcerpt } from './sourceExcerpt'
@@ -54,6 +55,13 @@ export function SavedPlaceDetailPage({ placeId, embedded = false, onDeleted }: {
   const [editingDetails, setEditingDetails] = useState(false)
   const [editName, setEditName] = useState('')
   const [editAddress, setEditAddress] = useState('')
+  const autoAddressRef = useRef<string | null>(null)
+  const selectEditPlace = useCallback((place: KakaoPlaceSearchResult) => {
+    setEditName(place.name)
+    const address = place.roadAddress ?? place.address ?? ''
+    autoAddressRef.current = address
+    setEditAddress(address)
+  }, [])
   const [nearbyPage, setNearbyPage] = useState(0)
   const placeQuery = useQuery({
     queryKey: ['saved-place', savedPlaceId],
@@ -223,6 +231,7 @@ export function SavedPlaceDetailPage({ placeId, embedded = false, onDeleted }: {
               onClick={() => {
                 setEditName(place.name)
                 setEditAddress(place.roadAddress ?? place.address ?? '')
+                autoAddressRef.current = null
                 setEditingDetails(true)
               }}
             >
@@ -253,8 +262,16 @@ export function SavedPlaceDetailPage({ placeId, embedded = false, onDeleted }: {
                 <button type="button" className="edit-close-button" onClick={() => setEditingDetails(false)} aria-label="장소 정보 수정 닫기">×</button>
               </div>
               <div className="place-detail-edit-fields">
-                <label><span>장소명 <em>필수</em></span><input required maxLength={200} value={editName} onChange={(event) => setEditName(event.target.value)} /></label>
-                <label className="wide-field"><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => setEditAddress(event.target.value)} /></label>
+                <label><span>장소명 <em>필수</em></span><input required maxLength={200} value={editName} onChange={(event) => {
+                  setEditName(event.target.value)
+                  if (autoAddressRef.current === editAddress) setEditAddress('')
+                  autoAddressRef.current = null
+                }} /></label>
+                <PlaceNameLookup name={editName} address={editAddress} onSelect={selectEditPlace} />
+                <label className="wide-field"><span>주소</span><input maxLength={500} value={editAddress} onChange={(event) => {
+                  autoAddressRef.current = null
+                  setEditAddress(event.target.value)
+                }} /></label>
               </div>
               {updateMutation.isError && (
                 <p className="form-error" role="alert">

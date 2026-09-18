@@ -66,6 +66,9 @@ socket.addEventListener('message', async ({ data }) => {
     let body = []
     if (url.pathname.endsWith('/collections')) body = [{ id: 1, name: '여행지' }, { id: 2, name: '카페' }, { id: 3, name: '음식점' }]
     if (url.pathname.endsWith('/saved-places') && request.method === 'GET') body = [savedPlace]
+    if (url.pathname.endsWith('/saved-places/88')) body = { ...savedPlace, address: null }
+    if (url.pathname.endsWith('/places/search')) body = { places: [{ kakaoPlaceId: 'test-88', name: '테스트 장소',
+      roadAddress: '서울 종로구 테스트로 1', address: null }], page: 1, last: true }
     if (url.pathname.endsWith('/unread-count')) body = { count: 0 }
     if (url.pathname.endsWith('/shares') && request.method === 'POST') body = { shareId: 41, status: 'PENDING', duplicate: false }
     if (url.pathname.endsWith('/shares/41')) body = { ...post, collectionId: null }
@@ -160,6 +163,11 @@ try {
   await until("document.querySelectorAll('.pending-saved-post').length === 2")
   assert.ok(nextPageRequests > 0, 'Scrolling loads the next page without a button')
   assert.equal(await evaluate("document.body.textContent.includes('이전 게시물 불러오기')"), false)
+  await command('Page.navigate', { url: `${base}/saved/places/88` })
+  await until("!!document.querySelector('.place-detail-edit-toggle')")
+  await evaluate("document.querySelector('.place-detail-edit-toggle').click()")
+  await until("document.querySelector('.wide-field input')?.value === '서울 종로구 테스트로 1'")
+  assert.ok(await evaluate("document.querySelector('.place-name-lookup-status')?.textContent.includes('일치하는 주소')"))
   assert.deepEqual(errors, [])
   console.log(JSON.stringify({ passed: true, viewport: {width, height}, layout, shareHeight, screenshots: artifacts }, null, 2))
 } finally {
