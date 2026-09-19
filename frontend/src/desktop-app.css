@@ -1,0 +1,92 @@
+/* Desktop web uses the app's compact layout. Mobile styles remain untouched. */
+@media (min-width: 761px) {
+  :root { --web-app-width: 430px; --web-app-edge: calc((100vw - var(--web-app-width)) / 2); }
+  body { background: #eae6ef; }
+  #root { width: var(--web-app-width); min-height: 100dvh; margin-inline: auto; background: var(--surface-soft); box-shadow: 0 0 44px #39274c12; }
+  .desktop-site-nav, .desktop-site-nav-spacer { display: none; }
+  :is(.shell, .saved-shell, .itinerary-shell, .result-shell, .place-detail-shell, .account-shell, .notification-page, .shared-contents-shell) {
+    width: 100%; min-height: 100dvh; padding: 16px 16px 100px;
+  }
+  :is(.shell, .saved-shell, .itinerary-shell, .result-shell, .place-detail-shell, .account-shell, .notification-page, .shared-contents-shell) > .top-nav { display: none; }
+  .feed-shell { padding: 16px 12px 100px; }
+  .feed-shell .place-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .feed-shell .saved-header { align-items: flex-start; }
+  .feed-shell .saved-header-actions { flex-direction: row; flex-wrap: wrap; }
+  .saved-header, .collection-bar, .place-filters { flex-direction: column; align-items: stretch; }
+  .feed-shell .saved-header { flex-direction: column; }
+  .feed-shell .collection-quick-actions button { width: 34px; padding: 0; overflow: hidden; font-size: 0; }
+  .feed-shell .collection-quick-actions button span { font-size: 18px; }
+  .feed-shell .collection-quick-actions .collection-delete-button::before { content: '−'; font-size: 18px; }
+  .discovery-shortcuts > button { padding: 18px 14px; border-radius: 20px; }
+  .discovery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .place-form { grid-template-columns: minmax(0, 1fr); }
+  .itinerary-saved-grid { grid-template-columns: minmax(0, 1fr); }
+  .itinerary-detail, .itinerary-layout, .result-layout, .place-detail { grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; padding-top: 0; }
+  .itinerary-header-actions { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+  .itinerary-header-actions > * { flex-shrink: 0; }
+  .itinerary-header h1 { font-size: 28px; }
+  .trip-create .itinerary-create-layout .itinerary-form { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .trip-basics, .trip-places { padding: 16px; border-radius: 21px; }
+  .trip-create-footer { grid-template-columns: minmax(0, 1fr); text-align: center; gap: 10px; }
+  .trip-create .itinerary-submit { width: 100%; }
+  .trip-create .itinerary-place-options { max-height: 440px; }
+  .trip-detail-page .itinerary-days { display: block; }
+  .trip-detail-page .itinerary-day { margin-bottom: 12px; }
+  .trip-detail-page .itinerary-edit-form .itinerary-field-row { grid-template-columns: minmax(0, 1fr); }
+  .account-shell, .notification-page { padding: 12px 16px 84px; }
+  :is(.account-shell, .notification-page) .account-header { margin: 4px 0 18px; }
+  :is(.account-shell, .notification-page) .account-header h1 { font-size: 24px; }
+  .account-shell .profile-card { padding: 16px; }
+  .auth-shell { min-height: 100dvh; padding: 24px 16px; }
+  .auth-shell .auth-card { width: 100%; padding: 20px; }
+  .auth-shell .auth-card h1 { font-size: 24px; }
+  .result-preview { padding: 16px; }
+  .result-preview h1 { font-size: 24px; line-height: 1.3; }
+  .result-preview > p { font-size: 13px; -webkit-line-clamp: 2; }
+  .save-panel { padding: 18px; }
+  .shell.landing-shell { padding: 16px 16px 40px; }
+  .landing-shell .hero { margin: 0 auto; padding: 0 0 24px; }
+  .landing-shell .hero > h1 { font-size: 32px; }
+  .landing-shell .hero > p { font-size: 12px; }
+  .landing-shell .share-form { margin-top: 22px; padding: 16px; }
+  .landing-shell .home-mobile-auth { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  .landing-shell .home-mobile-auth .home-mobile-auth-primary { background: var(--accent); color: white; }
+  .landing-shell .share-form > div { grid-template-columns: minmax(0, 1fr); }
+  .shell .home-dashboard { display: none; }
+
+  .shell:has(.home-map) { padding: 0; }
+  .shell .home-map { margin: 0; border: 0; box-shadow: none; }
+  .shell .home-map, .shell .home-map > .kakao-map { height: 100dvh; min-height: 100dvh; border-radius: 0; }
+  .home-map-controls { top: 8px; }
+  .notification-shortcut { display: grid; right: calc(var(--web-app-edge) + 16px); }
+  .mobile-menu-sheet {
+    display: block; position: fixed; z-index: 1000; bottom: 0;
+    left: var(--web-app-edge); right: var(--web-app-edge);
+    padding: 0 8px 4px; border: 1px solid #ffffffea; border-bottom: 0;
+    border-radius: 18px 18px 0 0; background: #fffefdF5;
+    box-shadow: 0 -3px 16px #39274c12; backdrop-filter: blur(24px);
+  }
+  .mobile-menu-handle { display: flex; width: 100%; height: 20px; padding: 8px 0; align-items: center; justify-content: center; border: 0; background: transparent; touch-action: none; cursor: pointer; }
+  .mobile-menu-handle > span { width: 32px; height: 3px; border-radius: 99px; background: #c4bacf; }
+  .mobile-menu-sheet .mobile-bottom-nav { position: static; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 48px; min-height: 0; margin: 0; padding: 0; gap: 5px; border: 0; box-shadow: none; background: transparent; }
+  .mobile-menu-sheet .mobile-bottom-nav[hidden] { display: none; }
+  .mobile-bottom-nav a { display: grid; justify-items: center; align-content: center; min-height: 44px; padding: 4px; gap: 2px; border-radius: 11px; color: #81778d; }
+  .mobile-bottom-nav a.active { color: var(--accent); background: var(--accent-soft); }
+  .mobile-bottom-nav a > span { display: grid; width: 21px; height: 21px; place-items: center; }
+  .mobile-bottom-nav svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+  .mobile-bottom-nav small { font-size: 10px; line-height: 1.2; }
+  .home-map-summary { bottom: 40px; }
+  body:has(.mobile-menu-sheet.expanded) .home-map-summary { bottom: 86px; }
+
+  /* Portals and fixed sheets share the app's edges instead of the browser's. */
+  .saved-place-sheet, .share-save-sheet, .confirm-dialog-backdrop, .nearby-detail-backdrop,
+  .collection-save-backdrop, .place-add-backdrop {
+    left: var(--web-app-edge); right: var(--web-app-edge); max-width: var(--web-app-width); margin-inline: auto;
+  }
+  .saved-place-sheet { width: var(--web-app-width); }
+  .collection-save-dialog { width: calc(var(--web-app-width) - 24px); margin: auto auto 12px; }
+  .confirm-dialog-backdrop { padding: 16px; }
+  .confirm-dialog { width: 100%; max-width: 380px; padding: 22px; border-radius: 20px; }
+  .confirm-dialog h2 { font-size: 18px; }
+  .confirm-dialog p { font-size: 12px; }
+}

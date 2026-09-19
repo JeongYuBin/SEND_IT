@@ -92,7 +92,7 @@ async function evaluate(expression) {
   return result.result.value
 }
 async function until(expression) {
-  for (let attempt = 0; attempt < 100; attempt++) {
+  for (let attempt = 0; attempt < 400; attempt++) {
     if (await evaluate(expression)) return
     await delay(100)
   }
@@ -123,6 +123,16 @@ try {
   assert.ok(layout.searchTop >= 0 && layout.categoriesTop >= layout.searchBottom, JSON.stringify(layout))
   assert.ok(layout.menuHeight <= 85, JSON.stringify(layout))
   assert.equal(layout.overflow, false)
+  if (width > 760) {
+    const frame = await evaluate(`(() => {
+      const root = document.querySelector('#root').getBoundingClientRect();
+      const nav = document.querySelector('.mobile-menu-sheet').getBoundingClientRect();
+      return {width: root.width, left: root.left, navWidth: nav.width, navLeft: nav.left};
+    })()`)
+    assert.equal(frame.width, 430)
+    assert.equal(frame.navWidth, frame.width)
+    assert.equal(frame.navLeft, frame.left)
+  }
   await screenshot('map-controls')
   await evaluate("document.querySelector('.mobile-bottom-nav a[href=\"/saved\"]').click()")
   await until("!!document.querySelector('.feed-shell')")
@@ -146,6 +156,7 @@ try {
   await command('Page.navigate', { url: `${base}/saved` })
   await until("!!document.querySelector('.place-grid .pending-saved-post')")
   assert.equal(await evaluate("document.body.textContent.includes('공유한 게시물')"), false)
+  if (width > 760) assert.equal(await evaluate("getComputedStyle(document.querySelector('.place-grid')).gridTemplateColumns.split(' ').length"), 2)
   assert.ok(await evaluate("document.querySelector('.place-grid').textContent.includes('저장 완료')"))
   assert.equal(await evaluate("document.querySelector('.pending-post-delete')?.textContent.trim()"), '삭제')
   await evaluate("document.querySelector('.pending-post-delete').click()")
