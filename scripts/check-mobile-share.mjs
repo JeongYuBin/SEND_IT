@@ -28,6 +28,19 @@ let sequence = 0
 const pending = new Map()
 const errors = []
 const requests = []
+const tripOnly = process.env.TEST_TRIP === '1'
+const tripItems = Array.from({ length: 12 }, (_, index) => ({
+  savedPlaceId: index + 1, sequence: index + 1, daySequence: index + 1,
+  visitDate: '2026-09-25', arrivalTime: '10:00', departureTime: '11:00',
+  name: `장소 ${index + 1}`, category: '관광지', address: '서울', imageUrl: null,
+  latitude: null, longitude: null, stayMinutes: 60, transit: null,
+  travelMinutesFromPrevious: index ? 31 : 0, distanceKmFromPrevious: null,
+  coordinateAvailable: false, routePathFromPrevious: [], transportTypeFromPrevious: 'PUBLIC_TRANSIT',
+  crossDayTransfer: false, operatingHours: null, restDays: null, visitWarning: null,
+}))
+const trip = { id: 77, title: '스크롤 확인 여행', startDate: '2026-09-25', endDate: '2026-09-25',
+  dailyStartTime: '09:00', dailyEndTime: '23:00', transportType: 'PUBLIC_TRANSIT', status: 'GENERATED',
+  items: tripItems, days: [{ date: '2026-09-25', dayNumber: 1, exceedsDailyWindow: false, items: tripItems }] }
 function command(method, params = {}) {
   return new Promise((resolve, reject) => {
     const id = ++sequence
@@ -64,6 +77,13 @@ socket.addEventListener('message', async ({ data }) => {
     if (!api) { await command('Fetch.continueRequest', { requestId }); return }
     requests.push(`${request.method} ${url.pathname}`)
     let body = []
+    if (url.pathname.includes('/itineraries/77')) {
+      if (request.method === 'PUT' && url.pathname.endsWith('/transport')) {
+        const placeId = Number(url.pathname.split('/').at(-2))
+        tripItems.find((item) => item.savedPlaceId === placeId).transportTypeFromPrevious = JSON.parse(request.postData).transportType
+      }
+      body = trip
+    }
     if (url.pathname.endsWith('/collections')) body = [{ id: 1, name: '여행지' }, { id: 2, name: '카페' }, { id: 3, name: '음식점' }]
     if (url.pathname.endsWith('/saved-places') && request.method === 'GET') body = [savedPlace]
     if (url.pathname.endsWith('/saved-places/88')) body = { ...savedPlace, address: null }
@@ -82,7 +102,7 @@ socket.addEventListener('message', async ({ data }) => {
     await command('Fetch.fulfillRequest', { requestId, responseCode: 200,
       responseHeaders: [{ name: 'Content-Type', value: 'application/json' },
         { name: 'Access-Control-Allow-Origin', value: base },
-        { name: 'Access-Control-Allow-Methods', value: 'GET,POST,PATCH,OPTIONS' },
+        { name: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,PATCH,OPTIONS' },
         { name: 'Access-Control-Allow-Headers', value: 'authorization,content-type' }], body: Buffer.from(JSON.stringify(body)).toString('base64') })
   } catch (error) { errors.push(error.message) }
 })
@@ -107,11 +127,48 @@ try {
   await command('Runtime.enable')
   await command('Fetch.enable', { patterns: [{ urlPattern: '*' }] })
   await command('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: true })
+  if (tripOnly) await command('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 })
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
     localStorage.setItem('sendit-auth', JSON.stringify({state:{accessToken:'ui-test',refreshToken:null,user:{id:1,nickname:'테스트',email:'test@example.com'}},version:0}));
     window.__nativeMessages = [];
     window.SendITNative = {postMessage: value => window.__nativeMessages.push(JSON.parse(value))};
   ` })
+  if (tripOnly) {
+    await command('Page.navigate', { url: `${base}/itineraries/77` })
+    await until("document.querySelectorAll('.timeline-draggable').length === 12")
+    assert.ok(await evaluate("matchMedia('(pointer: coarse)').matches"))
+    assert.match(await evaluate("getComputedStyle(document.querySelector('.timeline-draggable')).touchAction"), /pan-y/)
+    await evaluate("document.querySelector('.timeline-draggable').scrollIntoView({block:'start'})")
+    async function swipe() {
+      await command('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: width / 2, y: 550 }] })
+      for (let y = 520; y >= 250; y -= 30) {
+        await command('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: width / 2, y }] })
+        await delay(20)
+      }
+      await command('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      await delay(500)
+    }
+    const before = await evaluate('scrollY')
+    await swipe()
+    const first = await evaluate('scrollY')
+    await swipe()
+    const second = await evaluate('scrollY')
+    assert.ok(first > before && second > first, JSON.stringify({ before, first, second }))
+    await evaluate("const transfer = document.querySelector('.trip-transfer-details'); transfer.open = true; transfer.scrollIntoView({block:'center'})")
+    await delay(500)
+    const cardTop = await evaluate("document.querySelectorAll('.timeline-card-shell')[1].getBoundingClientRect().top + scrollY")
+    await evaluate("document.querySelector('.segment-transport-trigger').click()")
+    await until("document.querySelectorAll('.segment-transport-menu button').length === 3")
+    assert.equal(await evaluate("document.querySelectorAll('.timeline-card-shell')[1].getBoundingClientRect().top + scrollY"), cardTop)
+    assert.equal(await evaluate("!!document.querySelector('.segment-transport-select select')"), false)
+    await screenshot('trip-transport-menu')
+    await evaluate("document.querySelectorAll('.segment-transport-menu button')[1].click()")
+    await until("document.querySelector('.segment-transport-trigger').textContent.includes('자동차') && !document.querySelector('.segment-transport-trigger').disabled")
+    assert.ok(requests.some((request) => request.startsWith('PUT ') && request.endsWith('/itineraries/77/items/2/transport')), JSON.stringify(requests))
+    assert.equal(await evaluate("!!document.querySelector('.segment-transport-menu')"), false)
+    assert.deepEqual(errors, [])
+    console.log(JSON.stringify({ passed: true, before, first, second, screenshots: artifacts }))
+  } else {
   await command('Page.navigate', { url: base })
   await until("!!document.querySelector('.home-map-controls') && !!document.querySelector('.mobile-menu-sheet.expanded')")
   const layout = await evaluate(`(() => {
@@ -181,6 +238,7 @@ try {
   assert.ok(await evaluate("document.querySelector('.place-name-lookup-status')?.textContent.includes('일치하는 주소')"))
   assert.deepEqual(errors, [])
   console.log(JSON.stringify({ passed: true, viewport: {width, height}, layout, shareHeight, screenshots: artifacts }, null, 2))
+  }
 } finally {
   await command('Browser.close').catch(() => {})
   socket.close()

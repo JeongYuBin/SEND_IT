@@ -21,6 +21,7 @@ import { PlaceScheduleEditor } from './PlaceScheduleEditor'
 import { TransitRouteGuide } from './TransitRouteGuide'
 import { PlaceImage } from '../../components/PlaceImage'
 import { TripReminders } from './TripReminders'
+import { SegmentTransportPicker } from './SegmentTransportPicker'
 import type {
   ItineraryStatus,
   TransportType,
@@ -285,6 +286,7 @@ export function ItineraryDetailPage() {
 
   const startPointerDrag = (event: ReactPointerEvent<HTMLLIElement>, placeId: number, date: string, index: number) => {
     if (!editingOrder || event.pointerType === 'mouse' || reorderMutation.isPending) return
+    if (!(event.target as HTMLElement).closest('.card-drag-handle')) return
     if ((event.target as HTMLElement).closest('button, input, select, textarea')) return
     clearLongPressTimer()
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -414,7 +416,7 @@ export function ItineraryDetailPage() {
           )}
           <section className="inline-order-notice">
             {editingOrder ? <>
-              <span>카드를 끌어 날짜와 순서를 바꿔 주세요.</span>
+              <span>카드 이동 손잡이를 끌어 날짜와 순서를 바꿔 주세요.</span>
               <button type="button" disabled={reorderMutation.isPending} onClick={() => { cancelPointerDrag(); setEditingOrder(false); setOrderDraft(null) }}>취소</button>
               <button type="button" disabled={reorderMutation.isPending} onClick={() => saveOrder(orderDraft ?? itineraryQuery.data.days)}>{reorderMutation.isPending ? '저장 중…' : '수정 완료'}</button>
             </> : <><strong>방문 일정</strong><button type="button" onClick={beginOrderChange}>순서 수정</button></>}
@@ -531,24 +533,17 @@ export function ItineraryDetailPage() {
                               )}
                               {(itemIndex > 0 || item.crossDayTransfer) && (
                                 <div className="segment-transport-control">
-                                  <label className="segment-transport-select">
-                                    이 구간 이동수단
-                                    <select
+                                  <SegmentTransportPicker
                                       value={item.transportTypeFromPrevious}
                                       disabled={transportMutation.isPending}
-                                      onChange={(event) => {
+                                      onChange={(transportType) => {
                                         transportMutation.reset()
                                         transportMutation.mutate({
                                           savedPlaceId: item.savedPlaceId,
-                                          transportType: event.target.value as TransportType,
+                                          transportType,
                                         })
                                       }}
-                                    >
-                                      <option value="PUBLIC_TRANSIT">대중교통</option>
-                                      <option value="CAR">자동차</option>
-                                      <option value="WALKING">도보</option>
-                                    </select>
-                                  </label>
+                                  />
                                   {transportMutation.isPending && <small>이동수단 저장 중…</small>}
                                   {transportMutation.isError && (
                                     <small className="field-error">

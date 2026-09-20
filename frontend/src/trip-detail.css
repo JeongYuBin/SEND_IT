@@ -33,6 +33,16 @@
 .trip-detail-page .schedule-edit-button { margin: 3px 0 0; padding: 5px 8px; min-height: 28px; font-size: 10px; color: #816895; background: #f3eff8; border: 0; border-radius: 8px; }
 .trip-detail-page .place-operating-info, .trip-detail-page .schedule-warning { margin: 5px 0; padding: 6px 8px; font-size: 10px; }
 .trip-detail-page .segment-transport-control, .trip-detail-page .travel-estimate, .trip-detail-page .transit-unavailable { padding: 8px; margin: 5px 0; font-size: 11px; }
+.trip-detail-page .segment-transport-select { display: flex; flex-wrap: wrap; width: 100%; gap: 8px; color: #796987; font-size: 11px; }
+.segment-transport-picker { position: relative; min-width: 128px; }
+.trip-detail-page .segment-transport-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid #e2d8ec; border-radius: 12px; background: #faf7fd; color: #695383; font: inherit; font-size: 12px; cursor: pointer; }
+.segment-transport-trigger svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.segment-transport-menu { position: absolute; z-index: 50; top: calc(100% + 6px); left: 0; width: 100%; padding: 5px; border: 1px solid #e6deee; border-radius: 14px; background: #fffcff; box-shadow: 0 8px 24px #39274c1a; }
+.trip-detail-page .segment-transport-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 40px; padding: 9px; border: 0; border-radius: 9px; background: transparent; color: #796987; font: inherit; font-size: 12px; cursor: pointer; }
+.trip-detail-page .segment-transport-menu button[aria-checked='true'] { background: #eee8f5; color: #695383; font-weight: 600; }
+.trip-detail-page .segment-transport-menu button:hover { background: #f3eff8; }
+.trip-detail-page :is(.segment-transport-trigger, .segment-transport-menu button):focus-visible { outline: 2px solid #a48abb; outline-offset: 2px; }
+.trip-detail-page .segment-transport-trigger:disabled { opacity: .55; cursor: wait; }
 .trip-detail-page :is(.itinerary-edit-form, .place-schedule-form) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0; padding: 14px; border: 1px solid #e6deee; border-radius: 16px; background: #faf7fd; font-family: var(--app-font); }
 .trip-detail-page :is(.itinerary-edit-form, .place-schedule-form) label { min-width: 0; font-size: 11px; font-weight: 550; color: #554c60; gap: 5px; }
 .trip-detail-page :is(.itinerary-edit-form, .place-schedule-form) :is(input, select) { width: 100%; min-width: 0; min-height: 40px; padding: 8px; font-family: var(--app-font); font-size: 14px; font-weight: 450; letter-spacing: -.02em; border: 1px solid #e4daed; border-radius: 10px; background: white; }
@@ -40,7 +50,8 @@
 .trip-detail-page :is(.itinerary-field-row, .edit-actions, .schedule-form-actions, .form-error) { grid-column: 1 / -1; }
 .trip-detail-page :is(.edit-actions, .schedule-form-actions) button { font-family: var(--app-font); font-size: 12px; font-weight: 600; padding: 8px 13px; border-radius: 10px; }
 .trip-detail-page .primary-button { background: #8974a5; }
-.trip-order-editing .timeline-draggable { touch-action: none; user-select: none; cursor: grab; }
+.trip-order-editing .timeline-draggable { user-select: none; cursor: grab; }
+.trip-order-editing .card-drag-handle { touch-action: none; cursor: grab; }
 .trip-order-editing .timeline-card-shell a { pointer-events: none; }
 .trip-order-editing .timeline-remove-button { display: none; }
 .trip-detail-page .card-drag-handle { padding: 3px 0; font-size: 10px; color: #8a729e; }

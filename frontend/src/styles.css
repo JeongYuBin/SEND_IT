@@ -4982,7 +4982,7 @@ main > .top-nav {
 
 @media (hover: none) and (pointer: coarse) {
   .timeline-draggable {
-    touch-action: none;
+    touch-action: pan-y pinch-zoom;
   }
 
   .itinerary-place-filters { grid-template-columns: 1fr; }
