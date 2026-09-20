@@ -21,3 +21,7 @@ target/
 *.iml
 .DS_Store
 Thumbs.db
+
+# Android
+sendit-upload-key.jks
+keystore.properties
