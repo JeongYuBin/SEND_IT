@@ -166,8 +166,32 @@ try {
     await until("document.querySelector('.segment-transport-trigger').textContent.includes('자동차') && !document.querySelector('.segment-transport-trigger').disabled")
     assert.ok(requests.some((request) => request.startsWith('PUT ') && request.endsWith('/itineraries/77/items/2/transport')), JSON.stringify(requests))
     assert.equal(await evaluate("!!document.querySelector('.segment-transport-menu')"), false)
+    await evaluate("Array.from(document.querySelectorAll('button')).find(button => button.textContent === '순서 수정').click()")
+    await until("!!document.querySelector('.trip-order-editing')")
+    await evaluate("document.querySelectorAll('.timeline-draggable')[6].scrollIntoView({block:'center', behavior:'instant'})")
+    const dragPoint = await evaluate(`(() => {
+      const card = document.querySelectorAll('.timeline-card-shell')[6];
+      const box = card.getBoundingClientRect();
+      return { x: box.left + 40, y: box.top + 25 };
+    })()`)
+    assert.equal(await evaluate("getComputedStyle(document.querySelector('.timeline-card-shell strong')).webkitUserSelect"), 'none')
+    assert.equal(await evaluate("document.querySelector('.timeline-card-shell').dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}))"), false)
+    const dragStartScroll = await evaluate('scrollY')
+    await command('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [dragPoint] })
+    await delay(750)
+    assert.equal(await evaluate("String(window.getSelection())"), '')
+    assert.ok(await evaluate("!!document.querySelector('.timeline-draggable.dragging')"))
+    await command('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: dragPoint.x, y: 10 }] })
+    await delay(450)
+    const dragEndScroll = await evaluate('scrollY')
+    assert.ok(dragStartScroll - dragEndScroll > 400, JSON.stringify({ dragStartScroll, dragEndScroll }))
+    await command('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+    await delay(100)
+    const stoppedAt = await evaluate('scrollY')
+    await delay(200)
+    assert.equal(await evaluate('scrollY'), stoppedAt, 'Auto scroll stops on release')
     assert.deepEqual(errors, [])
-    console.log(JSON.stringify({ passed: true, before, first, second, screenshots: artifacts }))
+    console.log(JSON.stringify({ passed: true, before, first, second, dragStartScroll, dragEndScroll, screenshots: artifacts }))
   } else {
   await command('Page.navigate', { url: base })
   await until("!!document.querySelector('.home-map-controls') && !!document.querySelector('.mobile-menu-sheet.expanded')")

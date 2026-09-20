@@ -50,7 +50,8 @@
 .trip-detail-page :is(.itinerary-field-row, .edit-actions, .schedule-form-actions, .form-error) { grid-column: 1 / -1; }
 .trip-detail-page :is(.edit-actions, .schedule-form-actions) button { font-family: var(--app-font); font-size: 12px; font-weight: 600; padding: 8px 13px; border-radius: 10px; }
 .trip-detail-page .primary-button { background: #8974a5; }
-.trip-order-editing .timeline-draggable { user-select: none; cursor: grab; }
+.trip-order-editing .timeline-draggable { touch-action: none; cursor: grab; }
+.trip-order-editing .timeline-draggable, .trip-order-editing .timeline-draggable * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .trip-order-editing .card-drag-handle { touch-action: none; cursor: grab; }
 .trip-order-editing .timeline-card-shell a { pointer-events: none; }
 .trip-order-editing .timeline-remove-button { display: none; }

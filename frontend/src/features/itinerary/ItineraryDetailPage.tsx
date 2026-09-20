@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -80,6 +80,11 @@ export function ItineraryDetailPage() {
   const activeDragRef = useRef(false)
   const autoScrollFrameRef = useRef<number | null>(null)
   const autoScrollSpeedRef = useRef(0)
+  const autoScrollTimeRef = useRef<number | null>(null)
+  useEffect(() => () => {
+    if (autoScrollFrameRef.current !== null) cancelAnimationFrame(autoScrollFrameRef.current)
+    if (longPressTimerRef.current !== null) clearTimeout(longPressTimerRef.current)
+  }, [])
   const itineraryQuery = useQuery({
     queryKey: ['itineraries', id],
     queryFn: () => getItinerary(id),
@@ -252,29 +257,36 @@ export function ItineraryDetailPage() {
 
   const stopAutoScroll = () => {
     autoScrollSpeedRef.current = 0
+    autoScrollTimeRef.current = null
     if (autoScrollFrameRef.current !== null) {
       cancelAnimationFrame(autoScrollFrameRef.current)
       autoScrollFrameRef.current = null
     }
   }
 
-  const runAutoScroll = (): void => {
+  const runAutoScroll = (timestamp: number): void => {
     if (!activeDragRef.current || autoScrollSpeedRef.current === 0) {
       autoScrollFrameRef.current = null
       return
     }
-    window.scrollBy(0, autoScrollSpeedRef.current)
+    const elapsed = autoScrollTimeRef.current === null ? 1 / 60
+      : Math.min((timestamp - autoScrollTimeRef.current) / 1000, 0.05)
+    autoScrollTimeRef.current = timestamp
+    // Each animation frame must move immediately; smooth scrolling would restart
+    // its easing on every frame and barely move while the finger stays at the edge.
+    window.scrollBy({ top: autoScrollSpeedRef.current * elapsed, behavior: 'instant' })
     const position = pointerPositionRef.current
     if (position) updatePointerTarget(position.x, position.y)
     autoScrollFrameRef.current = requestAnimationFrame(runAutoScroll)
   }
 
   const updateAutoScroll = (y: number) => {
-    const edge = Math.min(140, window.innerHeight * 0.2)
+    const edge = Math.min(180, window.innerHeight * 0.24)
+    const bottom = document.querySelector('.mobile-menu-sheet')?.getBoundingClientRect().top ?? window.innerHeight
     let speed = 0
-    if (y < edge) speed = -Math.max(20, Math.round(((edge - y) / edge) * 140))
-    if (y > window.innerHeight - edge) {
-      speed = Math.max(20, Math.round(((y - (window.innerHeight - edge)) / edge) * 140))
+    if (y < edge) speed = -(600 + Math.min(1, (edge - y) / edge) * 1800)
+    else if (y > bottom - edge) {
+      speed = 600 + Math.min(1, (y - (bottom - edge)) / edge) * 1800
     }
     autoScrollSpeedRef.current = speed
     if (speed !== 0 && autoScrollFrameRef.current === null) {
@@ -286,8 +298,9 @@ export function ItineraryDetailPage() {
 
   const startPointerDrag = (event: ReactPointerEvent<HTMLLIElement>, placeId: number, date: string, index: number) => {
     if (!editingOrder || event.pointerType === 'mouse' || reorderMutation.isPending) return
-    if (!(event.target as HTMLElement).closest('.card-drag-handle')) return
     if ((event.target as HTMLElement).closest('button, input, select, textarea')) return
+    event.preventDefault()
+    window.getSelection()?.removeAllRanges()
     clearLongPressTimer()
     event.currentTarget.setPointerCapture(event.pointerId)
     pointerOriginRef.current = { x: event.clientX, y: event.clientY }
@@ -416,7 +429,7 @@ export function ItineraryDetailPage() {
           )}
           <section className="inline-order-notice">
             {editingOrder ? <>
-              <span>카드 이동 손잡이를 끌어 날짜와 순서를 바꿔 주세요.</span>
+              <span>카드를 누른 채 끌어 날짜와 순서를 바꿔 주세요.</span>
               <button type="button" disabled={reorderMutation.isPending} onClick={() => { cancelPointerDrag(); setEditingOrder(false); setOrderDraft(null) }}>취소</button>
               <button type="button" disabled={reorderMutation.isPending} onClick={() => saveOrder(orderDraft ?? itineraryQuery.data.days)}>{reorderMutation.isPending ? '저장 중…' : '수정 완료'}</button>
             </> : <><strong>방문 일정</strong><button type="button" onClick={beginOrderChange}>순서 수정</button></>}
@@ -491,6 +504,7 @@ export function ItineraryDetailPage() {
                         data-drop-index={itemIndex}
                         draggable={editingOrder && !reorderMutation.isPending}
                         className={`timeline-draggable ${draggingPlaceId === item.savedPlaceId ? 'dragging' : ''} ${touchDropTarget === `${day.date}:${itemIndex}` ? 'touch-drop-target' : ''}`}
+                        onContextMenu={(event) => { if (editingOrder) event.preventDefault() }}
                         onDragStart={(event) => {
                           event.dataTransfer.effectAllowed = 'move'
                           event.dataTransfer.setData('text/plain', String(item.savedPlaceId))
