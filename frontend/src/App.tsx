@@ -16,6 +16,8 @@ import { SettingsPage } from './features/account/SettingsPage'
 import { ShareTargetPage } from './features/share/ShareTargetPage'
 import { NotificationsPage } from './features/notification/NotificationsPage'
 import { DesktopSiteNavigation } from './components/DesktopSiteNavigation'
+import { PrivacyPage } from './features/legal/PrivacyPage'
+import { DeleteAccountPage } from './features/legal/DeleteAccountPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => Boolean(state.accessToken))
@@ -29,6 +31,8 @@ export function App() {
       <DesktopSiteNavigation />
       <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/delete-account" element={<DeleteAccountPage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
       <Route path="/find-id" element={<AccountRecoveryPage mode="username" />} />
