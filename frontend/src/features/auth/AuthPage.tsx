@@ -248,6 +248,7 @@ export function AuthPage({ mode }: AuthPageProps) {
             {isSignUp ? '로그인' : '회원가입'}
           </Link>
         </div>
+        <div className="auth-switch"><Link to="/privacy">개인정보처리방침</Link></div>
       </section>
     </main>
   )
