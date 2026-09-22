@@ -6,7 +6,7 @@ import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-const base = 'http://127.0.0.1:5174'
+const base = process.env.TEST_BASE || 'http://127.0.0.1:5174'
 const port = 9337
 const width = Number(process.env.TEST_WIDTH || 390)
 const height = Number(process.env.TEST_HEIGHT || 844)
@@ -32,7 +32,7 @@ const tripOnly = process.env.TEST_TRIP === '1'
 const tripItems = Array.from({ length: 12 }, (_, index) => ({
   savedPlaceId: index + 1, sequence: index + 1, daySequence: index + 1,
   visitDate: '2026-09-25', arrivalTime: '10:00', departureTime: '11:00',
-  name: `장소 ${index + 1}`, category: '관광지', address: '서울', imageUrl: null,
+  name: `장소 ${index + 1}`, category: '관광지', address: '서울', imageUrl: `${base}/icons/sendit-icon.svg`,
   latitude: null, longitude: null, stayMinutes: 60, transit: null,
   travelMinutesFromPrevious: index ? 31 : 0, distanceKmFromPrevious: null,
   coordinateAvailable: false, routePathFromPrevious: [], transportTypeFromPrevious: 'PUBLIC_TRANSIT',
@@ -72,7 +72,7 @@ socket.addEventListener('message', async ({ data }) => {
   const { requestId, request } = event.params
   try {
     const url = new URL(request.url)
-    const api = url.pathname.startsWith('/api/') && [base, 'http://localhost:8080'].includes(url.origin)
+    const api = url.pathname.startsWith('/api/')
     if (!api && url.origin !== base) { await command('Fetch.failRequest', { requestId, errorReason: 'BlockedByClient' }); return }
     if (!api) { await command('Fetch.continueRequest', { requestId }); return }
     requests.push(`${request.method} ${url.pathname}`)
@@ -135,14 +135,18 @@ try {
   ` })
   if (tripOnly) {
     await command('Page.navigate', { url: `${base}/itineraries/77` })
-    await until("document.querySelectorAll('.timeline-draggable').length === 12")
+    await until("document.querySelectorAll('.timeline-item').length === 12")
     assert.ok(await evaluate("matchMedia('(pointer: coarse)').matches"))
-    assert.match(await evaluate("getComputedStyle(document.querySelector('.timeline-draggable')).touchAction"), /pan-y/)
-    await evaluate("document.querySelector('.timeline-draggable').scrollIntoView({block:'start'})")
-    async function swipe() {
-      await command('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: width / 2, y: 550 }] })
-      for (let y = 520; y >= 250; y -= 30) {
-        await command('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: width / 2, y }] })
+    await until("!!document.querySelector('.timeline-card-shell img')")
+    await evaluate("document.querySelector('.timeline-card-shell img').dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:new DataTransfer()}))")
+    assert.equal(await evaluate("!!document.querySelector('.trip-order-editing')"), false, 'Native image drag must never activate edit mode')
+    assert.equal(await evaluate("document.querySelector('.timeline-card-shell img').draggable"), false)
+    assert.match(await evaluate("getComputedStyle(document.querySelector('.timeline-item')).touchAction"), /pan-y/)
+    await evaluate("document.querySelector('.timeline-item').scrollIntoView({block:'start'})")
+    async function swipe(point = { x: width / 2, y: 550 }) {
+      await command('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+      for (let offset = 30; offset <= 300; offset += 30) {
+        await command('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: point.x, y: point.y - offset }] })
         await delay(20)
       }
       await command('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
@@ -154,6 +158,20 @@ try {
     await swipe()
     const second = await evaluate('scrollY')
     assert.ok(first > before && second > first, JSON.stringify({ before, first, second }))
+    for (const selector of ['.timeline-card-shell strong', '.timeline-placeholder img']) {
+      await evaluate(`document.querySelectorAll(${JSON.stringify(selector)})[4].scrollIntoView({block:'center', behavior:'instant'})`)
+      const point = await evaluate(`(() => { const node = document.querySelectorAll(${JSON.stringify(selector)})[4]; const box = node.getBoundingClientRect(); return {x:box.left + box.width / 2, y:box.top + box.height / 2}; })()`)
+      assert.ok(await evaluate(`!!document.elementFromPoint(${point.x}, ${point.y})?.closest('.timeline-card-shell a')`), 'Gesture starts on the actual card link')
+      const cardScrollBefore = await evaluate('scrollY')
+      await swipe(point)
+      assert.ok(await evaluate('scrollY') > cardScrollBefore, `Native scroll starts on ${selector}`)
+    }
+    await evaluate("document.querySelectorAll('.timeline-card-shell')[3].scrollIntoView({block:'center', behavior:'instant'})")
+    const wheelPoint = await evaluate("(() => { const box = document.querySelectorAll('.timeline-card-shell')[3].getBoundingClientRect(); return {x:box.left + 30, y:box.top + 25}; })()")
+    const wheelBefore = await evaluate('scrollY')
+    await command('Input.dispatchMouseEvent', { type: 'mouseWheel', ...wheelPoint, deltaX: 0, deltaY: 350 })
+    await delay(500)
+    assert.ok(await evaluate('scrollY') > wheelBefore, 'Mouse wheel scrolls over the card')
     await evaluate("const transfer = document.querySelector('.trip-transfer-details'); transfer.open = true; transfer.scrollIntoView({block:'center'})")
     await delay(500)
     const cardTop = await evaluate("document.querySelectorAll('.timeline-card-shell')[1].getBoundingClientRect().top + scrollY")
@@ -168,6 +186,14 @@ try {
     assert.equal(await evaluate("!!document.querySelector('.segment-transport-menu')"), false)
     await evaluate("Array.from(document.querySelectorAll('button')).find(button => button.textContent === '순서 수정').click()")
     await until("!!document.querySelector('.trip-order-editing')")
+    await evaluate("document.querySelectorAll('.timeline-draggable')[2].scrollIntoView({block:'center', behavior:'instant'})")
+    const originalOrder = await evaluate("Array.from(document.querySelectorAll('.timeline-card-shell strong')).map(node => node.textContent)")
+    const editingScrollBefore = await evaluate('scrollY')
+    await swipe()
+    const editingScrollAfter = await evaluate('scrollY')
+    assert.ok(editingScrollAfter > editingScrollBefore, 'A quick swipe still scrolls in edit mode')
+    assert.equal(await evaluate("!!document.querySelector('.timeline-draggable.dragging')"), false)
+    assert.deepEqual(await evaluate("Array.from(document.querySelectorAll('.timeline-card-shell strong')).map(node => node.textContent)"), originalOrder)
     await evaluate("document.querySelectorAll('.timeline-draggable')[6].scrollIntoView({block:'center', behavior:'instant'})")
     const dragPoint = await evaluate(`(() => {
       const card = document.querySelectorAll('.timeline-card-shell')[6];
@@ -178,6 +204,8 @@ try {
     assert.equal(await evaluate("document.querySelector('.timeline-card-shell').dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}))"), false)
     const dragStartScroll = await evaluate('scrollY')
     await command('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [dragPoint] })
+    await delay(150)
+    assert.equal(await evaluate("!!document.querySelector('.timeline-draggable.dragging')"), false, 'A short touch does not select a card')
     await delay(750)
     assert.equal(await evaluate("String(window.getSelection())"), '')
     assert.ok(await evaluate("!!document.querySelector('.timeline-draggable.dragging')"))
@@ -190,6 +218,12 @@ try {
     const stoppedAt = await evaluate('scrollY')
     await delay(200)
     assert.equal(await evaluate('scrollY'), stoppedAt, 'Auto scroll stops on release')
+    assert.notDeepEqual(await evaluate("Array.from(document.querySelectorAll('.timeline-card-shell strong')).map(node => node.textContent)"), originalOrder, 'Only a long press and drop changes order')
+    await evaluate("Array.from(document.querySelectorAll('.inline-order-notice button')).find(button => button.textContent === '취소').click()")
+    await evaluate("document.querySelectorAll('.timeline-item')[2].scrollIntoView({block:'center', behavior:'instant'})")
+    const afterCancel = await evaluate('scrollY')
+    await swipe()
+    assert.ok(await evaluate('scrollY') > afterCancel, 'Normal scrolling works after leaving edit mode')
     assert.deepEqual(errors, [])
     console.log(JSON.stringify({ passed: true, before, first, second, dragStartScroll, dragEndScroll, screenshots: artifacts }))
   } else {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, useState, type TouchEvent as ReactTouchEvent } from 'react'
 import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -296,41 +296,47 @@ export function ItineraryDetailPage() {
     }
   }
 
-  const startPointerDrag = (event: ReactPointerEvent<HTMLLIElement>, placeId: number, date: string, index: number) => {
-    if (!editingOrder || event.pointerType === 'mouse' || reorderMutation.isPending) return
+  const startPointerDrag = (event: ReactTouchEvent<HTMLLIElement>, placeId: number, date: string, index: number) => {
+    if (!editingOrder || reorderMutation.isPending) return
+    if (event.touches.length !== 1) { cancelPointerDrag(); return }
     if ((event.target as HTMLElement).closest('button, input, select, textarea')) return
-    event.preventDefault()
-    window.getSelection()?.removeAllRanges()
     clearLongPressTimer()
-    event.currentTarget.setPointerCapture(event.pointerId)
-    pointerOriginRef.current = { x: event.clientX, y: event.clientY }
-    pointerPositionRef.current = { x: event.clientX, y: event.clientY }
+    const touch = event.touches[0]
+    pointerOriginRef.current = { x: touch.clientX, y: touch.clientY }
+    pointerPositionRef.current = { x: touch.clientX, y: touch.clientY }
     pointerTargetRef.current = { date, index }
+    // Leave the initial gesture to the browser. Movement before 450ms cancels
+    // selection so an ordinary swipe remains native scrolling in either mode.
+    longPressTimerRef.current = setTimeout(() => {
+      window.getSelection()?.removeAllRanges()
       pointerDragRef.current = { placeId, date, index }
       activeDragRef.current = true
       setDraggingPlaceId(placeId)
       setTouchDropTarget(`${date}:${index}`)
       navigator.vibrate?.(35)
       longPressTimerRef.current = null
+    }, 450)
   }
 
-  const movePointerDrag = (event: ReactPointerEvent<HTMLLIElement>) => {
-    if (event.pointerType === 'mouse') return
+  const movePointerDrag = (event: TouchEvent) => {
+    if (event.touches.length !== 1) { cancelPointerDrag(); return }
+    const touch = event.touches[0]
     if (!pointerDragRef.current) {
       const origin = pointerOriginRef.current
-      if (origin && Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 10) {
+      if (origin && Math.hypot(touch.clientX - origin.x, touch.clientY - origin.y) > 8) {
         clearLongPressTimer()
+        pointerOriginRef.current = null
       }
       return
     }
+    if (!event.cancelable) { cancelPointerDrag(); return }
     event.preventDefault()
-    pointerPositionRef.current = { x: event.clientX, y: event.clientY }
-    updatePointerTarget(event.clientX, event.clientY)
-    updateAutoScroll(event.clientY)
+    pointerPositionRef.current = { x: touch.clientX, y: touch.clientY }
+    updatePointerTarget(touch.clientX, touch.clientY)
+    updateAutoScroll(touch.clientY)
   }
 
-  const finishPointerDrag = (event: ReactPointerEvent<HTMLLIElement>) => {
-    if (event.pointerType === 'mouse') return
+  const finishPointerDrag = (event: TouchEvent) => {
     clearLongPressTimer()
     const dragged = pointerDragRef.current
     const target = pointerTargetRef.current
@@ -342,7 +348,7 @@ export function ItineraryDetailPage() {
     stopAutoScroll()
     setTouchDropTarget(null)
     if (!dragged) return
-    event.preventDefault()
+    if (event.cancelable) event.preventDefault()
     if (target) moveCard(dragged.placeId, target.date, target.index)
     else {
       setDraggingPlaceId(null)
@@ -360,6 +366,20 @@ export function ItineraryDetailPage() {
     setTouchDropTarget(null)
     setDraggingPlaceId(null)
   }
+
+  // React's delegated touch listeners are passive. Only this non-passive
+  // listener may block scrolling, and only after a long press has selected a card.
+  useEffect(() => {
+    if (!editingOrder) return
+    document.addEventListener('touchmove', movePointerDrag, { passive: false })
+    document.addEventListener('touchend', finishPointerDrag, { passive: false })
+    document.addEventListener('touchcancel', cancelPointerDrag)
+    return () => {
+      document.removeEventListener('touchmove', movePointerDrag)
+      document.removeEventListener('touchend', finishPointerDrag)
+      document.removeEventListener('touchcancel', cancelPointerDrag)
+    }
+  })
 
   const saveOrder = (days: ItineraryDay[]) => {
     reorderMutation.reset()
@@ -429,7 +449,7 @@ export function ItineraryDetailPage() {
           )}
           <section className="inline-order-notice">
             {editingOrder ? <>
-              <span>카드를 누른 채 끌어 날짜와 순서를 바꿔 주세요.</span>
+              <span>카드를 꾹 눌러 선택한 뒤 끌어 주세요. 짧게 밀면 스크롤됩니다.</span>
               <button type="button" disabled={reorderMutation.isPending} onClick={() => { cancelPointerDrag(); setEditingOrder(false); setOrderDraft(null) }}>취소</button>
               <button type="button" disabled={reorderMutation.isPending} onClick={() => saveOrder(orderDraft ?? itineraryQuery.data.days)}>{reorderMutation.isPending ? '저장 중…' : '수정 완료'}</button>
             </> : <><strong>방문 일정</strong><button type="button" onClick={beginOrderChange}>순서 수정</button></>}
@@ -462,9 +482,9 @@ export function ItineraryDetailPage() {
                   updateAutoScroll(event.clientY)
                 }}
                 onDrop={(event) => {
+                  if (!editingOrder || !activeDragRef.current || draggingPlaceId === null) return
                   event.preventDefault()
-                  const placeId = Number(event.dataTransfer.getData('text/plain')) || draggingPlaceId
-                  if (placeId !== null) moveCard(placeId, day.date, day.items.length)
+                  moveCard(draggingPlaceId, day.date, day.items.length)
                 }}
               >
                 <header className="itinerary-day-header">
@@ -502,15 +522,18 @@ export function ItineraryDetailPage() {
                         key={item.savedPlaceId}
                         data-drop-date={day.date}
                         data-drop-index={itemIndex}
-                        draggable={editingOrder && !reorderMutation.isPending}
-                        className={`timeline-draggable ${draggingPlaceId === item.savedPlaceId ? 'dragging' : ''} ${touchDropTarget === `${day.date}:${itemIndex}` ? 'touch-drop-target' : ''}`}
+                        draggable={false}
+                        className={`timeline-item ${editingOrder ? 'timeline-draggable' : ''} ${editingOrder && draggingPlaceId === item.savedPlaceId ? 'dragging' : ''} ${touchDropTarget === `${day.date}:${itemIndex}` ? 'touch-drop-target' : ''}`}
                         onContextMenu={(event) => { if (editingOrder) event.preventDefault() }}
                         onDragStart={(event) => {
+                          if (!editingOrder || !event.currentTarget.draggable || event.target !== event.currentTarget) {
+                            event.preventDefault()
+                            return
+                          }
                           event.dataTransfer.effectAllowed = 'move'
                           event.dataTransfer.setData('text/plain', String(item.savedPlaceId))
                           activeDragRef.current = true
                           pointerPositionRef.current = { x: event.clientX, y: event.clientY }
-                          beginOrderChange()
                           setDraggingPlaceId(item.savedPlaceId)
                         }}
                         onDragEnd={() => {
@@ -519,25 +542,26 @@ export function ItineraryDetailPage() {
                           setDraggingPlaceId(null)
                         }}
                         onDragOver={(event) => {
+                          if (!editingOrder || !activeDragRef.current) return
                           event.preventDefault()
                           pointerPositionRef.current = { x: event.clientX, y: event.clientY }
                           updatePointerTarget(event.clientX, event.clientY)
                           updateAutoScroll(event.clientY)
                         }}
-                        onPointerDown={(event) => startPointerDrag(event, item.savedPlaceId, day.date, itemIndex)}
-                        onPointerMove={movePointerDrag}
-                        onPointerUp={finishPointerDrag}
-                        onPointerCancel={cancelPointerDrag}
+                        onPointerDown={editingOrder ? (event) => {
+                          event.currentTarget.draggable = event.pointerType === 'mouse' && !reorderMutation.isPending
+                        } : undefined}
+                        onTouchStart={editingOrder ? (event) => startPointerDrag(event, item.savedPlaceId, day.date, itemIndex) : undefined}
                         onDrop={(event) => {
+                          if (!editingOrder || !activeDragRef.current || draggingPlaceId === null) return
                           event.preventDefault()
                           event.stopPropagation()
-                          const placeId = Number(event.dataTransfer.getData('text/plain')) || draggingPlaceId
-                          if (placeId !== null) moveCard(placeId, day.date, itemIndex)
+                          moveCard(draggingPlaceId, day.date, itemIndex)
                         }}
                       >
                         <span className="timeline-number">{editingOrder ? itemIndex + 1 : item.daySequence}</span>
                         <div className="timeline-stop">
-                          {editingOrder && <div className="card-drag-handle">⠿ 카드 이동</div>}
+                          {editingOrder && <div className="card-drag-handle">{draggingPlaceId === item.savedPlaceId ? '⠿ 선택됨 · 원하는 위치에 놓으세요' : '⠿ 꾹 눌러 이동'}</div>}
                           {(itemIndex > 0 || item.crossDayTransfer) && !editingOrder && (
                             <details className="trip-transfer-details"><summary>{transportLabels[item.transportTypeFromPrevious]} · {item.travelMinutesFromPrevious > 0 ? `이동 ${item.travelMinutesFromPrevious}분` : '경로 확인'} <span>상세</span></summary>
                               {item.crossDayTransfer && (
@@ -608,6 +632,7 @@ export function ItineraryDetailPage() {
                                 category={item.category}
                                 alt={`${item.name} 대표 이미지`}
                                 className="timeline-placeholder"
+                                draggable={false}
                               />
                               <span>
                                 <small>{time(item.arrivalTime)}–{time(item.departureTime)} · 체류 {item.stayMinutes}분</small>

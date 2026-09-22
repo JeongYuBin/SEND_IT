@@ -8,6 +8,7 @@ type PlaceImageProps = {
   label?: string
   category?: string | null
   fallbackSources?: (string | null | undefined)[]
+  draggable?: boolean
 }
 
 export function PlaceImage({
@@ -17,6 +18,7 @@ export function PlaceImage({
   label = '등록된 사진이 없습니다',
   category,
   fallbackSources = [],
+  draggable,
 }: PlaceImageProps) {
   const [failedUrls, setFailedUrls] = useState<string[]>([])
   const visibleSrc = [src, ...fallbackSources].map(resolveImageUrl).find((url) => url && !failedUrls.includes(url))
@@ -47,6 +49,7 @@ export function PlaceImage({
       {visibleSrc && (
         <img
           className="place-image-content"
+          draggable={draggable}
           src={visibleSrc}
           loading="lazy"
           decoding="async"
