@@ -17,14 +17,6 @@ export async function getShare(shareId: number) {
   return response.data
 }
 
-export async function getShares() {
-  return (await http.get<ShareDetail[]>('/shares')).data
-}
-
-export async function getSharesPage(page = 0, size = 12) {
-  return (await http.get<SharePage>('/shares/page', { params: { page, size } })).data
-}
-
 export async function getSavedSharesPage(page = 0, collectionId: number | null = null) {
   return (await http.get<SharePage>('/shares/saved', { params: { page, size: 8, collectionId } })).data
 }
@@ -40,8 +32,4 @@ export async function selectShareCollection(shareId: number, collectionId: numbe
 
 export async function deleteShare(shareId: number) {
   await http.delete(`/shares/${shareId}`)
-}
-
-export async function deleteAllShares() {
-  await http.delete('/shares')
 }

@@ -433,34 +433,6 @@ dd {
   background: #1d1d1f;
 }
 
-.notification-shortcut {
-  display: none;
-  top: 22px;
-  right: max(24px, calc((100vw - 1260px) / 2));
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  color: #1d1d1f;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(18px);
-}
-
-.notification-shortcut strong {
-  background: #ff3b30;
-}
-
-.notification-shortcut svg {
-  width: 21px;
-  height: 21px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-}
-
 /* Balanced translucent chrome: glass is reserved for navigation and capture. */
 .top-nav {
   border-color: rgba(255, 255, 255, 0.68);
@@ -703,11 +675,6 @@ dd {
   .mobile-bottom-nav a.active {
     color: #0071e3;
     background: rgba(0, 113, 227, 0.08);
-  }
-
-  .notification-shortcut {
-    top: 14px;
-    right: 16px;
   }
 
   .home-dashboard-section,
@@ -1205,15 +1172,6 @@ dd {
     display: none;
   }
 
-  .notification-shortcut {
-    display: grid;
-    z-index: 110;
-    top: max(12px, env(safe-area-inset-top));
-    right: 16px;
-    width: 42px;
-    height: 42px;
-  }
-
   .notification-header {
     margin: calc(30px + env(safe-area-inset-top)) 0 22px;
     padding-right: 0;
@@ -1367,16 +1325,6 @@ dd {
     color: #86868b;
     font-size: 0.78rem;
     line-height: 1.45;
-  }
-
-  .shell .shared-content-shortcut {
-    display: inline-flex;
-    min-height: 36px;
-    margin-top: 4px;
-    align-items: center;
-    color: #0066cc;
-    font-size: 0.86rem;
-    font-weight: 600;
   }
 
   /* The mobile home is intentionally a focused capture surface. */
@@ -1734,29 +1682,6 @@ dd {
 
 .share-target-card h1 {
   font-size: clamp(1.8rem, 5vw, 2.6rem);
-}
-
-.shared-contents-header {
-  padding-top: clamp(72px, 10vw, 112px);
-}
-
-.shared-content-list {
-  gap: 12px;
-}
-
-.shared-content-card {
-  min-height: 138px;
-  overflow: hidden;
-}
-
-.shared-content-card:hover {
-  border-color: rgba(0, 0, 0, 0.14);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-}
-
-.shared-content-copy > strong {
-  font-size: 1.05rem;
 }
 
 .analysis-badge {

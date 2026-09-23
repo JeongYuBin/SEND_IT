@@ -446,9 +446,6 @@ main > .top-nav {
 }
 
 @media (min-width: 761px) {
-  .notification-shortcut {
-    display: none;
-  }
 }
 
 @media (max-width: 1080px) and (min-width: 761px) {
@@ -681,105 +678,6 @@ main > .top-nav {
   }
 }
 
-.shared-content-shortcut {
-  width: fit-content;
-  color: var(--green);
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.shared-contents-shell {
-  width: min(1180px, calc(100% - 48px));
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 30px 0 100px;
-}
-
-.shared-contents-header {
-  padding: 80px 0 44px;
-}
-
-.shared-contents-header h1 {
-  margin: 10px 0 12px;
-  font-size: clamp(42px, 7vw, 76px);
-}
-
-.shared-contents-header p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 18px;
-}
-
-
-.shared-content-list {
-  display: grid;
-  gap: 14px;
-}
-
-.shared-content-card {
-  display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  min-height: 150px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: #fff;
-  color: inherit;
-  text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.shared-content-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 35px rgba(24, 54, 44, 0.09);
-}
-
-.shared-content-card > img,
-.shared-content-placeholder {
-  width: 100%;
-  height: 100%;
-  min-height: 150px;
-  object-fit: cover;
-}
-
-.shared-content-placeholder {
-  display: grid;
-  place-items: center;
-  background: #dce9e3;
-  color: var(--green);
-  font-size: 44px;
-  font-weight: 900;
-}
-
-.shared-content-copy {
-  position: relative;
-  display: grid;
-  align-content: center;
-  gap: 9px;
-  padding: 24px 150px 24px 28px;
-  min-width: 0;
-}
-
-.shared-content-copy > strong {
-  overflow: hidden;
-  font-size: 23px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.shared-content-copy > span:not(.shared-content-meta) {
-  overflow: hidden;
-  color: var(--muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.shared-content-meta {
-  display: flex;
-  gap: 12px;
-  color: var(--muted);
-}
-
 .analysis-badge {
   position: absolute;
   top: 24px;
@@ -804,62 +702,7 @@ main > .top-nav {
   color: #805c12;
 }
 
-.shared-contents-state {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  padding: 70px 24px;
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background: #fff;
-  color: var(--muted);
-  text-align: center;
-}
-
-.shared-contents-state strong {
-  color: var(--ink);
-  font-size: 22px;
-}
-
-.shared-contents-state a {
-  margin-top: 8px;
-  color: var(--green);
-  font-weight: 800;
-}
-
 @media (max-width: 700px) {
-  .shared-contents-shell {
-    width: min(100% - 28px, 1180px);
-  }
-
-  .shared-contents-header {
-    padding: 44px 0 28px;
-  }
-
-  .shared-content-card {
-    grid-template-columns: 104px minmax(0, 1fr);
-    min-height: 130px;
-    border-radius: 16px;
-  }
-
-  .shared-content-card > img,
-  .shared-content-placeholder {
-    min-height: 130px;
-  }
-
-  .shared-content-copy {
-    gap: 6px;
-    padding: 18px 16px;
-  }
-
-  .shared-content-copy > strong {
-    font-size: 18px;
-  }
-
-  .shared-content-meta small,
-  .shared-content-copy > span:not(.shared-content-meta) {
-    font-size: 13px;
-  }
 
   .analysis-badge {
     position: static;
@@ -1482,14 +1325,6 @@ main > .top-nav {
 .map-empty-state {
   width: min(100%, 1100px);
   margin: 0 auto;
-}
-
-.saved-map {
-  overflow: hidden;
-  border: 1px solid #d8ded9;
-  border-radius: 20px;
-  background: #dceee6;
-  box-shadow: 0 18px 44px rgb(30 77 60 / 10%);
 }
 
 .kakao-map {
@@ -4956,23 +4791,6 @@ main > .top-nav {
     grid-template-columns: 1fr;
   }
 }
-.notification-shortcut {
-  position: fixed;
-  z-index: 80;
-  top: 24px;
-  right: 28px;
-  width: 48px;
-  height: 48px;
-  border: 1px solid #cbd8d1;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.94);
-  color: #245943;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 10px 28px rgba(26, 58, 45, 0.12);
-  text-decoration: none;
-  font-size: 25px;
-}
 
 .timeline-draggable {
   -webkit-user-select: none;
@@ -5071,20 +4889,6 @@ main > .top-nav {
 .place-source-section b {
   color: #315f49;
 }
-.notification-shortcut strong {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 21px;
-  height: 21px;
-  padding: 0 5px;
-  border-radius: 11px;
-  background: #b45c43;
-  color: white;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-}
 .notification-page { max-width: 1040px; margin: 0 auto; padding: 28px 32px 120px; }
 .notification-header { display: flex; align-items: end; justify-content: space-between; margin: 80px 0 28px; }
 .notification-header h1 { margin: 8px 0 0; font-size: clamp(42px, 7vw, 72px); }
@@ -5101,50 +4905,11 @@ main > .top-nav {
 .notification-list small, .notification-list time { color: #687b72; font-size: 14px; }
 .notification-empty { border: 1px dashed #c8d5ce; border-radius: 18px; padding: 64px 24px; text-align: center; color: #687b72; }
 
-.shared-content-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 14px;
-  color: #687b72;
-}
-
-.shared-content-toolbar button {
-  min-height: 38px;
-  padding: 0 14px;
-  border: 1px solid rgba(217, 45, 32, .22);
-  border-radius: 11px;
-  color: #c9342b;
-  background: rgba(255, 255, 255, .78);
-  font-size: .84rem;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.shared-content-toolbar button:hover {
-  background: #fff0ee;
-}
 .shared-content-more { display: block; min-width: 180px; margin: 26px auto 0; padding: 13px 22px; border: 1px solid #aec3b8; border-radius: 999px; background: #fff; color: #245943; font-weight: 800; }
 @media (max-width: 720px) {
-  .notification-shortcut { top: 14px; right: 16px; width: 43px; height: 43px; }
   .notification-page { padding: 20px 18px 110px; }
   .notification-header { margin-top: 58px; }
   .notification-header { align-items: flex-start; gap: 18px; flex-direction: column; }
   .notification-list button { grid-template-columns: 8px 1fr; }
   .notification-list time { grid-column: 2; }
 }
-.shared-content-card-wrap { position: relative; }
-.shared-content-card-wrap .shared-content-card { height: 100%; }
-.shared-content-delete {
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
-  z-index: 2;
-  border: 1px solid #d8b8ae;
-  border-radius: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.94);
-  color: #9a412d;
-}
-.shared-content-delete:disabled { opacity: 0.4; cursor: not-allowed; }
